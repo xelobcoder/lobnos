@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Row, Col, Button, Form, Alert, Card, Badge } from 'react-bootstrap';
-import { RiShieldLine, RiLockLine, RiKeyLine, RiDeleteBinLine, RiRefreshLine, RiSaveLine, RiShieldCrossFill, RiHomeLine, RiFolderLine } from '@remixicon/react';
+import { RiShieldLine, RiLockLine, RiKeyLine, RiDeleteBinLine, RiRefreshLine, RiSaveLine, RiShieldCrossFill, RiHomeLine, RiFolderLine, RiArrowLeftLine } from '@remixicon/react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
+import themeContrast from '../../../../styles/theme-contrast.module.css';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 import { customPost, customFetch } from '../../../../components/Auth/customFetch';
 import { roleAllowed } from '../../../../components/Auth/roles';
+import styles from './page.module.css';
 
 type EncryptionAlgorithm = 'AES-128' | 'AES-256' | 'ChaCha20';
 
@@ -63,6 +65,37 @@ function formatRotationDate(value?: string | null): string {
 
 export default function BackupSecurityPage() {
      const { user } = useApplicationSettings().applicationsettings;
+
+     if (!user || !roleAllowed(user.role, ['admin'])) {
+          return (
+               <div className={`min-vh-100 d-flex flex-column ${themeContrast.controls}`}>
+                    <div className="flex-grow-1 d-flex align-items-center justify-content-center bg-body-tertiary">
+                         <div className="text-center p-4 bg-body rounded shadow-sm mx-auto" style={{ maxWidth: '400px' }}>
+                              <div className="text-danger mb-4">
+                                   <RiShieldCrossFill size={64} className="mx-auto" />
+                              </div>
+                              <h1 className="display-4 fw-bold text-danger mb-4">401</h1>
+                              <h2 className="h4 fw-semibold text-body mb-4">Unauthorized Access</h2>
+                              <p className="text-muted mb-4">
+                                   Sorry, you don&apos;t have permission to access this page. Please contact your administrator if you believe this is a mistake.
+                              </p>
+                              <Link
+                                   href="/"
+                                   className="btn btn-primary d-inline-flex align-items-center gap-2"
+                              >
+                                   <RiHomeLine />
+                                   Return to Home
+                              </Link>
+                         </div>
+                    </div>
+               </div>
+          );
+     }
+
+     return <BackupSecuritySettings key={user.employeeid} employeeId={user.employeeid} />;
+}
+
+function BackupSecuritySettings({ employeeId }: { employeeId?: number | string | null }) {
 
      // State variables
      const [encryptionEnabled, setEncryptionEnabled] = useState(true);
@@ -129,42 +162,8 @@ export default function BackupSecurityPage() {
           return Object.keys(nextErrors).length === 0;
      };
 
-     // Load security settings on component mount
-     useEffect(() => {
-          loadSecuritySettings();
-     }, []);
-
-     // Admin access control
-     if (!user || !roleAllowed(user.role, ['admin'])) {
-          return (
-               <div className="min-vh-100 d-flex flex-column">
-                    <div className="flex-grow-1 d-flex align-items-center justify-content-center bg-light">
-                         <div className="text-center p-4 bg-white rounded shadow-sm mx-auto" style={{ maxWidth: '400px' }}>
-                              <div className="text-danger mb-4">
-                                   <RiShieldCrossFill size={64} className="mx-auto" />
-                              </div>
-                              <h1 className="display-4 fw-bold text-danger mb-4">401</h1>
-                              <h2 className="h4 fw-semibold text-dark mb-4">Unauthorized Access</h2>
-                              <p className="text-muted mb-4">
-                                   Sorry, you don&apos;t have permission to access this page. Please contact your administrator if you believe this is a mistake.
-                              </p>
-                              <Link
-                                   href="/"
-                                   className="btn btn-primary d-inline-flex align-items-center gap-2"
-                              >
-                                   <RiHomeLine />
-                                   Return to Home
-                              </Link>
-                         </div>
-                    </div>
-               </div>
-          );
-     }
-
-     const loadSecuritySettings = async () => {
-          try {
-               setLoading(true);
-               const response = await customFetch(`security-features/backup/security-settings`);
+     const loadSecuritySettings = useCallback(() => {
+          return customFetch(`security-features/backup/security-settings`).then((response) => {
                if (response.status && response.encryption_required) {
                     setEncryptionRequired(true);
                     setEncryptionEnabled(true);
@@ -189,18 +188,22 @@ export default function BackupSecurityPage() {
                } else {
                     toast.error('Failed to load security settings');
                }
-          } catch (_error) {
+          }).catch(() => {
                toast.error('Failed to load security settings');
-          } finally {
+          }).finally(() => {
                setLoading(false);
-          }
-     };
+          });
+     }, []);
+
+     useEffect(() => {
+          loadSecuritySettings();
+     }, [loadSecuritySettings]);
 
      const handleRotateKey = async () => {
           try {
                setRotating(true);
                const payload = {
-                    createdBy: user?.employeeid || 'admin'
+                    createdBy: employeeId || 'admin'
                };
 
                const response = await customPost(`security-features/backup/rotate-key`, 'POST', payload);
@@ -209,6 +212,7 @@ export default function BackupSecurityPage() {
                     setKeyLastRotated(new Date().toISOString().split('T')[0]);
                     toast.success('Encryption key rotated successfully!');
                     // Reload settings to get updated data
+                    setLoading(true);
                     await loadSecuritySettings();
                } else {
                     toast.error(response.error || 'Failed to rotate encryption key');
@@ -273,7 +277,7 @@ export default function BackupSecurityPage() {
      };
 
      return (
-          <div className="container-fluid p-4">
+          <div className={`${styles.page} ${themeContrast.controls}`}>
                {loading && (
                     <div className="text-center py-5">
                          <div className="spinner-border text-primary" role="status">
@@ -285,38 +289,41 @@ export default function BackupSecurityPage() {
 
                {!loading && (
                     <>
-                         <div className="d-flex align-items-center justify-content-between mb-4">
-                              <div className="d-flex align-items-center gap-3">
-                                   <div>
-                                        <div className="d-flex align-items-center gap-2 mb-1">
-                                             <h4 className="mb-0">Backup Security Settings</h4>
+                         <Link href="/settings/records/data-backup-restore" className={styles.backLink}>
+                              <RiArrowLeftLine size={16} aria-hidden="true" /> Backup &amp; restore
+                         </Link>
+                         <div className={styles.header}>
+                              <div>
+                                        <span className={styles.eyebrow}>Records &amp; recovery</span>
+                                        <div className={styles.titleRow}>
+                                             <h1>Backup security</h1>
                                              <Badge bg={isActive ? 'success' : 'secondary'}>{isActive ? 'Active' : 'Inactive'}</Badge>
                                         </div>
-                                        <p className="text-muted mb-0 fs-6">Configure encryption, access controls, and security policies for backups</p>
-                                   </div>
+                                        <p className={styles.subtitle}>Protect your backups, manage encryption keys, and choose how files are stored and deleted.</p>
                               </div>
-                              <Button variant="primary" size="sm" onClick={handleSaveSettings} disabled={saving || loading}>
-                                   <RiSaveLine size={16} className="me-2" />
+                              <Button variant="primary" className={styles.saveButton} onClick={handleSaveSettings} disabled={saving || rotating || loading}>
+                                   <RiSaveLine size={18} className="me-2" aria-hidden="true" />
                                    {saving ? 'Saving...' : 'Save Settings'}
                               </Button>
                          </div>
 
-                         <Alert variant="warning" className="mb-4">
-                              <div className="d-flex align-items-start gap-3">
-                                   <RiShieldLine size={20} className="text-warning mt-1" />
-                                   <div className="small">
-                                        <strong>Security Notice:</strong> These settings control the security of your backup files. Changes may affect data accessibility and compliance requirements. Ensure you understand the implications before modifying these settings.
-                                   </div>
-                              </div>
-                         </Alert>
-
-                         <Row className="g-4">
-                              <Col lg={12}>
+                         <dl className={styles.overview} aria-label="Backup security configuration overview">
+                              <div><dt>Backup encryption</dt><dd>{encryptionEnabled ? 'AES-256-GCM' : 'Off'}<small>{encryptionRequired ? 'Required by the server' : 'Optional encryption policy'}</small></dd></div>
+                              <div><dt>Rotation policy</dt><dd>{keyRotationDays} <span>days</span><small>Configured key rotation interval</small></dd></div>
+                              <div><dt>Last key rotation</dt><dd>{keyLastRotated}<small>Current encryption key history</small></dd></div>
+                              <div><dt>Secure deletion</dt><dd>{secureDeletionEnabled ? `${deletionPasses} ${deletionPasses === 1 ? 'pass' : 'passes'}` : 'Off'}<small>{secureDeletionEnabled ? 'Overwrite policy enabled' : 'Overwrite policy disabled'}</small></dd></div>
+                         </dl>
+                         <div className={styles.notice} role="note">
+                              <RiShieldLine size={20} aria-hidden="true" />
+                              <p><strong>Before making changes</strong> Keep recovery keys available. Encryption and storage changes can affect access to your backup files.</p>
+                         </div>
+                         <fieldset className={styles.settings} disabled={saving || rotating}>
+                         <div className={styles.grid}>
                                    {/* Encryption Configuration */}
-                                   <div className="border bg-white border-secondary-subtle mx-2 p-3 mb-4">
-                                        <div className="d-flex align-items-center gap-2 mb-3">
-                                             <RiLockLine size={20} className="text-primary" />
-                                             <h5 className="mb-0">Encryption Configuration</h5>
+                                   <section className={styles.panel} aria-labelledby="backup-encryption-heading">
+                                        <div className={styles.panelHeading}>
+                                             <span className={styles.sectionIcon}><RiLockLine size={20} aria-hidden="true" /></span>
+                                             <div><h2 id="backup-encryption-heading">Encryption</h2><p>Protect the contents of new backup files.</p></div>
                                         </div>
 
                                         <Form>
@@ -330,7 +337,7 @@ export default function BackupSecurityPage() {
                                                        onChange={(e) => setEncryptionEnabled(e.target.checked)}
                                                   />
                                                   <Form.Text className="text-muted">
-                                                       {encryptionRequired ? 'Encryption is required by the server. Keys are managed securely on the host. A settings password is optional.' : 'Encrypt all backup files to protect sensitive medical data'}
+                                                       {encryptionRequired ? 'Required by the server. Keys are managed securely on the host; a settings password is optional.' : 'Encrypt backup files to protect sensitive medical data.'}
                                                   </Form.Text>
                                              </Form.Group>
 
@@ -339,16 +346,17 @@ export default function BackupSecurityPage() {
                                                        <Row className="mb-3">
                                                             <Col md={6}>
                                                                  <Form.Group>
-                                                                      <Form.Label>Encryption Algorithm</Form.Label>
-                                                                      <Form.Control value="AES-256-GCM" readOnly />
+                                                                      <Form.Label htmlFor="backup-encryption-algorithm">Encryption Algorithm</Form.Label>
+                                                                      <Form.Control value="AES-256-GCM" readOnly id="backup-encryption-algorithm" />
                                                                       <Form.Text>Authenticated encryption for new backups. Existing backups remain readable.</Form.Text>
                                                                  </Form.Group>
                                                             </Col>
                                                             <Col md={6}>
                                                                  <Form.Group>
-                                                                      <Form.Label>Key Rotation Period (Days)</Form.Label>
+                                                                      <Form.Label htmlFor="backup-key-rotation-days">Key Rotation Period (Days)</Form.Label>
                                                                       <Form.Control
                                                                            type="number"
+                                                                           id="backup-key-rotation-days"
                                                                            value={keyRotationDays}
                                                                            onChange={(e) => setKeyRotationDays(Number(e.target.value))}
                                                                            min="30"
@@ -359,13 +367,16 @@ export default function BackupSecurityPage() {
                                                                  </Form.Group>
                                                             </Col>
                                                        </Row>
-                                                       <Row className="mb-3">
+                                                       <details className={styles.passwordOptions} open={!encryptionRequired}>
+                                                       <summary>{encryptionRequired ? 'Optional backup password' : 'Set a backup password'}<span>{encryptionRequired ? 'Host-managed keys do not require a settings password.' : 'A matching password is required when encryption is enabled.'}</span></summary>
+                                                       <Row className="g-3">
                                                             <Col md={6}>
                                                                  <Form.Group>
-                                                                      <Form.Label>Encryption Password</Form.Label>
+                                                                      <Form.Label htmlFor="backup-encryption-password">Encryption Password</Form.Label>
                                                                       <div className="input-group">
                                                                            <Form.Control
                                                                                 type={showEncryptionPassword ? 'text' : 'password'}
+                                                                                id="backup-encryption-password"
                                                                                 autoComplete="new-password"
                                                                                 value={encryptionPassword}
                                                                                 onChange={(e) => setEncryptionPassword(e.target.value)}
@@ -373,6 +384,8 @@ export default function BackupSecurityPage() {
                                                                            />
                                                                            <Button
                                                                                 variant="outline-secondary"
+                                                                                aria-label={showEncryptionPassword ? 'Hide encryption password' : 'Show encryption password'}
+                                                                                aria-pressed={showEncryptionPassword}
                                                                                 onClick={() => setShowEncryptionPassword((prev) => !prev)}
                                                                            >
                                                                                 {showEncryptionPassword ? 'Hide' : 'Show'}
@@ -383,10 +396,11 @@ export default function BackupSecurityPage() {
                                                             </Col>
                                                             <Col md={6}>
                                                                  <Form.Group>
-                                                                      <Form.Label>Confirm Encryption Password</Form.Label>
+                                                                      <Form.Label htmlFor="backup-confirm-password">Confirm Encryption Password</Form.Label>
                                                                       <div className="input-group">
                                                                            <Form.Control
                                                                                 type={showConfirmPassword ? 'text' : 'password'}
+                                                                                id="backup-confirm-password"
                                                                                 autoComplete="new-password"
                                                                                 value={confirmPassword}
                                                                                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -394,6 +408,8 @@ export default function BackupSecurityPage() {
                                                                            />
                                                                            <Button
                                                                                 variant="outline-secondary"
+                                                                                aria-label={showConfirmPassword ? 'Hide password confirmation' : 'Show password confirmation'}
+                                                                                aria-pressed={showConfirmPassword}
                                                                                 onClick={() => setShowConfirmPassword((prev) => !prev)}
                                                                            >
                                                                                 {showConfirmPassword ? 'Hide' : 'Show'}
@@ -403,59 +419,61 @@ export default function BackupSecurityPage() {
                                                                  </Form.Group>
                                                             </Col>
                                                        </Row>
+                                                       </details>
                                                        <Form.Text className="text-muted">
-                                                            Automatically rotate encryption keys every {keyRotationDays} days for enhanced security
+                                                            Rotation policy: {keyRotationDays} days. Use key management to rotate the current key.
                                                        </Form.Text>
                                                   </>
                                              )}
                                         </Form>
-                                   </div>
+                                   </section>
 
                                    {/* Key Management */}
-                                   <div className="border bg-white border-secondary-subtle mx-2 p-3 mb-4">
-                                        <div className="d-flex align-items-center gap-2 mb-3">
-                                             <RiKeyLine size={20} className="text-success" />
-                                             <h5 className="mb-0">Key Management</h5>
+                                   <section className={styles.panel} aria-labelledby="backup-key-heading">
+                                        <div className={styles.panelHeading}>
+                                             <span className={styles.sectionIcon}><RiKeyLine size={20} aria-hidden="true" /></span>
+                                             <div><h2 id="backup-key-heading">Key management</h2><p>Review the current key and rotate when needed.</p></div>
                                         </div>
 
-                                        <Card className="bg-light">
+                                        <Card className={`bg-body-tertiary ${styles.keyDetails}`}>
                                              <Card.Body>
                                                   <Row className="mb-3">
                                                        <Col md={6}>
                                                             <strong>Current Key ID:</strong>
-                                                            <div className="text-monospace font-monospace bg-white p-2 rounded border mt-1">{currentKeyId}</div>
+                                                            <div className="text-monospace font-monospace bg-body p-2 rounded border mt-1">{currentKeyId}</div>
                                                        </Col>
                                                        <Col md={6}>
                                                             <strong>Last Rotated:</strong>
-                                                            <div className="bg-white p-2 rounded border mt-1">{keyLastRotated}</div>
+                                                            <div className="bg-body p-2 rounded border mt-1">{keyLastRotated}</div>
                                                        </Col>
                                                   </Row>
-                                                  <div className="d-flex justify-content-between align-items-center">
+                                                  <div className={styles.keyActions}>
                                                        <small className="text-muted">
                                                             Key rotation ensures ongoing security by regularly changing encryption keys
                                                        </small>
-                                                       <Button variant="outline-primary" size="sm" onClick={handleRotateKey} disabled={rotating}>
+                                                       <Button variant="outline-primary" onClick={handleRotateKey} disabled={rotating || saving}>
                                                             <RiRefreshLine size={14} className="me-1" />
                                                             {rotating ? 'Rotating...' : 'Rotate Key Now'}
                                                        </Button>
                                                   </div>
                                              </Card.Body>
                                         </Card>
-                                   </div>
+                                   </section>
 
                                    {/* Storage Configuration */}
-                                   <div className="border bg-white border-secondary-subtle mx-2 p-3 mb-4">
-                                        <div className="d-flex align-items-center gap-2 mb-3">
-                                             <RiFolderLine size={20} className="text-info" />
-                                             <h5 className="mb-0">Storage Configuration</h5>
+                                   <section className={styles.panel} aria-labelledby="backup-storage-heading">
+                                        <div className={styles.panelHeading}>
+                                             <span className={styles.sectionIcon}><RiFolderLine size={20} aria-hidden="true" /></span>
+                                             <div><h2 id="backup-storage-heading">Backup storage</h2><p>Choose where this server stores backup files.</p></div>
                                         </div>
 
                                         <Form.Group className="mb-3">
-                                             <Form.Label>Backup Storage Path</Form.Label>
-                                             <div className="d-flex gap-2 mb-3">
-                                                  <div className="flex-grow-1">
+                                             <Form.Label htmlFor="backup-storage-path">Backup Storage Path</Form.Label>
+                                             <div className={styles.pathControl}>
+                                                  <div>
                                                        <Form.Control
                                                             type="text"
+                                                            id="backup-storage-path"
                                                             value={storagePath}
                                                             onChange={(e) => {
                                                                  setStoragePath(e.target.value);
@@ -471,7 +489,6 @@ export default function BackupSecurityPage() {
                                                   </div>
                                                   <Button
                                                        variant="outline-secondary"
-                                                       size="sm"
                                                        onClick={() => {
                                                             if (validateStoragePath(storagePath)) {
                                                                  toast.success('Storage path format is valid');
@@ -487,18 +504,18 @@ export default function BackupSecurityPage() {
                                              </Form.Text>
                                         </Form.Group>
 
-                                        <Alert variant="info">
+                                        <Alert variant="info" className={styles.storageNote}>
                                              <small>
-                                                  <strong>Path Requirements:</strong> Ensure the specified directory exists and the application has write permissions. Use forward slashes (/) on Linux/Unix systems and backslashes (\) on Windows.
+                                                  <strong>Server directory</strong> The directory must exist and be writable by the application. Validate checks the path format, not directory access.
                                              </small>
                                         </Alert>
-                                   </div>
+                                   </section>
 
                                    {/* Secure Deletion */}
-                                   <div className="border bg-white border-secondary-subtle mx-2 p-3">
-                                        <div className="d-flex align-items-center gap-2 mb-3">
-                                             <RiDeleteBinLine size={20} className="text-danger" />
-                                             <h5 className="mb-0">Secure Deletion</h5>
+                                   <section className={styles.panel} aria-labelledby="backup-deletion-heading">
+                                        <div className={styles.panelHeading}>
+                                             <span className={styles.sectionIcon}><RiDeleteBinLine size={20} aria-hidden="true" /></span>
+                                             <div><h2 id="backup-deletion-heading">Secure deletion</h2><p>Control overwriting when backup files are deleted.</p></div>
                                         </div>
 
                                         <Form.Group className="mb-3">
@@ -515,28 +532,29 @@ export default function BackupSecurityPage() {
                                         </Form.Group>
 
                                         {secureDeletionEnabled && (
-                                             <Card className="bg-light">
+                                             <Card className="bg-body-tertiary">
                                                   <Card.Body>
                                                        <Form.Group className="mb-3">
-                                                            <Form.Label>Deletion Security Level</Form.Label>
-                                                            <Form.Select value={deletionPasses} onChange={(e) => setDeletionPasses(Number(e.target.value))}>
-                                                                 <option value="1">1 Pass - Fast (Basic security)</option>
-                                                                 <option value="3">3 Passes - Standard (Good security)</option>
-                                                                 <option value="7">7 Passes - Enhanced (High security)</option>
-                                                                 <option value="35">35 Passes - Military Grade (Maximum security)</option>
+                                                            <Form.Label htmlFor="backup-deletion-passes">Deletion Security Level</Form.Label>
+                                                            <Form.Select id="backup-deletion-passes" value={deletionPasses} onChange={(e) => setDeletionPasses(Number(e.target.value))}>
+                                                                 <option value="1">1 pass - fastest</option>
+                                                                 <option value="3">3 passes - standard</option>
+                                                                 <option value="7">7 passes - extended</option>
+                                                                 <option value="35">35 passes - slowest</option>
                                                             </Form.Select>
                                                        </Form.Group>
                                                        <Alert variant="info" className="mb-0">
                                                             <small>
-                                                                 <strong>Note:</strong> Higher security levels take longer to delete files but provide better protection against data recovery attempts.
+                                                                 More passes take longer. The effectiveness of overwriting depends on the storage hardware.
                                                             </small>
                                                        </Alert>
                                                   </Card.Body>
                                              </Card>
                                         )}
-                                   </div>
-                              </Col>
-                         </Row>
+                                   </section>
+                         </div>
+                         </fieldset>
+                         <div className={styles.footer}><p>Settings apply to this server&apos;s backup policy.</p><Button variant="primary" onClick={handleSaveSettings} disabled={saving || rotating}><RiSaveLine size={18} className="me-2" aria-hidden="true" />{saving ? 'Saving...' : 'Save Settings'}</Button></div>
                     </>
                )}
           </div>

@@ -1,7 +1,6 @@
-import {assertBackendTransport} from '../../../../lib/serverBackendRequest';
 import {NextRequest,NextResponse} from 'next/server';
 import {getServerRequestContext as getRequestContext} from '../../../../lib/serverRequestContext';
-import {getBackendAuthorization} from '../../../../lib/serverBackendAccess';
+import {getBackendAuthorization, assertBackendTransport} from '../../../../lib/serverBackendAccess';
 import {POST as establishSession} from '../login/route';
 export async function POST(request:NextRequest){
  if(request.headers.get('origin')!==request.nextUrl.origin)return NextResponse.json({error:'Invalid request origin'},{status:403});

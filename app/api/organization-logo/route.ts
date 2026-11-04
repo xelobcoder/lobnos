@@ -1,7 +1,6 @@
-import {assertBackendTransport} from '../../../lib/serverBackendRequest';
 import {NextRequest, NextResponse} from 'next/server';
 import {getServerRequestContext as getRequestContext} from '../../../lib/serverRequestContext';
-import {getBackendAuthorization} from '../../../lib/serverBackendAccess';
+import {getBackendAuthorization, assertBackendTransport} from '../../../lib/serverBackendAccess';
 export const runtime = 'nodejs';
 export async function GET(request: NextRequest) {
     const id = Number(request.nextUrl.searchParams.get('id'));

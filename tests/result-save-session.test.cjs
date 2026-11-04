@@ -99,3 +99,24 @@ test('laboratory editor double click during PIN and network failure sends one re
     assert.equal(sent[1].request_id, sent[0].request_id);
     assert.equal(modalStates.includes(true), false, 'a stale replay must not open local result validation');
 });
+
+
+test('completed-result entry controls honor the persisted unpaid-entry setting independently of printing', () => {
+    const source = fs.readFileSync(path.join(__dirname, '../components/operations/Laboratory/CompletedStageTable.jsx'), 'utf8');
+    const ast = ts.createSourceFile('CompletedStageTable.jsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JSX);
+    let expression;
+    function visit(node) {
+        if (ts.isVariableDeclaration(node) && node.name.getText(ast) === 'allowResultEnteringUpaid') expression = node.initializer.getText(ast);
+        ts.forEachChild(node, visit);
+    }
+    visit(ast);
+    assert.ok(expression);
+    const script = ts.transpileModule(`(${expression})`, { compilerOptions: { target: ts.ScriptTarget.ES2020 } }).outputText;
+    for (const flag of [undefined, null, 0, '0', false]) {
+        assert.equal(vm.runInNewContext(script, { appsettings: { allowResultEnteringUpaid: flag, allowPrintingUnpaid: 1 } }), false);
+    }
+    for (const flag of [1, '1', true]) {
+        assert.equal(vm.runInNewContext(script, { appsettings: { allowResultEnteringUpaid: flag, allowPrintingUnpaid: 0 } }), true);
+    }
+    assert.equal(vm.runInNewContext(script, { appsettings: undefined }), false);
+});

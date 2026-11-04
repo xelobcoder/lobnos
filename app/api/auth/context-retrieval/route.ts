@@ -1,7 +1,6 @@
-import {assertBackendTransport} from '../../../../lib/serverBackendRequest';
 import { NextRequest, NextResponse } from 'next/server';
 import {getServerRequestContext as getRequestContext} from '../../../../lib/serverRequestContext';
-import { getBackendAuthorization } from '../../../../lib/serverBackendAccess';
+import {getBackendAuthorization, assertBackendTransport} from '../../../../lib/serverBackendAccess';
 
 // Expire both frontend and backend credentials before returning an auth rejection.
 // A frontend JWT can remain valid after the backend session was replaced elsewhere.

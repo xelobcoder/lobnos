@@ -7,6 +7,7 @@ import { customFetch, customPost } from '../../../../components/Auth/customFetch
 import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
 import { toast } from 'react-toastify';
 import { useApplication } from '../../../../components/Auth/useApplicationContext';
+import themeContrast from '../../../../styles/theme-contrast.module.css';
 
 interface Employee {
      employeeid: number;
@@ -276,7 +277,7 @@ export default function ResultAccessibleSettingsPage() {
 
      return (
           <>
-               <div className="container-fluid p-4">
+               <div className={`container-fluid p-4 ${themeContrast.controls}`}>
                     <div className="d-flex align-items-center justify-content-between mb-4">
                          <div>
                               <h2 className="mb-1 h5">Staff Result Access Permissions</h2>
@@ -296,7 +297,7 @@ export default function ResultAccessibleSettingsPage() {
 
                     <Alert variant="warning" className="mb-4">
                          <div className="d-flex align-items-start gap-3">
-                              <RiShieldCheckLine size={20} className="text-warning mt-1" />
+                              <RiShieldCheckLine size={20} className="text-warning-emphasis mt-1" />
                               <div className="small">
                                    <strong>Quality Control:</strong> These settings ensure result integrity by limiting
                                    unauthorized access after initial approval. Changes affect laboratory workflows and compliance.
@@ -324,7 +325,7 @@ export default function ResultAccessibleSettingsPage() {
                               <Modal.Title className="h6">{editingId ? 'Edit' : 'Add'} Individual Employee Access</Modal.Title>
                          </Modal.Header>
                          <Modal.Body>
-                              {employeeLoading&&<p role="status">Loading employee settings...</p>}{employeeError&&<p role="alert" className="text-danger">{employeeError}</p>}<Form>
+                              {employeeLoading&&<p role="status">Loading employee settings...</p>}{employeeError&&<p role="alert" className="text-danger-emphasis">{employeeError}</p>}<Form>
                                    <Form.Group className="mb-3">
                                         <Form.Label>Select Employee</Form.Label>
                                         <Form.Select

@@ -1,3 +1,4 @@
+const loadBackendTransport = require('./helpers/backend-transport.cjs');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -12,7 +13,7 @@ function handler(body, status = 200) {
         exports, URL, Response, console: { error() {} }, process: { env: { DEVELOPMENT_BASEURL: 'http://backend/api/v1/', NODE_ENV: 'development' } },
         require(name) {
             if (name.endsWith('serverRequestContext')) return { getServerRequestContext: async () => ({ PLS_SESSION: 'synthetic', PLS_PRIME_TENANT_SESSION: 'synthetic-tenant', tenantId: 42 }) };
-            if (name.endsWith('serverBackendAccess')) return { getBackendAuthorization: () => '' };
+            if (name.endsWith('serverBackendAccess')) return { assertBackendTransport: loadBackendTransport(), getBackendAuthorization: () => '' };
             if (name === 'next/server') return { NextResponse: { json(body, options) {
                 const response = Response.json(body, options);
                 response.cookies = { set(name, value) { response.headers.append('Set-Cookie', `${name}=${value}; Path=/; Max-Age=0; HttpOnly`); } };

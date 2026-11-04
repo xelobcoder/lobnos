@@ -104,7 +104,7 @@ export default function BackupLogsTable({ backupLogs, onDownloadBackup, onDelete
      ];
 
      return (
-          <div className="border p-3  rounded bg-white mx-2 p-2 mb-4">
+          <div className="border p-3  rounded bg-body mx-2 p-2 mb-4">
                <div className="d-flex align-items-center gap-2 mb-3">
                     <RiDatabaseLine size={20} />
                     <h5 className="mb-0">Backup Logs</h5>

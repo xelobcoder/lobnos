@@ -70,18 +70,17 @@ async function run() {
     console.log(JSON.stringify({ stage: 'initial-accessibility-snapshot', nodes: ax.nodes.length }));
     await wait(500);
     assert.equal(await evaluate('window.nhisFixture.calls.length'), 4);
-    await evaluate(`document.querySelector('[aria-label="Select BILL-101"]').scrollIntoView({block:'center',inline:'nearest'})`);
+    await evaluate(`document.querySelector('[aria-label="Select BILL-101"]').scrollIntoView({block:'center',inline:'nearest',behavior:'instant'})`);
     await wait(200);
     const pointer = await evaluate(`(()=>{const r=document.querySelector('[aria-label="Select BILL-101"]').getBoundingClientRect();const x=r.x+r.width/2,y=r.y+r.height/2;return{x,y,width:innerWidth,height:innerHeight,target:document.elementFromPoint(x,y)?.getAttribute('aria-label')}})()`);
     assert.ok(pointer.x > 0 && pointer.x < pointer.width && pointer.y > 0 && pointer.y < pointer.height, 'Selection must be reachable inside the viewport');
     assert.equal(pointer.target, 'Select BILL-101', 'Selection must not be obscured by another element');
-    await evaluate(`(() => { window.__selectionEvents = []; const control = document.querySelector('[aria-label="Select BILL-101"]'); for (const type of ['mousedown', 'mouseup', 'click', 'input', 'change']) control.addEventListener(type, event => window.__selectionEvents.push({ type, checked: control.checked, prevented: event.defaultPrevented })); })()`);
     await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: pointer.x, y: pointer.y });
     await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: pointer.x, y: pointer.y, button: 'left', buttons: 1, clickCount: 1 });
     await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: pointer.x, y: pointer.y, button: 'left', buttons: 0, clickCount: 1 });
     await wait(200);
-    const selection = await evaluate(`({ checked: document.querySelector('[aria-label="Select BILL-101"]').checked, selectedText: document.body.innerText.includes('1 bill selected'), events: window.__selectionEvents })`);
-    assert.ok(selection.checked && selection.selectedText, `Selection did not update: ${JSON.stringify(selection)}`);
+    const selection = await evaluate(`({ checked: document.querySelector('[aria-label="Select BILL-101"]').checked, selectedText: document.body.innerText.includes('1 bill selected') })`);
+    assert.deepEqual(selection, { checked: true, selectedText: true });
     assert.equal(await evaluate('window.nhisFixture.calls.length'), 4);
     const selectedAx = await send('Accessibility.getFullAXTree');
     console.log(JSON.stringify({ stage: 'selection-and-accessibility-snapshot', calls: 4, nodes: selectedAx.nodes.length }));
@@ -118,6 +117,7 @@ async function run() {
             activityWidth: activity.parentElement.scrollWidth, activityClientWidth: activity.parentElement.clientWidth,
             reasonWidth: reason.scrollWidth, reasonClientWidth: reason.clientWidth,
             metricColumns: getComputedStyle(audit.querySelector('dl')).gridTemplateColumns.split(' ').length,
+            auditBackground: getComputedStyle(audit).backgroundColor,
             amounts: [...audit.querySelectorAll('dd')].map(item => item.textContent),
             rows: panel.querySelectorAll('table > tbody > tr').length,
             expanded: document.querySelector('#nhis-event-2-toggle').getAttribute('aria-expanded'),
@@ -128,6 +128,7 @@ async function run() {
     assert.ok(narrow.activityWidth <= narrow.activityClientWidth, 'Mobile activity must not overflow horizontally');
     assert.ok(narrow.reasonWidth <= narrow.reasonClientWidth, 'Long unbroken reasons must wrap');
     assert.equal(narrow.metricColumns, 1);
+    assert.equal(narrow.auditBackground, 'rgba(0, 0, 0, 0)', 'Service-period panel must not have a tinted background');
     assert.deepEqual(narrow.amounts, ['GH₵60.00', 'GH₵24.90', 'GH₵0.00']);
     assert.equal(narrow.rows, 2);
     assert.equal(narrow.expanded, 'true');
@@ -135,11 +136,16 @@ async function run() {
     const activityAx = await send('Accessibility.getFullAXTree');
     assert.ok(activityAx.nodes.some(node => node.role?.value === 'table' && node.name?.value === 'NHIS accounting activity'));
     assert.ok(activityAx.nodes.some(node => node.role?.value === 'region' && node.name?.value?.includes('SYNTH-PERIOD-8477')));
-    await evaluate(`document.querySelector('#nhis-event-2-toggle').focus()`);
-    for (const type of ['keyDown', 'keyUp']) await send('Input.dispatchKeyEvent', { type, key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, nativeVirtualKeyCode: 13 });
+    await evaluate(`document.querySelector('#nhis-event-2-toggle').focus({ preventScroll: true })`);
+    assert.equal(await evaluate(`document.activeElement.id`), 'nhis-event-2-toggle');
+    const pressEnter = async () => {
+        await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', text: '\r', unmodifiedText: '\r', windowsVirtualKeyCode: 13, nativeVirtualKeyCode: 13 });
+        await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, nativeVirtualKeyCode: 13 });
+    };
+    await pressEnter();
     await wait(100);
     assert.equal(await evaluate(`document.querySelector('#nhis-event-2-toggle').getAttribute('aria-expanded')`), 'false');
-    for (const type of ['keyDown', 'keyUp']) await send('Input.dispatchKeyEvent', { type, key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, nativeVirtualKeyCode: 13 });
+    await pressEnter();
     for (let n = 0; n < 60; n++) {
         await wait(100);
         if (await evaluate(`!!document.querySelector('#nhis-event-2-details table > tbody > tr')`)) break;
@@ -169,11 +175,14 @@ run().catch(error => { console.error(error.stack || error); process.exitCode = 1
     for (const request of pending.values()) { clearTimeout(request.timer); request.reject(new Error('Owned Chrome diagnostic closed')); }
     pending.clear();
     if (chrome) {
-        await Promise.race([new Promise(resolve => chrome.exitCode != null ? resolve() : chrome.once('exit', resolve)), wait(3000)]);
-        if (chrome.exitCode == null) {
+        const exited = () => chrome.exitCode != null || chrome.signalCode != null;
+        await Promise.race([new Promise(resolve => exited() ? resolve() : chrome.once('exit', resolve)), wait(3000)]);
+        if (!exited()) {
             await new Promise(resolve => spawn('powershell.exe', ['-NoProfile', '-Command', `Stop-Process -Id ${chrome.pid} -Force -ErrorAction SilentlyContinue`], { stdio: 'ignore' }).once('exit', resolve));
+            await Promise.race([new Promise(resolve => exited() ? resolve() : chrome.once('exit', resolve)), wait(5000)]);
+            if (!exited()) throw new Error('Owned Chrome diagnostic did not exit');
         }
     }
-    if (output) fs.rmSync(output, { recursive: true, force: true, maxRetries: 10, retryDelay: 300 });
-    if (profile) fs.rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 300 });
+    if (output) await fs.promises.rm(output, { recursive: true, force: true, maxRetries: 15, retryDelay: 500 });
+    if (profile) await fs.promises.rm(profile, { recursive: true, force: true, maxRetries: 15, retryDelay: 500 });
 });

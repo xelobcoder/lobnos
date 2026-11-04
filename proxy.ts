@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
-import {getBackendAuthorization} from './lib/serverBackendAccess';
+import {getBackendAuthorization, assertBackendTransport} from './lib/serverBackendAccess';
 import {canAccessRolePage,canAccessDepartmentRequisitions,isMasterPlatformPath,roleWorkspace} from './lib/roleNavigationPolicy';
 
 export interface UserPayload {
@@ -70,6 +70,7 @@ async function routeRequest(request: NextRequest) {
                 const url = new URL('prime/validate-token', base);
                 url.searchParams.set('tenantId', String(tenantId));
                 const authorization = getBackendAuthorization();
+                assertBackendTransport(url);
                 const validation = await fetch(url, {
                     headers: { ...(authorization ? { Authorization: authorization } : {}), 'pls-prime-tenant-session': tenantToken, 'pls-session': sessionToken },
                     cache: 'no-store',
@@ -120,6 +121,7 @@ async function routeRequest(request: NextRequest) {
                     const base=process.env.NODE_ENV==='development'?process.env.DEVELOPMENT_BASEURL:process.env.PRODUCTION_BASEURL;
                     if(!base)throw Error('Backend unavailable');
                     const url=new URL('inventory/department-stock/my-access',base);url.searchParams.set('tenantId',String(tenantId));
+                    assertBackendTransport(url);
                     const response=await fetch(url,{headers:{...(getBackendAuthorization()?{Authorization:getBackendAuthorization()!}:{}),'pls-prime-tenant-session':tenantToken,'pls-session':sessionToken!},cache:'no-store',signal:AbortSignal.timeout(5000)});
                     const access=await response.json();
                     if(response.ok&&access?.success&&Number(access.employeeid)===Number(user.employeeid)&&Number(access.tenantId)===tenantId&&Number(access.branchid)>0&&(user.branch==null||Number(access.branchid)===Number(user.branch))&&Array.isArray(access.data)&&access.data.some((grant:any)=>grant.department===department&&(grant.can_request===true||grant.can_receive===true||grant.can_consume===true)))return NextResponse.next();
@@ -136,6 +138,7 @@ async function routeRequest(request: NextRequest) {
                     if(!base)throw Error('Backend unavailable');
                     const url=new URL('testpanel/my-access',base);url.searchParams.set('tenantId',String(tenantId));
                     const authorization=getBackendAuthorization();
+                    assertBackendTransport(url);
                     const response=await fetch(url,{headers:{...(authorization?{Authorization:authorization}:{}),'pls-prime-tenant-session':tenantToken,'pls-session':sessionToken},cache:'no-store',signal:AbortSignal.timeout(5000)});
                     const access=await response.json();
                     if(response.ok&&access?.success&&access.can_manage===true&&Number(access.employeeid)===Number(user.employeeid)&&Number(access.tenantId)===tenantId&&Number(access.branchid)>0&&(user.branch==null||Number(access.branchid)===Number(user.branch))&&canAccessRolePage(role,currentPath,{...settings,testPanelsManagement:true}))return NextResponse.next();

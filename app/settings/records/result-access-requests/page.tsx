@@ -7,6 +7,7 @@ import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable
 import { customFetch, customPost } from '../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 import { toast } from 'react-toastify';
+import themeContrast from '../../../../styles/theme-contrast.module.css';
 interface AccessRequest {
      id: number;
      patientid: number;
@@ -61,7 +62,7 @@ export default function ResultAccessRequestsPage() {
      const getStatusBadge = (status: string) => {
           switch (status) {
                case 'pending':
-                    return <Badge bg="warning" className="px-1">Pending</Badge>;
+                    return <Badge bg="warning" text="dark" className="px-1">Pending</Badge>;
                case 'approved':
                case 'granted':
                     return <Badge bg="success" className="px-1">Approved</Badge>;
@@ -244,7 +245,7 @@ export default function ResultAccessRequestsPage() {
      };
 
      return (
-          <div className="container-fluid p-4">
+          <div className={`container-fluid p-4 ${themeContrast.controls}`}>
                <div className="d-flex align-items-center justify-content-between mb-4">
                     <div>
                          <h2 className="mb-1">Result Access & Edit Requests</h2>
@@ -258,7 +259,7 @@ export default function ResultAccessRequestsPage() {
 
                <Alert variant="info" className="mb-4">
                     <div className="d-flex align-items-start gap-3 text-sm">
-                         <RiShieldCheckLine size={20} className="text-info mt-1" />
+                         <RiShieldCheckLine size={20} className="text-info-emphasis mt-1" />
                          <div>
                               <strong>Approval Workflow:</strong> Requests are automatically generated when staff attempt to access or edit results outside their permitted window. Review carefully to maintain data integrity and compliance.
                          </div>
@@ -277,7 +278,7 @@ export default function ResultAccessRequestsPage() {
                     </Col>
                </Row>
 
-               <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+               <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" className={themeContrast.controls}>
                     <Modal.Header closeButton>
                          <Modal.Title>Request Details</Modal.Title>
                     </Modal.Header>

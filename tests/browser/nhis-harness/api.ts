@@ -25,15 +25,17 @@ if (query.has("audit")) {
     const many = query.has("many");
     const state = query.get("auditState");
     const received = many ? "27.00" : "60.00";
+    const billCount = many ? 27 : 2;
+    const settlement: NonNullable<NhisEvent["periodSettlement"]> = {
+        id: 2, from: "2026-01-01", to: "2026-01-31", billCount, remainingDisposition: "final",
+        received, remaining: "24.90", adjusted: "24.90", outstandingAfter: "0.00", remainingReason: "Synthetic approved adjustment",
+        adjustmentKind: "write_off", state: state === "reversed" || state === "partially_reversed" ? state : "applied",
+        totalsBasis: "at_posting_not_current_balance",
+    };
     events.push({
         id: 2, kind: "receipt", reference: "SYNTH-PERIOD-8477", reason: `Synthetic audit note: ${"J".repeat(180)}`,
-        event_date: "2026-02-10", amount: received, created_by: 1,
-        periodSettlement: {
-            id: 2, from: "2026-01-01", to: "2026-01-31", billCount: many ? 27 : 2, remainingDisposition: "final",
-            received, remaining: "24.90", adjusted: "24.90", outstandingAfter: "0.00", remainingReason: "Synthetic approved adjustment",
-            state: state === "reversed" || state === "partially_reversed" ? state : "applied", totalsBasis: "at_posting_not_current_balance",
-        },
-        allocations: Array.from({ length: many ? 27 : 2 }, (_, index) => ({
+        event_date: "2026-02-10", amount: received, created_by: 1, periodSettlement: settlement,
+        allocations: Array.from({ length: billCount }, (_, index) => ({
             id: 200 + index, event_id: 2, billingid: 65 + index, amount: many ? "1.00" : "30.00", tax_amount: "0.00",
         })),
     }, {
@@ -41,9 +43,16 @@ if (query.has("audit")) {
         reason: "Synthetic correction", event_date: "2026-02-10", amount: "-500000.00", created_by: 9,
         allocations: [{ id: 301, event_id: 3, billingid: 101, amount: "-300000.00", tax_amount: "0.00" },
             { id: 302, event_id: 3, billingid: 102, amount: "-200000.00", tax_amount: "0.00" }],
+    }, {
+        id: 4, kind: "write_off", reference: "SYNTH-ADJUSTMENT-8477", reason: "Synthetic approved adjustment",
+        event_date: "2026-02-10", amount: "24.90", created_by: 1, periodSettlement: settlement,
+        allocations: Array.from({ length: billCount }, (_, index) => ({
+            id: 400 + index, event_id: 4, billingid: 65 + index,
+            amount: decimal(Math.floor(2490 / billCount) + (index < 2490 % billCount ? 1 : 0)), tax_amount: "0.00",
+        })),
     });
     if (query.has("empty")) events.push({
-        id: 4, kind: "receipt", reference: "SYNTH-EMPTY", reason: "Synthetic empty history", event_date: "2026-02-10",
+        id: 5, kind: "receipt", reference: "SYNTH-EMPTY", reason: "Synthetic empty history", event_date: "2026-02-10",
         amount: "0.00", created_by: 9, allocations: [],
     });
 }

@@ -1,3 +1,4 @@
+const loadBackendTransport = require('./helpers/backend-transport.cjs');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),test=require('node:test'),ts=require('typescript');
 const root=path.resolve(__dirname,'..'),cache=new Map();
 let sessionUser={role:'scientist',employeeid:7,branch:1};
@@ -16,7 +17,7 @@ function load(file){
    if(name==='next/link')return {default:'Link',__esModule:true};
    if(name==='next/navigation')return {useSearchParams:()=>({get:()=>stockAccessQuery})};
    if(name.endsWith('/useApplicationContext'))return {useApplicationSettings:()=>({applicationsettings:{user:sessionUser,settings:{}}})};
-   if(name.includes('serverBackendAccess'))return {getBackendAuthorization:()=>undefined};
+   if(name.includes('serverBackendAccess'))return { assertBackendTransport: loadBackendTransport(), getBackendAuthorization:()=>undefined};
    if(name==='@remixicon/react')return new Proxy({},{get:()=>()=>null});
    if(name==='react')return {createElement:(type,props,...children)=>({type,props:{...props,children}})};
    if(!name.startsWith('.'))throw Error('Unexpected dependency '+name);

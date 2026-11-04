@@ -1,3 +1,4 @@
+const loadBackendTransport = require('./helpers/backend-transport.cjs');
 const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
 const path = require("node:path");
@@ -34,7 +35,7 @@ function createHandler(role, verified = true, settings = {}, tokenOverride) {
                 cookies: () => ({ set: (...args) => savedCookies.push(args) }),
             };
             if (name.endsWith("sessionCookies")) return {secureSessionCookies:()=>false};
-            if (name.endsWith("serverBackendAccess")) return { getBackendAuthorization: () => "Bearer test-service-token" };
+            if (name.endsWith("serverBackendAccess")) return { assertBackendTransport: loadBackendTransport(), getBackendAuthorization: () => "Bearer test-service-token" };
             if (name === "jose") return { SignJWT, jwtVerify: async () => ({}) };
             throw new Error(`Unexpected dependency: ${name}`);
         },

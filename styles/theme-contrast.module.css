@@ -1,0 +1,41 @@
+:global([data-bs-theme="dark"]) .controls :global(.btn-outline-primary) {
+     --theme-outline-color: var(--bs-primary-text-emphasis);
+}
+
+:global([data-bs-theme="dark"]) .controls :global(.btn-outline-secondary) {
+     --theme-outline-color: var(--bs-secondary-text-emphasis);
+}
+
+:global([data-bs-theme="dark"]) .controls :global(.btn-outline-success) {
+     --theme-outline-color: var(--bs-success-text-emphasis);
+}
+
+:global([data-bs-theme="dark"]) .controls :global(.btn-outline-danger) {
+     --theme-outline-color: var(--bs-danger-text-emphasis);
+}
+
+:global([data-bs-theme="dark"]) .controls :global(.btn-outline-warning) {
+     --theme-outline-color: var(--bs-warning-text-emphasis);
+}
+
+:global([data-bs-theme="dark"]) .controls :global(.btn-outline-info) {
+     --theme-outline-color: var(--bs-info-text-emphasis);
+}
+
+:global([data-bs-theme="dark"]) .controls :global(.btn-outline-primary),
+:global([data-bs-theme="dark"]) .controls :global(.btn-outline-secondary),
+:global([data-bs-theme="dark"]) .controls :global(.btn-outline-success),
+:global([data-bs-theme="dark"]) .controls :global(.btn-outline-danger),
+:global([data-bs-theme="dark"]) .controls :global(.btn-outline-warning),
+:global([data-bs-theme="dark"]) .controls :global(.btn-outline-info) {
+     --bs-btn-color: var(--theme-outline-color);
+     --bs-btn-border-color: var(--theme-outline-color);
+     --bs-btn-hover-color: var(--bs-body-bg);
+     --bs-btn-hover-bg: var(--theme-outline-color);
+     --bs-btn-hover-border-color: var(--theme-outline-color);
+     --bs-btn-active-color: var(--bs-body-bg);
+     --bs-btn-active-bg: var(--theme-outline-color);
+     --bs-btn-active-border-color: var(--theme-outline-color);
+     --bs-btn-disabled-color: var(--theme-outline-color);
+     --bs-btn-disabled-border-color: var(--theme-outline-color);
+}

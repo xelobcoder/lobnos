@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { currencyFormatter } from "../../../../components/Auth/customFetch";
 import DateFilterReusable from "../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 import styles from "./page.module.css";
+import themeContrast from "../../../../styles/theme-contrast.module.css";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
 import { accountingApi, ChartAccount, ManualJournalLine } from "../../../../lib/accounting/accountingApi";
 
@@ -91,7 +92,7 @@ export default function NewManualJournalPage() {
      };
 
      return (
-          <div className="container-fluid py-4">
+          <div className={`container-fluid py-4 ${themeContrast.controls}`}>
                <div className="mb-4">
                     <h4 className="mb-0">New Manual Journal</h4>
                     <small className="text-muted">Saved as a draft. It still needs to be submitted, approved and posted.</small>
@@ -133,7 +134,7 @@ export default function NewManualJournalPage() {
                </div>
 
                <div className="card shadow-sm mb-3">
-                    <div className="card-header bg-white d-flex justify-content-between align-items-center">
+                    <div className="card-header bg-body d-flex justify-content-between align-items-center">
                          <span className="fw-semibold">Lines</span>
                          <button
                               className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
@@ -145,7 +146,7 @@ export default function NewManualJournalPage() {
 
                     <div className="table-responsive">
                          <table className="table align-middle mb-0">
-                              <thead className="table-light">
+                              <thead className={styles.tableHead}>
                                    <tr>
                                         <th style={{ minWidth: 240 }}>Account</th>
                                         <th style={{ width: 140 }}>Direction</th>

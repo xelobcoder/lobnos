@@ -50,8 +50,8 @@ Useful browser scenarios:
   reversal controls. `?authorityError=1`, `?reportError=1` exercise visible errors;
   `?warnings=1` shows excluded mixed bills and legacy/reconciliation warnings.
   Each page reload resets only the synthetic in-memory books.
-- Query `?audit=1` adds a synthetic period settlement with a long unbroken reason
-  and a signed reversal. Add `&many=1` for 27 allocation rows or
+- Query `?audit=1` adds a synthetic period settlement with a linked adjustment,
+  a long unbroken reason and a signed reversal. Add `&many=1` for 27 allocation rows or
   `&auditState=reversed` / `&auditState=partially_reversed` to check status display;
   `&empty=1` adds an event with no bill allocations.
 

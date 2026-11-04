@@ -1,8 +1,7 @@
-import {assertBackendTransport} from '../../../../lib/serverBackendRequest';
 import {NextRequest, NextResponse} from 'next/server';
 import {cookies} from 'next/headers';
 import {getServerRequestContext} from '../../../../lib/serverRequestContext';
-import {getBackendAuthorization} from '../../../../lib/serverBackendAccess';
+import {getBackendAuthorization, assertBackendTransport} from '../../../../lib/serverBackendAccess';
 
 export async function POST(request: NextRequest) {
     const origin = request.headers.get('origin');

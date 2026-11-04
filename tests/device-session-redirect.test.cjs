@@ -1,3 +1,4 @@
+const loadBackendTransport = require('./helpers/backend-transport.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -35,17 +36,17 @@ test('logout renders without mounting the session-required workspace layout', ()
     }
 });
 
-function proxyFixture({ revoked = false, outage = false, missingBackend = false } = {}) {
+function proxyFixture({ revoked = false, outage = false, missingBackend = false, env = {} } = {}) {
     const exports = {}, calls = [];
     const payload = { user: { role: 'admin', employeeid: 7 }, tenantId: 2, settings: {} };
     const result = type => ({ type, headers: new Headers(), cleared: [], cookies: { delete(name) { this.names.push(name); }, names: [] } });
     vm.runInNewContext(compile('proxy.ts'), {
         exports, URL, TextEncoder, Headers, AbortSignal, console,
-        process: { env: { NODE_ENV: 'development', DEVELOPMENT_BASEURL: 'https://backend.test/api/v1/', JWT_SECRET_KEY: 'fixture' } },
+        process: { env: { NODE_ENV: 'development', DEVELOPMENT_BASEURL: 'https://backend.test/api/v1/', JWT_SECRET_KEY: 'fixture', ...env } },
         require(name) {
             if (name === 'next/server') return { NextResponse: { next: () => result('next'), redirect: url => ({ ...result('redirect'), location: url.pathname }) } };
             if (name === 'jose') return { jwtVerify: async () => ({ payload }) };
-            if (name.endsWith('serverBackendAccess')) return { getBackendAuthorization: () => undefined };
+            if (name.endsWith('serverBackendAccess')) return { assertBackendTransport: loadBackendTransport(env), getBackendAuthorization: () => undefined };
             if (name.endsWith('roleNavigationPolicy')) return { roleWorkspace: role => role, isMasterPlatformPath: () => false, canAccessRolePage: () => true };
             throw Error(name);
         },
@@ -126,4 +127,12 @@ test('all remounted/concurrent logout callers receive failure and stop their loa
     assert.deepEqual(results, [false, false]);
     assert.deepEqual(states, [[false], [false]]);
     assert.equal(fixture.calls.length, 1);
+});
+
+test('HTTPS-required login validation never sends session credentials to a plaintext backend', async () => {
+    const fixture = proxyFixture({ env: { HTTPS_REQUIRED: 'true', DEVELOPMENT_BASEURL: 'http://backend.test/api/v1/' } });
+    const result = await fixture.run();
+    assert.equal(result.type, 'next');
+    assert.equal(fixture.calls.length, 0);
+    assert.equal(result.cookies.names.length, 0);
 });

@@ -1,6 +1,5 @@
-import {assertBackendTransport} from '../../../../lib/serverBackendRequest';
 import { NextRequest } from 'next/server';
-import { getBackendAuthorization } from '../../../../lib/serverBackendAccess';
+import {getBackendAuthorization, assertBackendTransport} from '../../../../lib/serverBackendAccess';
 
 export async function POST(request: NextRequest) {
      try {

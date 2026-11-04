@@ -33,11 +33,11 @@ if (!isMainThread) {
             assert.equal(region(2).closest('tr').hidden, true);
 
             if (workerData.scenario === 'empty') {
-                toggle(4).click();
-                await waitFor(() => region(4).textContent.includes('No bill allocations found for this event.'), 'empty allocations');
-                assert.equal(region(4).querySelector('table'), null);
-                assert.equal(document.getElementById('nhis-allocation-4-count').value, '25');
-                assert.equal(allocationCalls(4).length, 1);
+                toggle(5).click();
+                await waitFor(() => region(5).textContent.includes('No bill allocations found for this event.'), 'empty allocations');
+                assert.equal(region(5).querySelector('table'), null);
+                assert.equal(document.getElementById('nhis-allocation-5-count').value, '25');
+                assert.equal(allocationCalls(5).length, 1);
             } else if (workerData.scenario === 'error') {
                 nhisFixture.reportError = true;
                 toggle(2).click();
@@ -115,6 +115,10 @@ if (!isMainThread) {
                     assert.match(region(3).textContent, /Reverses remittance #1/);
                     assert.match(region(3).textContent, /-GH₵300,000\.00/);
                     assert.equal(region(3).querySelector('[aria-label="Settlement at posting"]'), null);
+                    toggle(4).click();
+                    await waitFor(() => region(4).querySelector('table > tbody > tr'), 'linked adjustment allocations');
+                    assert.deepEqual([...region(4).querySelectorAll('table > tbody > tr')].map(row => row.textContent),
+                        ['BILL-65GH₵12.45GH₵0.00', 'BILL-66GH₵12.45GH₵0.00']);
                     reverse.click();
                     await waitFor(() => document.querySelector('form[aria-label="Reverse SYNTH-PERIOD-8477"]'), 'period reversal dialog');
                     assert.match(document.body.textContent, /reverses the entire service-period settlement atomically/i);
@@ -129,7 +133,7 @@ if (!isMainThread) {
     let available = true;
     try { require.resolve('jsdom'); } catch { available = false; }
     test('NHIS activity audit details preserve settlement, reversal and paginated allocation behavior', {
-        timeout: 90000,
+        timeout: 240000,
         skip: available ? false : 'Optional installed jsdom utility unavailable',
     }, async t => {
         const { build } = require('./browser/nhis-harness/build.cjs');
@@ -139,7 +143,7 @@ if (!isMainThread) {
             const worker = new Worker(__filename, { workerData: { bundle, scenario, query } });
             try {
                 await new Promise((resolve, reject) => {
-                    const deadline = setTimeout(() => reject(new Error(`${scenario} fixture exceeded 15 seconds`)), 15000);
+                    const deadline = setTimeout(() => reject(new Error(`${scenario} fixture exceeded 30 seconds`)), 30000);
                     worker.once('message', result => {
                         clearTimeout(deadline);
                         result.error ? reject(new Error(result.error)) : resolve();

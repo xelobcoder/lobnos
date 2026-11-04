@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button, ProgressBar } from 'react-bootstrap';
 import { RiDatabaseLine, RiCloseLine } from '@remixicon/react';
+import themeContrast from '../../../styles/theme-contrast.module.css';
 
 interface BackupProgressSectionProps {
      isBackupRunning: boolean;
@@ -27,11 +28,11 @@ export default function BackupProgressSection({
      const hasProgress = backupProgress > 0 || backupStatus || currentOperation || estimatedTime;
 
      return (
-          <div className="border border-warning bg-light border-2 mx-2 p-3 mb-4 shadow-sm">
+          <div className={`border border-warning bg-body-tertiary border-2 mx-2 p-3 mb-4 shadow-sm ${themeContrast.controls}`}>
                <div className="d-flex justify-content-between align-items-center mb-3">
                     <div className="d-flex align-items-center gap-2">
-                         <RiDatabaseLine size={20} className="text-warning" />
-                         <h5 className="mb-0 text-warning">🔥 Backup in Progress</h5>
+                         <RiDatabaseLine size={20} className="text-warning-emphasis" />
+                         <h5 className="mb-0 text-warning-emphasis">🔥 Backup in Progress</h5>
                     </div>
                     <Button
                          variant="outline-danger"

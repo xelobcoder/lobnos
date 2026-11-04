@@ -1,7 +1,6 @@
-import {assertBackendTransport} from '../../../../lib/serverBackendRequest';
 import {secureSessionCookies} from '../../../../lib/sessionCookies';
 import { NextRequest, NextResponse } from 'next/server';
-import { getBackendAuthorization } from '../../../../lib/serverBackendAccess';
+import {getBackendAuthorization, assertBackendTransport} from '../../../../lib/serverBackendAccess';
 import { cookies } from 'next/headers';
 import { SignJWT, jwtVerify } from 'jose';
 

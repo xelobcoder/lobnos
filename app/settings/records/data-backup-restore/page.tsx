@@ -9,6 +9,7 @@ import { customFetch, customPost } from '../../../../components/Auth/customFetch
 import { buildApiUrl } from '../../../../lib/apiBaseUrl';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 import { toast } from 'react-toastify';
+import themeContrast from '../../../../styles/theme-contrast.module.css';
 
 import {
      BackupStatsCards,
@@ -451,7 +452,7 @@ export default function DataBackupRestorePage() {
      };
 
      return (
-          <div className="container-fluid p-4">
+          <div className={`container-fluid p-4 ${themeContrast.controls}`}>
                <div className="d-flex align-items-center justify-content-between mb-4">
                     <div>
                          <h4 className="mb-1" style={{ fontSize: '1.5rem' }}>Data Backup & Restore</h4>
@@ -473,7 +474,7 @@ export default function DataBackupRestorePage() {
 
                <Alert variant="info" className="mb-4">
                     <div className="d-flex align-items-start gap-3">
-                         <RiShieldCheckLine size={20} className="text-info mt-1" />
+                         <RiShieldCheckLine size={20} className="text-info-emphasis mt-1" />
                          <div style={{ fontSize: '0.875rem' }}>
                               <strong>Data Protection:</strong> Regular backups ensure business continuity and data recovery. Configure automated schedules and monitor backup status to maintain compliance and minimize data loss risks.
                          </div>

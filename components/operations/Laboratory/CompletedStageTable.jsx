@@ -23,7 +23,7 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 	const [isPinValid, setIsPinValid] = useState(false);
 	const applicationSettings = useApplication();
 	const appsettings = applicationSettings?.settings || {};
-	const allowResultEnteringUpaid = appsettings?.allowResultEnteringUnpaid && allowResultEnteringUpaid == 1 ? true : false;
+	const allowResultEnteringUpaid = Number(appsettings?.allowResultEnteringUpaid) === 1;
 
 	const calculateProcessingTime = (startDate, endDate) => {
 		if (!startDate || !endDate) return 'N/A';
