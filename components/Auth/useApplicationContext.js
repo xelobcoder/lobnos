@@ -26,7 +26,8 @@ const getCachedApplicationSettings = () => {
 	}
 };
 
-const ApplicationContext = createContext(store);
+/** @typedef {{applicationsettings: any, setApplicationSettings: import('react').Dispatch<import('react').SetStateAction<any>>}} ApplicationContextValue */
+const ApplicationContext = createContext(/** @type {ApplicationContextValue} */ ({applicationsettings: null, setApplicationSettings: () => {}}));
 
 export const ApplicationProvider = ({ children, initialSettings = null }) => {
 	const [applicationsettings, setApplicationSettings] = useState(() => initialSettings || getCachedApplicationSettings());

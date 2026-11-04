@@ -201,7 +201,7 @@ const requested={
       {supplierId:'supplier-2',reference:'Alternative estimate',total:80,lines:[{itemId:'medicine-exact',name:'Example medicine',quantity:20,unitCost:4}]}]},
 };
 function purchasing({actor=9,manager=true,administrator=false,selected=true,decision='approve',pending=null,failure='',rows=[requested],suppliersFailure='',search='',status='all'}={}){
-  let cursor=0;const state=[selected?requested.id:'',decision,false,'','',search,status],calls=[];
+  let cursor=0;const state=[1,search,status,search,selected?requested.id:'',decision,false,'',''],calls=[];
   class FormDataFixture{constructor(values){this.values=values;}get(key){return this.values[key]??null;}}
   const component=compile('app/pharmacy/inventory/purchase-requests/page.tsx',{
     '../../components/PharmacyTaskHelp':{__esModule:true,default:()=>null},

@@ -120,7 +120,7 @@ test("patient navigation links every portal page", () => {
 });
 
 test("middleware keeps staff out of the patient portal and patients inside it", () => {
-    const middleware = read("middleware.ts");
+    const middleware = read("proxy.ts");
     assert.match(middleware, /currentPath\.startsWith\('\/patientportal'\) && normalizedRole !== 'patient'/);
     assert.match(middleware, /normalizedRole === "patient"[\s\S]{0,120}redirect\(new URL\('\/patientportal'/);
     assert.doesNotMatch(middleware.slice(middleware.indexOf('matcher:')), /'\/patient-access/, "public activation pages must not require a session");

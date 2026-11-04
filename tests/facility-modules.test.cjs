@@ -58,6 +58,8 @@ test("activation gates cover existing email, SMS, pharmacy, inventory and device
         assert.equal(canAccessFacilityModule(route, null), true, route);
         assert.equal(canAccessFacilityModule(route, "{"), false, route);
     }
+    assert.equal(canAccessFacilityModule("/operations/laboratory/main/dailyRequest", disabled), false);
+    disabled.modules.laboratoryOperations.enabled = true;
     assert.equal(canAccessFacilityModule("/operations/laboratory/main/dailyRequest", disabled), true);
     assert.equal(canAccessFacilityModule("/communications/sms/dashboard", null, { smsActivated: 0 }), false);
     assert.equal(canAccessFacilityModule("/communications/sms/dashboard", null, { smsActivated: 1 }), true);

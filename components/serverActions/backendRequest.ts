@@ -1,7 +1,7 @@
 "use server";
 import {serverBackendRequest} from '../../lib/serverBackendRequest';
 
-export async function requestBackendJson(endpoint: string, method = 'GET', body?: unknown, publicRequest = false, requestedTenantId?: number) {
+export async function requestBackendJson(endpoint: string, method = 'GET', body?: unknown, publicRequest = false, requestedTenantId?: number): Promise<any> {
     if (!['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'].includes(method.toUpperCase())) throw new Error('Unsupported API method');
     try {
         const response = await serverBackendRequest(endpoint, {

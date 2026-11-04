@@ -5,6 +5,7 @@ const test = require('node:test');
 const vm = require('node:vm');
 const ts = require('typescript');
 const React = require('react');
+function loadTone() { const exports = {}; vm.runInNewContext(ts.transpileModule(readFileSync(path.join(__dirname, '../lib/sampleEventTone.ts'), 'utf8'), {compilerOptions: {module: ts.ModuleKind.CommonJS}}).outputText, {exports}); return exports; }
 function load(file, mocks, crypto = { randomUUID: () => 'completion-key' }) {
     const compiled = ts.transpileModule(readFileSync(path.join(__dirname, '..', file), 'utf8'), {
         fileName: file, reportDiagnostics: true,
@@ -12,7 +13,7 @@ function load(file, mocks, crypto = { randomUUID: () => 'completion-key' }) {
     });
     assert.deepEqual(compiled.diagnostics, []);
     const exports = {};
-    vm.runInNewContext(compiled.outputText, { exports, console, Date, crypto, require: name => name === 'react/jsx-runtime' ? require(name) : mocks(name) });
+    vm.runInNewContext(compiled.outputText, { exports, console, Date, crypto, require: name => name.endsWith('.module.css') ? {__esModule: true, default: new Proxy({}, {get: (_, key) => String(key)})} : name.endsWith('/sampleEventTone') ? loadTone() : name === 'next/link' ? {__esModule: true, default: 'a'} : name === 'react/jsx-runtime' ? require(name) : mocks(name) });
     return exports.default;
 }
 const nodes = (tree, predicate) => tree == null || typeof tree !== 'object' ? [] : Array.isArray(tree) ? tree.flatMap(child => nodes(child, predicate)) : [...(predicate(tree) ? [tree] : []), ...nodes(tree.props?.children, predicate)];
@@ -161,7 +162,7 @@ function simpleHarness(file, props, extraMocks) {
 }
 test('TAT summary and individual tests are separate views and a threshold drills into pending individual tests', async () => {
     const Overview = () => null, Table = () => null;
-    const view = simpleHarness('components/operations/Laboratory/TurnAroundWorkspace.tsx', { data: [{ id: 1 }] }, name => ({ __esModule: true, default: name.includes('PendingResult') ? Overview : Table }));
+    const view = simpleHarness('components/operations/Laboratory/TurnAroundWorkspace.tsx', { data: [{ id: 1 }] }, name => ({ __esModule: true, default: name === 'next/link' ? 'a' : name.includes('PendingResult') ? Overview : Table }));
     let tree = view.render(); assert.equal(nodes(tree, node => node.type === Table).length, 0);
     let summary = nodes(tree, node => node.type === Overview)[0]; assert.equal(summary.props.view, 'summary');
     nodes(tree, node => node.props?.id === 'tat-individual-tab')[0].props.onClick();

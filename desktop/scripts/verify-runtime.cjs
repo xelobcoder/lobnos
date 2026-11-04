@@ -73,4 +73,5 @@ if (desktopMode === "facility") {
 	}
 }
 
+require('./runtime-provenance.cjs').verifyProvenance(runtimeRoot);
 process.stdout.write(`Desktop runtime verification passed (${desktopMode} mode).\n`);

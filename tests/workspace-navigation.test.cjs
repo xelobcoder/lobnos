@@ -20,8 +20,8 @@ test('new layout uses Zoho-style Inter navigation typography', () => {
     const rootLayout = readFileSync(path.join(__dirname, '..', 'app', 'layout.tsx'), 'utf8');
     assert.match(rootLayout, /import \{ Inter,/);
     assert.match(rootLayout, /inter\.variable/);
-    assert.match(styles, /font-family: var\(--font-inter\), Inter, "Source Sans Pro", Helvetica, Arial, sans-serif/);
-    assert.match(styles, /font-size: 13px;\s+font-weight: 400;\s+line-height: 1\.6;/);
+    assert.match(styles, /font-family: var\(--theme-font-family, var\(--font-inter\)\)/);
+    assert.match(styles, /font-weight: 400;\s+font-size: 13px;\s+line-height: 1\.6;/);
     assert.match(styles, /\.active \{[\s\S]*?font-weight: 400;/);
 });
 
@@ -31,7 +31,7 @@ test('context refresh unwraps the validated user before updating the application
     assert.match(mainLayout, /const authenticatedUser = user\?\.user \?\? user;/);
     assert.match(mainLayout, /if \(!authenticatedUser\)/);
     assert.match(mainLayout, /const freshSettings = \{\s+\.\.\.user,\s+user: authenticatedUser,\s+settings,/);
-    assert.match(primeLayout, /const \{ company, user, daysToExpiration, settings \} = useApplicationSettings\(\)\.applicationsettings;/);
+    assert.match(primeLayout, /const \{ company, user, branchid, tenantId, daysToExpiration, settings \} = useApplicationSettings\(\)\.applicationsettings;/);
     assert.match(primeLayout, /\{company \|\| 'Organization'\}/);
 });
 
@@ -106,6 +106,10 @@ function renderLayout(preference, actions = [], options = {}) {
                 },
             },
         }) };
+        if (name.endsWith('crmLinks')) return {MarketerLinks: []};
+        if (name.endsWith('roleNavigationPolicy')) return compile('lib/roleNavigationPolicy.ts', mocks);
+        if (name.endsWith('RoleSidebars')) return compile('components/Layout/links/RoleSidebars.tsx', mocks);
+        if (name.includes('/categories/')) return compile('components/Layout/links/categories/' + name.split('/').at(-1) + '.tsx', mocks);
         if (name.endsWith('RoleLinks')) return { AdminRoleLinks: [], SuperAdminRoleLinks: [] };
         if (name.endsWith('SuperAdminLinks')) return navigation;
         if (name.endsWith('ThemeProvider')) return { useTheme: () => ({ theme: 'light', toggleTheme: () => {} }) };
@@ -311,7 +315,7 @@ test('Portal uses the administrative shell dimensions and Inter without patient 
     assert.match(html, /Staff workspace/);
     assert.doesNotMatch(html, /Patient portal|My results|My appointments/);
     assert.match(css, /\.shell\.portalLayout,[\s\S]*?--workspace-sidebar-bg: #18212f;/);
-    assert.match(css, /--theme-font-family: var\(--font-inter\), Inter,/);
+    assert.match(css, /font-family: var\(--theme-font-family, var\(--font-inter\)\)/);
     assert.match(css, /\.shell \.sidebar \{[\s\S]*?width: 250px;/);
     assert.match(css, /--header-height: 64px;/);
     assert.match(css, /\.portalBrand \{[\s\S]*?height: 64px;/);

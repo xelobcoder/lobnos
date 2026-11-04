@@ -131,7 +131,7 @@ test("a deleted template selected from a stale list never clears the current pat
     const source = readFileSync(path.join(directory, "..", "result", "[branchid]", "page.tsx"), "utf8");
     const state = { errors: [], fields: ["Keep report"], requests: 0 };
     const context = {
-        Error, testid: 100221,
+        Error, testid: 100221, loadedResultKey: "report", resultKey: "report", submitting: false, fields: [], impression: "", selectedTemplate: null, templateGeneration: {current: 0}, setTemplateUndo() {}, window: {confirm: () => true},
         setSelectedTemplate() {},
         setIsTemplateLoading: value => { state.loading = value; },
         customFetch: async () => { state.requests++; return { status: "error", message: "Ultrasound template not found" }; },

@@ -18,6 +18,8 @@ function compile(file, overrides = {}) {
           if (name.includes('customFetch')) return { currencyFormatter: new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS' }) };
           if (name.includes('useApplicationContext')) return { useApplication: () => null };
           if (name === 'next/link') return ({ href, children, ...props }) => React.createElement('a', { href, ...props }, children);
+          if (name.endsWith('/accountingApi')) return {accountingApi: {financialDayReadiness: async () => ({status: 'success', result: {blocked: false}})}};
+          if (name.startsWith('.')) { const target = path.relative(path.join(__dirname, '..'), path.resolve(path.dirname(path.join(__dirname, '..', file)), name + '.tsx')); return compile(target, overrides); }
           return require(name);
      };
      const source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');

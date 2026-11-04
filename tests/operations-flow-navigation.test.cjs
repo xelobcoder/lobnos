@@ -59,6 +59,7 @@ function patientPage(options = {}) {
         } };
         if (name.endsWith('patientPortal')) return { formatDate: () => 'Recorded time' };
         if (name.endsWith('.css')) return {};
+        if (name.startsWith('.')) return load(path.relative(root, path.resolve(path.dirname(path.join(root, 'proxy.ts')), name + '.ts')), require);
         throw new Error(name);
     }).default;
     return { endpoints, render: () => { cursor = 0; return Page(); } };
@@ -91,9 +92,10 @@ test('patient sample pages paginate through owned server results and surface err
 });
 
 test('public kiosk routes remain outside staff authentication middleware matching', () => {
-    const { config } = load('middleware.ts', name => {
+    const { config } = load('proxy.ts', name => {
         if (name === 'next/server') return { NextResponse: {} };
         if (name === 'jose') return { jwtVerify() {} };
+        if (name.startsWith('.')) return load(path.relative(root, path.resolve(path.dirname(path.join(root, 'proxy.ts')), name + '.ts')), require);
         throw new Error(name);
     });
     assert.ok(!config.matcher.some(pattern => pattern === '/:path*' || pattern.startsWith('/queue')));

@@ -64,13 +64,12 @@ test("imaging entry and completed worklists expose communications without adding
     assert.match(list, /stage == "ULTRASOUND_COMPLETED" && row\.original\.resultEntryEnd && \([\s\S]*?<ImagingResultActions/);
     assert.match(list, /testid: row\.original\.testid \|\| row\.original\.id/);
 });
-test("both default and override SMS use the same approval rule and distinguish queueing from delivery", () => {
-    for (const file of ["page.tsx", "OverrideSmsForm.tsx"]) {
-        const source = fs.readFileSync(path.join(root, sends, file), "utf8");
-        assert.match(source, /isResultSmsReady/);
-        assert.doesNotMatch(source, /iscustom === 1/);
-        assert.match(source, /queued successfully/);
-        assert.match(source, /response\?\.error/);
-        assert.match(source, /Check message history before retrying/);
-    }
+test("linked SMS selection uses workspace readiness without silently selecting another test", () => {
+    const workspace = load("lib/resultSmsWorkspace.ts", () => { throw new Error("Unexpected dependency"); });
+    const tests = [{ ascensionid: 7, status: "approval_pending" }, { ascensionid: 8, status: "ready" }];
+    assert.deepEqual(Array.from(workspace.initialReadySelection(tests, "7")), []);
+    assert.deepEqual(Array.from(workspace.initialReadySelection(tests, "")), []);
+    assert.deepEqual(Array.from(workspace.initialReadySelection(tests, "8")), [8]);
+    assert.equal(workspace.smsStatusTone("submitted"), "warning");
+    assert.equal(workspace.smsStatusTone("unexpected"), "secondary");
 });

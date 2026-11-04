@@ -78,7 +78,7 @@ export default function Page() {
 			<p className="text-muted mb-3">Manage all aspects of laboratory workflow and testing procedures</p>
 
 			<div className="row g-3">
-				{LaboratoryOperationsLinks.map((link, index) => (
+				{LaboratoryOperationsLinks.filter(link => isCompleteFlow || !['/operations/laboratory/sample/validation', '/operations/laboratory/processing'].includes(link.link)).map((link, index) => (
 					<div key={index} className="col-12 col-md-6 col-lg-4">
 						<Link
 							href={link.link}

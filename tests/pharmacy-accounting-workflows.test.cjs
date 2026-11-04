@@ -25,6 +25,8 @@ function compile(file, imports = {}, globals = {}) {
   }).outputText;
   vm.runInNewContext(code, { exports, URLSearchParams, crypto: require('node:crypto'), ...globals, require: name => {
     if(name.endsWith('.module.css')&&!(name in imports))return {__esModule:true,default:{}};
+    if (name.endsWith('/accountingApi')) return {accountingApi: {financialDayReadiness: async () => ({status: 'success', result: {blocked: false}})}};
+    if (name.endsWith('/FinancialDayReadinessNotice')) return compile('components/accounting/FinancialDayReadinessNotice.tsx', imports, globals);
     if (!(name in imports)) throw Error(`Unexpected dependency ${name}`);
     return imports[name];
   } }, { filename: file });

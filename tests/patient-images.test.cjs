@@ -57,7 +57,7 @@ test('a saved patient photo reloads on revisit, and replacement uses the current
         if (request.method === 'POST') {
             assert.equal(url.searchParams.get('category'), 'patients');
             assert.equal(request.body.get('file').type, 'image/png');
-            assert.equal(request.headers['Content-Type'], undefined);
+            assert.equal(request.headers?.['Content-Type'], undefined);
         }
     }
 });

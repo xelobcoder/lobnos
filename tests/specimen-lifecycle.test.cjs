@@ -384,7 +384,7 @@ test('disposed detail is read-only while preserving history', async () => {
     assert.equal(nodes(tree, node => node.type === 'button' && text(node) === 'Document disposal').length, 0);
 });
 
-test('sample summary and both laboratory navigation contexts link to the real storage page', () => {
+test('sample summary and both laboratory navigation contexts link to the real storage page', async () => {
     const destination = '/operations/phelobotomy/specimen-storage';
     for (const file of ['components/Layout/links/categories/PhlebotomyLinks.tsx', 'components/Layout/links/categories/LaboratoryOperationsLinks.tsx']) {
         const exports = load(file, name => name === 'react/jsx-runtime' ? require(name) : new Proxy({}, { get: () => () => null }));
@@ -395,8 +395,8 @@ test('sample summary and both laboratory navigation contexts link to the real st
     const summary = readFileSync(path.join(root, 'components/phelobotomy/SampleReportsWorkspace.tsx'), 'utf8');
     assert.ok(summary.includes(`${destination}?sampleId=`));
     const page = load('app/operations/phelobotomy/specimen-storage/page.tsx', name => name === 'react/jsx-runtime' ? require(name) : { __esModule: true, default: () => null });
-    assert.equal(page.default({ searchParams: { sampleId: '12' } }).props.initialSampleId, 12);
-    assert.equal(page.default({ searchParams: { sampleId: '-1' } }).props.initialSampleId, undefined);
-    assert.equal(page.default({ searchParams: { sampleId: '12', action: 'store' } }).props.initialAction, 'store');
-    assert.equal(page.default({ searchParams: { sampleId: '12', action: 'dispose' } }).props.initialAction, undefined);
+    assert.equal((await page.default({ searchParams: Promise.resolve({ sampleId: '12' }) })).props.initialSampleId, 12);
+    assert.equal((await page.default({ searchParams: Promise.resolve({ sampleId: '-1' }) })).props.initialSampleId, undefined);
+    assert.equal((await page.default({ searchParams: Promise.resolve({ sampleId: '12', action: 'store' }) })).props.initialAction, 'store');
+    assert.equal((await page.default({ searchParams: Promise.resolve({ sampleId: '12', action: 'dispose' }) })).props.initialAction, undefined);
 });

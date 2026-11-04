@@ -38,6 +38,7 @@ export async function customFile(endpoint, formbody) {
  * @param {string} endpoint - The endpoint URL to send the request to.
  * @returns {Promise<object>} - The response from the server as JSON.
  */
+/** @param {any} source @returns {Promise<any>} */
 async function checkSessionResponse(source) {
     if (typeof window !== 'undefined' && source && typeof source === 'object') {
         const message = String(source.message || '').toLowerCase();

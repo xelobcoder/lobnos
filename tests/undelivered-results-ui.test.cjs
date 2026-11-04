@@ -10,7 +10,7 @@ const nodes=(tree,p)=>!tree||typeof tree!=='object'?[]:Array.isArray(tree)?tree.
 const text=t=>t==null?'':typeof t!=='object'?String(t):Array.isArray(t)?t.map(text).join(''):text(t.props?.children);
 function harness(){
  const states=[],effects=[],calls=[],opened=[];let cursor=0;
- const react={...React,useState(initial){const i=cursor++;if(!(i in states))states[i]=initial;return[states[i],next=>states[i]=typeof next==='function'?next(states[i]):next];},useMemo:fn=>fn(),useEffect(fn){const i=cursor++;if(!states[i]){states[i]=true;effects.push(fn);}}};
+ const react={...React,useRef: value => ({current: value}),useCallback: callback => callback,useState(initial){const i=cursor++;if(!(i in states))states[i]=initial;return[states[i],next=>states[i]=typeof next==='function'?next(states[i]):next];},useMemo:fn=>fn(),useEffect(fn){const i=cursor++;if(!states[i]){states[i]=true;effects.push(fn);}}};
  const modal=Object.assign(()=>null,{Header:'modal-header',Title:'modal-title',Body:'modal-body',Footer:'modal-footer'});
  const form=Object.assign(()=>null,{Group:'form-group',Label:'form-label',Control:'form-control'});
  const data=[{ascensionid:11,billingid:21,patientid:31,firstname:'First',lastname:'Patient',fullpatientid:'P31',failurenotes:'A long delivery issue that should remain visible',requested_mode:'email'},{ascensionid:12,billingid:22,patientid:32,firstname:'Second',lastname:'Patient'}];

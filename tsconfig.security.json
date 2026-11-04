@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "incremental": false
+  },
+  "include": [
+    "lib/serverRequestContext.ts",
+    "lib/serverBackendRequest.ts",
+    "lib/serverBackendProxy.ts",
+    "lib/sessionCookies.ts",
+    "components/serverActions/requestHeaders.tsx",
+    "components/serverActions/backendRequest.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    ".next-critique-verification",
+    ".desktop-runtime"
+  ]
+}

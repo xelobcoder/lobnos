@@ -23,7 +23,7 @@ function load(filename) {
         require(name) {
             if (name.endsWith('.css')) return new Proxy({}, { get: (_target, key) => key === '__esModule' ? false : String(key) });
             if (name.endsWith('/companyImage')) return { scopedCompanyImageUrl: value => value || '' };
-            if (name.endsWith('/usePortalResource')) return { usePortalResource: () => portalResource };
+            if (name.endsWith('/usePortalResource')) return { usePortalResource: endpoint => endpoint?.endsWith('/summary') ? {...portalResource, data: {payable: 12.30, paid: 10.20, outstanding: 2.10, bills: 2, unpaidBills: 2}} : portalResource };
             if (name === 'jspdf' || name === 'html2canvas') return {};
             if (name.startsWith('.')) return load(path.resolve(path.dirname(resolved), name));
             return require(name);
@@ -130,7 +130,7 @@ test('patient and Daily Sales summaries share the same analytic card renderer', 
 });
 test('portal typography follows the configured software workspace, including Slack Aspire', () => {
     const { workspaceFontFamily, DEFAULT_FONT_FAMILY } = load('lib\\themes.ts');
-    assert.match(workspaceFontFamily({ workspaceLayout: 'slack', fontFamily: 'var(--font-raleway)' }), /^var\(--font-lato\)/);
+    assert.match(workspaceFontFamily({ workspaceLayout: 'slack', fontFamily: 'var(--font-raleway)' }), /^var\(--font-raleway\)/);
     assert.match(workspaceFontFamily({ workspaceLayout: 'ribbon' }), /^"Segoe UI"/);
     for (const workspaceLayout of ['zoho', 'claude', 'portal']) {
         assert.match(workspaceFontFamily({ workspaceLayout }), /^var\(--font-inter\)/);

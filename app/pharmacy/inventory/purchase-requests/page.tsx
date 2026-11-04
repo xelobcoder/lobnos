@@ -146,7 +146,7 @@ export function PurchaseRequests() {
       {[['requested', 'Awaiting review', 'Needs an authorized decision'], ['approved', 'Approved', 'Order remaining approved quantities'], ['rejected', 'Rejected', 'No purchase order created']].map(([value, title, detail]) => <div key={value}><dt>{title}</dt><dd>{decoded.rows.filter(row => row.status === value).length}</dd><dd className={accountingStyles.summaryDetail}>{detail}</dd></div>)}
     </dl>}
     <div className={`${accountingStyles.filters} ${layout.panel} ${layout.filterPanel}`}>
-      <label className="form-label">Find a request<input className="form-control" type="search" placeholder="Reference, medicine, supplier or reason" value={search} onChange={event => setSearch(event.target.value)}/></label>
+      <label className="form-label">Find a request<input className="form-control" type="search" placeholder="Reference, medicine or reason" value={search} onChange={event => setSearch(event.target.value)}/></label>
       <label className="form-label">Status<select className="form-select" value={status} onChange={event => {setStatus(event.target.value);setPage(1);}}><option value="all">All requests</option><option value="requested">Awaiting review</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></label>
       <button type="button" className="btn btn-outline-secondary" disabled={busy || resource.loading} onClick={() => { resource.refresh(); suppliers.refresh(); }}>Refresh requests</button>
     </div>

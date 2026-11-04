@@ -173,7 +173,7 @@ test('Word-style commands retain accessible icons and full labels above the grou
     const css = readFileSync(path.join(__dirname, '..', 'components', 'Layout', 'RibbonLayout.module.css'), 'utf8');
     assert.match(css, /\.command \{[\s\S]*?flex-direction: column;[\s\S]*?text-align: center;/);
     assert.match(css, /\.commandIcon svg \{\s*width: 32px;\s*height: 32px;/);
-    assert.match(css, /--theme-font-family: "Segoe UI"/);
+    assert.match(css, /font-family: var\(--theme-font-family/);
     assert.match(css, /--ribbon-surface: var\(--bs-body-bg\)/);
     assert.match(css, /--ribbon-chrome: var\(--bs-tertiary-bg\)/);
     assert.match(css, /\.groupTitle \{[\s\S]*?text-align: center;/);

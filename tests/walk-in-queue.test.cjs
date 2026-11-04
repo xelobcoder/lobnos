@@ -198,12 +198,12 @@ test('client card destinations use linked patient and bill records and carry onl
         assert.doesNotMatch(links.map(link => link.props.href).join(' '), /Private|0241234567/);
     }
 });
-test('public routes pass only their slug to check-in and display components', () => {
+test('public routes pass only their slug to check-in and display components', async () => {
     const stub = () => null;
     const checkin = load('app/queue/[slug]/page.tsx', name => name === 'react/jsx-runtime' ? require(name) : { __esModule: true, default: stub }).default;
     const display = load('app/queue/[slug]/display/page.tsx', name => name === 'react/jsx-runtime' ? require(name) : { __esModule: true, default: stub }).default;
-    assert.equal(checkin({ params: { slug: 'prime' } }).props.slug, 'prime');
-    assert.equal(display({ params: { slug: 'prime' } }).props.slug, 'prime');
+    assert.equal((await checkin({ params: Promise.resolve({ slug: 'prime' }) })).props.slug, 'prime');
+    assert.equal((await display({ params: Promise.resolve({ slug: 'prime' }) })).props.slug, 'prime');
 });
 test('finished client cards do not offer registration, linking or queue mutations', () => {
     const h = harness('components/queue/WalkInQueueWorkspace.tsx', { exportName: 'TicketCard' });

@@ -249,7 +249,7 @@ test('admin retrieval failure renders retry rather than an empty list', async ()
 test('middleware protects portal administration from every role except admin and manager', async () => {
     for (const role of ['admin', 'manager', 'patient', 'clinician', 'scientist', 'accountant', 'super-admin']) {
         const exports = {};
-        const source = ts.transpileModule(readFileSync(path.join(root, 'middleware.ts'), 'utf8'), {
+        const source = ts.transpileModule(readFileSync(path.join(root, 'proxy.ts'), 'utf8'), {
             compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
         }).outputText;
         vm.runInNewContext(source, {
@@ -260,12 +260,12 @@ test('middleware protects portal administration from every role except admin and
             },
         });
         for (const pathname of ['/patient-portal-admin', '/patient-portal-admin/access', '/patient-portal-admin/settings']) {
-            const result = await exports.middleware({ nextUrl: { pathname }, url: `http://portal.test${pathname}`, cookies: { get: () => ({ value: 'synthetic-session' }) } });
+            const result = await exports.proxy({ nextUrl: { pathname }, url: `http://portal.test${pathname}`, cookies: { get: () => ({ value: 'synthetic-session' }) } });
             assert.equal(result.destination, ['admin', 'manager'].includes(role) ? undefined : '/unauthorized', `${role} ${pathname}`);
         }
-        const entry = await exports.middleware({ nextUrl: { pathname: '/patientportal' }, url: 'http://portal.test/patientportal', cookies: { get: () => ({ value: 'synthetic-session' }) } });
+        const entry = await exports.proxy({ nextUrl: { pathname: '/patientportal' }, url: 'http://portal.test/patientportal', cookies: { get: () => ({ value: 'synthetic-session' }) } });
         assert.equal(entry.destination, ['admin', 'manager'].includes(role) ? '/patient-portal-admin' : role === 'patient' ? undefined : '/unauthorized', `${role} patient portal entry`);
-        const anonymous = await exports.middleware({ nextUrl: { pathname: '/patient-portal-admin/settings' }, url: 'http://portal.test/patient-portal-admin/settings', cookies: { get: () => undefined } });
+        const anonymous = await exports.proxy({ nextUrl: { pathname: '/patient-portal-admin/settings' }, url: 'http://portal.test/patient-portal-admin/settings', cookies: { get: () => undefined } });
         assert.equal(anonymous.destination, '/authentications/login');
         assert.equal(new URL(anonymous.url).searchParams.get('returnTo'), '/patient-portal-admin/settings');
     }

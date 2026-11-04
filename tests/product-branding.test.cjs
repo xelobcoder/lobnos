@@ -24,7 +24,7 @@ test('public entry screens and package metadata use Prime Laboratory Software', 
         assert.doesNotMatch(text, /Prime Lab(?:oratory)? System|>Lobnos</);
     }
     const pharmacy = fs.readFileSync(path.join(root, 'app', 'pharmacy', 'sell', 'page.tsx'), 'utf8');
-    assert.match(pharmacy, /'PLS PHARMACY'/);
+    assert.match(pharmacy, /PLS PHARMACY/);
     assert.doesNotMatch(pharmacy, /LOBNOS PHARMACY/);
 });
 

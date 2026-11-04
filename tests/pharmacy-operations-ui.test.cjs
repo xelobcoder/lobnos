@@ -8,7 +8,9 @@ function compile(file,overrides={}){
   if(name.includes('customFetch'))return {currencyFormatter:new Intl.NumberFormat('en-GH',{style:'currency',currency:'GHS'})};
   if(name.includes('useApplicationContext'))return {useApplication:()=>({user:{role:'pharmacy_manager',employeeid:3}})};
   if(name==='next/link')return ({href,children})=>React.createElement('a',{href},children);
-  return require(name);
+  if (name.endsWith('/accountingApi')) return {accountingApi: {financialDayReadiness: async () => ({status: 'success', result: {blocked: false}})}};
+          if (name.startsWith('.')) { const target = path.relative(path.join(__dirname, '..'), path.resolve(path.dirname(path.join(__dirname, '..', file)), name + '.tsx')); return compile(target, overrides); }
+          return require(name);
  };
  vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,{exports,require:mocks});return exports;
 }

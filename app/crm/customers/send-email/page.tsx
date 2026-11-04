@@ -60,6 +60,7 @@ const SendEmailPage: React.FC = () => {
           setEmailHistory([]);
           setMessageContent('');
           reset({subject:'',message:'',recipientEmail:''});
+          setIsLoadingPatient(false);setIsLoadingHistory(false);
           if(!patientid)return;
           setIsLoadingPatient(true);
           setIsLoadingHistory(true);

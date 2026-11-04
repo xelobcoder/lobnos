@@ -270,7 +270,7 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 
 
 
-	const handleServiceItemRemoval = async (billingdata: BillingData) => {
+	const handleServiceItemRemoval = async (billingdata: {serviceid?:number;billingid?:number;name?:string|boolean}) => {
         if (!requireOpenSale()||removalBusy.current) return;
         if(!window.confirm('Remove '+(billingdata.name||'this service')+' from bill '+billingdata.billingid+'?'))return;
         removalBusy.current=true;

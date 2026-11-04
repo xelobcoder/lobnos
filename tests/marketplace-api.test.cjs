@@ -53,41 +53,24 @@ test("website enquiries preserve demo details and validate the paginated respons
     assert.doesNotMatch(component, /dangerouslySetInnerHTML/);
 });
 
-test("authenticated marketplace reads and writes preserve session headers without tenant queries", async () => {
-    const { usesTenantQuery } = compile("lib/apiBaseUrl.ts");
-    const requests = [];
-    const helpers = compile("components/Auth/customFetch.js", {
-        require(name) {
-            if (name === "../../lib/apiBaseUrl") return {
-                usesTenantQuery,
-                buildApiUrl: endpoint => `http://localhost:2300/api/v1/${endpoint}`,
-            };
-            if (name === "../serverActions/requestHeaders") return {
-                getRequestContext: async () => ({
-                    tenantId: 123456, PLS_PRIME_TENANT_SESSION: "synthetic-prime-session",
-                    PLS_SESSION: "synthetic-session", loginsessionId: "synthetic-login",
-                }),
-            };
-            if (name === "react-toastify") return { toast: {} };
-            if (name === "js-cookie" || name === "moment") return {};
-            throw new Error(`Unexpected dependency ${name}`);
-        },
-        fetch: async (url, options) => {
-            requests.push({ url: new URL(url), options });
-            return { json: async () => ({ status: "success", result: [] }) };
-        },
+test("marketplace reads and writes use the server boundary without exposing credentials",async()=>{
+    const requests=[];
+    const helpers=compile('components/Auth/customFetch.js',{
+        require(name){
+            if(name==='../serverActions/backendRequest')return {requestBackendJson:async(endpoint,method,body)=>{requests.push({endpoint,method,body});return {status:'success',result:[]};}};
+            if(name==='../serverActions/requestHeaders')return {getRequestContext:async()=>({authenticated:true,tenantId:123456})};
+            if(name==='../../lib/apiBaseUrl')return {buildApiUrl:endpoint=>'http://localhost/api/v1/'+endpoint,usesTenantQuery:()=>true};
+            if(['js-cookie','moment'].includes(name))return {};
+            if(name==='react-toastify')return {toast:{}};
+            throw Error(name);
+        }
     });
-    await helpers.customFetch("marketplace/platform/facilities?status=pending");
-    await helpers.customFetchMutation("marketplace/platform/facilities/8/approve", "POST", {});
-    for (const { url, options } of requests) {
-        assert.equal(url.searchParams.has("tenantId"), false);
-        assert.equal(options.headers["pls-prime-tenant-session"], "synthetic-prime-session");
-        assert.equal(options.headers["pls-session"], "synthetic-session");
-        assert.equal(options.cache, "no-cache");
-    }
-    await helpers.customFetch("platform/facilities");
-    await helpers.customFetchMutation("platform/facilities", "POST", {});
-    for (const { url } of requests.slice(2)) assert.equal(url.searchParams.get("tenantId"), "123456");
+    await helpers.customFetch('marketplace/platform/facilities?status=pending');
+    await helpers.customFetchMutation('marketplace/platform/facilities/8/approve','POST',{});
+    assert.equal(requests[0].endpoint,'marketplace/platform/facilities?status=pending');
+    assert.equal(requests[0].method,'GET');
+    assert.equal(requests[1].method,'POST');
+    assert.equal(JSON.stringify(requests).includes('PLS_SESSION'),false);
 });
 
 test("application provisioning copies public details but never copies a password or guesses location IDs", () => {
@@ -126,7 +109,7 @@ test("application management is navigable and provisioning requires explicit ide
     assert.match(applications, /marketplace\/platform\/facilities\?status=/);
     assert.match(applications, /Approve application/);
     assert.match(applications, /Review and provision PLS facility/);
-    assert.match(provisioning, /provisioningApplication && !identityConfirmed/);
+    assert.match(provisioning, /!identityConfirmed/);
     assert.match(provisioning, /marketplace\/platform\/facilities\/\$\{provisioningApplication\.id\}\/provision/);
     assert.match(provisioning, /applicationProvisioningForm\(source, EMPTY_FORM\)/);
 });

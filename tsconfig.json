@@ -7,8 +7,11 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
-    "types": ["node", "react"],
-    "strict": false,
+    "types": [
+      "node",
+      "react"
+    ],
+    "strict": true,
     "noEmit": true,
     "incremental": true,
     "module": "esnext",
@@ -47,6 +50,7 @@
     "node_modules",
     "master-admin-app",
     "v2",
-    "dist-electron"
+    "dist-electron",
+    ".next-critique-verification"
   ]
 }

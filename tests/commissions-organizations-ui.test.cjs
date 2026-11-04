@@ -84,7 +84,7 @@ function harness(relative, api = {}, props = { params: { organization: "17" } },
   const states = [], refs = [], memos = [], dependencies = [], effects = [], cleanups = [];
   let cursor = 0;
   const react = {
-    ...React,
+    ...React, use: value => value,
     useState(initial) {
       const index = cursor++;
       if (!(index in states)) states[index] = typeof initial === "function" ? initial() : initial;

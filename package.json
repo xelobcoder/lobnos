@@ -30,7 +30,11 @@
     "desktop:dist:linux": "node ./desktop/scripts/prepare-runtime.cjs --require-config && electron-builder --linux AppImage",
     "desktop:verify": "node ./desktop/scripts/verify-runtime.cjs",
     "clean": "node ./scripts/clean.cjs",
-    "test": "node --test tests/*.test.cjs"
+    "test": "node --test tests/*.test.cjs",
+    "lint": "eslint .",
+    "lint:security": "eslint lib/serverRequestContext.ts lib/serverBackendRequest.ts lib/serverBackendProxy.ts lib/sessionCookies.ts components/serverActions/requestHeaders.tsx components/serverActions/backendRequest.ts app/api/auth",
+    "typecheck": "tsc --noEmit",
+    "typecheck:security": "tsc --project tsconfig.security.json"
   },
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^40.2.0",

@@ -198,5 +198,6 @@ requirePath(backendNodeModules, "Backend production dependencies");
 fs.renameSync(backendNodeModules, backendVendor);
 pruneRuntimeSources(backendVendor);
 
+require('./runtime-provenance.cjs').writeProvenance(frontendRoot, backendRoot, runtimeRoot);
 run(process.execPath, [path.join(__dirname, "verify-runtime.cjs")], frontendRoot);
 process.stdout.write(`Desktop runtime prepared at ${runtimeRoot}\n`);

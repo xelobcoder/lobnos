@@ -30,7 +30,7 @@ export async function serverBackendRequest(endpoint: string, options: RequestIni
         credentialPath = decoded;
     }
     credentialPath = credentialPath.toLowerCase().split('/').filter(Boolean).join('/');
-    if (['prime/refresh-role-session','prime/switch-role'].some(path => credentialPath.endsWith('/' + path))) {
+    if (['prime/refresh-role-session','prime/switch-role'].some(path => credentialPath === path || credentialPath.endsWith('/' + path))) {
         throw new Error('Use the dedicated authenticated role-session endpoint');
     }
     const context = publicRequest ? null : await getServerRequestContext();
