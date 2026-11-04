@@ -1,3 +1,4 @@
+import styles from './BackupWorkspace.module.css';
 import React from 'react';
 import { Button } from 'react-bootstrap';
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
@@ -7,6 +8,7 @@ interface BackupLog {
      id: number;
      backup_name: string;
      is_successful: boolean;
+     encryption_key_id?: string | null;
      file_available?: boolean;
      is_full_backup: boolean;
      backup_size_bytes: number;
@@ -33,15 +35,15 @@ export default function BackupLogsTable({ backupLogs, onDownloadBackup, onDelete
           {
                Header: 'Backup Name',
                accessor: 'backup_name',
-               Cell: ({ row }: {row: {original: BackupLog; index: number}}) => <span className="fw-semibold">{row.original.backup_name}</span>
+               Cell: ({ row }: {row: {original: BackupLog; index: number}}) => <span className="fw-semibold">{row.original.backup_name}<small className={styles.detail}>{row.original.encryption_key_id ? "Encrypted backup" : "Encryption not recorded"}</small>{Number(row.original.is_successful) !== 1 && row.original.error_message && <small className={styles.failureDetail} title={row.original.error_message}>{row.original.error_message}</small>}</span>
           },
           {
                Header: 'Status',
                accessor: 'is_successful',
                Cell: ({ row }: {row: {original: BackupLog; index: number}}) => (
                     <span>
-                         {row.original.is_successful ? 'Success' : 'Failed'}
-                         {row.original.is_successful && row.original.file_available === false && <small className="d-block text-danger-emphasis">File unavailable</small>}
+                         <span className={`${styles.status} ${Number(row.original.is_successful) === 1 ? styles.success : styles.failed}`}>{Number(row.original.is_successful) === 1 ? 'Successful' : 'Failed'}</span>
+                         {Number(row.original.is_successful) === 1 && row.original.file_available === false && <small className="d-block text-danger-emphasis">File unavailable</small>}
                     </span>
                )
           },
@@ -80,12 +82,12 @@ export default function BackupLogsTable({ backupLogs, onDownloadBackup, onDelete
                Header: 'Actions',
                accessor: 'actions',
                Cell: ({ row }: {row: {original: BackupLog; index: number}}) => (
-                    <div className="d-flex gap-1">
+                    <div className={styles.rowActions}>
                          <Button
-                              variant="outline-info"
+                              variant="outline-primary"
                               size="sm"
                               onClick={() => onDownloadBackup?.(row.original)}
-                              disabled={!row.original.is_successful || row.original.file_available === false}
+                              disabled={Number(row.original.is_successful) !== 1 || row.original.file_available === false}
                               title={row.original.file_available === false ? 'Backup file is unavailable on the server' : 'Download backup file'}
                          >
                               <RiDownloadLine size={14} className="me-1" />
@@ -106,11 +108,15 @@ export default function BackupLogsTable({ backupLogs, onDownloadBackup, onDelete
      ];
 
      return (
-          <div className="border p-3  rounded bg-body mx-2 p-2 mb-4">
-               <div className="d-flex align-items-center gap-2 mb-3">
-                    <RiDatabaseLine size={20} />
-                    <h5 className="mb-0">Backup Logs</h5>
-               </div>
+          <section className={styles.panel} aria-label="Run history">
+               <header className={styles.sectionHeader}>
+                    <div className={styles.heading}>
+                         <RiDatabaseLine size={21} aria-hidden="true" />
+                         <div><h2>Run history</h2><p>Review outcomes and download available backup files.</p></div>
+                    </div>
+                    <span className={styles.count}>{backupLogs.length} loaded</span>
+               </header>
+               <div className={styles.tableBody}>
                <PrimeTable
                     column={columns}
                     data={backupLogs}
@@ -118,6 +124,7 @@ export default function BackupLogsTable({ backupLogs, onDownloadBackup, onDelete
                     serverSideFiltering={true}
                     handleSeverSideProcessing={onServerFilter || (() => { })}
                />
-          </div>
+               </div>
+          </section>
      );
 }

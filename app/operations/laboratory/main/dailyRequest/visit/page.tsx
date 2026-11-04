@@ -432,7 +432,7 @@ export default function ClientVisit() {
                                                             const isChecked = selectedAscensionIds.includes(item.ascension_id);
                                                             const isCompleted = Boolean(item.resultEntryEnd);
                                                             const isValidated = item.isapproved === 1 || (item.result_validation_stage || '').toLowerCase().includes('validated') || (item.result_validation_stage || '').toLowerCase().includes('approved');
-                                                            const isLocked = !workflowFor(item).canEnterResults;
+                                                            const isLocked = !workflowFor(item, applicationsettings?.settings).canEnterResults;
                                                             const badgeClass = isValidated ? 'bg-success' : isCompleted ? 'bg-primary' : item.samplevalidatedon ? 'bg-warning text-dark' : 'bg-secondary';
                                                             return (
                                                                  <button
@@ -508,7 +508,7 @@ export default function ClientVisit() {
                                                             )}
                                                             {selectedAscensions.map(item => {
                                                                  const tokens = entryTokensByAscensionId[item.ascension_id];
-                                                                 const canEnterOrUpdateResult = workflowFor(item).canEnterResults;
+                                                                 const canEnterOrUpdateResult = workflowFor(item, applicationsettings?.settings).canEnterResults;
 
                                                                  if (!tokens) {
                                                                       return <div key={item.ascension_id} className="alert alert-secondary">Preparing {item.test_name}...</div>;
@@ -516,7 +516,7 @@ export default function ClientVisit() {
                                                                  if (!canEnterOrUpdateResult) {
                                                                       return (
                                                                            <div key={item.ascension_id} className="alert alert-warning">
-                                                                                <strong>{item.test_name}:</strong> {workflowFor(item).blockedReason}
+                                                                                <strong>{item.test_name}:</strong> {workflowFor(item, applicationsettings?.settings).blockedReason}
                                                                            </div>
                                                                       );
                                                                  }
@@ -576,26 +576,26 @@ export default function ClientVisit() {
                                                                            },
                                                                            {
                                                                                 label: 'Collection',
-                                                                                when: workflowFor(selectedItem).collection === 'bypassed' ? 'Bypassed by configuration' : selectedItem.collectionStartDate ? `Start: ${formatFullDate(selectedItem.collectionStartDate)}` : 'Not collected',
+                                                                                when: workflowFor(selectedItem, applicationsettings?.settings).collection === 'bypassed' ? 'Bypassed by configuration' : selectedItem.collectionStartDate ? `Start: ${formatFullDate(selectedItem.collectionStartDate)}` : 'Not collected',
                                                                                 extra: selectedItem.collectionEndDate ? `End: ${formatFullDate(selectedItem.collectionEndDate)}` : null,
-                                                                                status: workflowFor(selectedItem).collection !== 'pending' ? 'done' : 'pending',
+                                                                                status: workflowFor(selectedItem, applicationsettings?.settings).collection !== 'pending' ? 'done' : 'pending',
                                                                            },
                                                                            {
                                                                                 label: 'Sample Validation',
-                                                                                when: workflowFor(selectedItem).sampleValidation === 'bypassed' ? 'Bypassed by configuration' : selectedItem.samplevalidatedon ? formatFullDate(selectedItem.samplevalidatedon) : 'Not validated',
-                                                                                status: workflowFor(selectedItem).sampleValidation !== 'pending' ? 'done' : (workflowFor(selectedItem).canValidateSample ? 'current' : 'blocked'),
+                                                                                when: workflowFor(selectedItem, applicationsettings?.settings).sampleValidation === 'bypassed' ? 'Bypassed by configuration' : selectedItem.samplevalidatedon ? formatFullDate(selectedItem.samplevalidatedon) : 'Not validated',
+                                                                                status: workflowFor(selectedItem, applicationsettings?.settings).sampleValidation !== 'pending' ? 'done' : (workflowFor(selectedItem, applicationsettings?.settings).canValidateSample ? 'current' : 'blocked'),
                                                                            },
                                                                            {
                                                                                 label: 'Processing',
-                                                                                when: workflowFor(selectedItem).processing === 'bypassed' ? 'Bypassed by configuration' : selectedItem.processingStartDate ? `Start: ${formatFullDate(selectedItem.processingStartDate)}` : 'Not started',
+                                                                                when: workflowFor(selectedItem, applicationsettings?.settings).processing === 'bypassed' ? 'Bypassed by configuration' : selectedItem.processingStartDate ? `Start: ${formatFullDate(selectedItem.processingStartDate)}` : 'Not started',
                                                                                 extra: selectedItem.processingEndDate ? `End: ${formatFullDate(selectedItem.processingEndDate)}` : null,
-                                                                                status: workflowFor(selectedItem).processing !== 'pending' ? 'done' : (workflowFor(selectedItem).canProcess ? 'current' : 'blocked'),
+                                                                                status: workflowFor(selectedItem, applicationsettings?.settings).processing !== 'pending' ? 'done' : (workflowFor(selectedItem, applicationsettings?.settings).canProcess ? 'current' : 'blocked'),
                                                                            },
                                                                            {
                                                                                 label: 'Result Entry',
                                                                                 when: selectedItem.resultEntryStart ? `Start: ${formatFullDate(selectedItem.resultEntryStart)}` : 'Not started',
                                                                                 extra: selectedItem.resultEntryEnd ? `End: ${formatFullDate(selectedItem.resultEntryEnd)}` : null,
-                                                                                status: selectedItem.resultEntryEnd ? 'done' : (workflowFor(selectedItem).canEnterResults ? 'current' : 'blocked'),
+                                                                                status: selectedItem.resultEntryEnd ? 'done' : (workflowFor(selectedItem, applicationsettings?.settings).canEnterResults ? 'current' : 'blocked'),
                                                                            },
                                                                            {
                                                                                 label: 'Result Validation',
@@ -624,39 +624,39 @@ export default function ClientVisit() {
                                                             <div className="d-grid gap-2">
                                                                  <OutsourceAssignment ascensionId={Number(selectedItem.ascension_id)}/>
                                                                  <SpecimenRecollectionPanel billingid={selectedItem.billingid} ascensionId={selectedItem.ascension_id} compact onChanged={() => loadTestTransactions(true)} />
-                                                  {workflowFor(selectedItem).blockedReason && <div className="alert alert-warning py-2">{workflowFor(selectedItem).blockedReason}</div>}
+                                                  {workflowFor(selectedItem, applicationsettings?.settings).blockedReason && <div className="alert alert-warning py-2">{workflowFor(selectedItem, applicationsettings?.settings).blockedReason}</div>}
                                                                  <button
                                                                       className={`btn btn-sm ${selectedItem.collectionEndDate ? 'btn-outline-secondary' : selectedItem.collectionStartDate ? 'btn-outline-success' : 'btn-outline-primary'}`}
-                                                                      disabled={!workflowFor(selectedItem).canCollect}
+                                                                      disabled={!workflowFor(selectedItem, applicationsettings?.settings).canCollect}
                                                                       onClick={() => setWorkflow('collection')}
                                                                  >
-                                                                      {workflowFor(selectedItem).collection === 'bypassed' && !workflowFor(selectedItem).canCollect ? 'Collection Bypassed' : !selectedItem.collectionStartDate
+                                                                      {workflowFor(selectedItem, applicationsettings?.settings).collection === 'bypassed' && !workflowFor(selectedItem, applicationsettings?.settings).canCollect ? 'Collection Bypassed' : !selectedItem.collectionStartDate
                                                                            ? 'Collect Sample'
                                                                            : !selectedItem.collectionEndDate
                                                                                 ? 'Complete Collection'
                                                                                 : 'Collection Completed'}
                                                                  </button>
 
-                                                                 {workflowFor(selectedItem).sampleValidation === 'pending' ? (
+                                                                 {workflowFor(selectedItem, applicationsettings?.settings).sampleValidation === 'pending' ? (
                                                                       <button
                                                                            className="btn btn-sm btn-outline-warning"
-                                                                           disabled={!workflowFor(selectedItem).canValidateSample}
+                                                                           disabled={!workflowFor(selectedItem, applicationsettings?.settings).canValidateSample}
                                                                            onClick={() => setWorkflow('sampleValidation')}
                                                                       >
                                                                            Validate Sample
                                                                       </button>
                                                                  ) : (
                                                                       <button className="btn btn-sm btn-outline-secondary" disabled>
-                                                                           {workflowFor(selectedItem).sampleValidation === 'bypassed' ? 'Sample Validation Bypassed' : 'Sample Validated'}
+                                                                           {workflowFor(selectedItem, applicationsettings?.settings).sampleValidation === 'bypassed' ? 'Sample Validation Bypassed' : 'Sample Validated'}
                                                                       </button>
                                                                  )}
 
                                                                  <button
                                                                       className={`btn btn-sm ${selectedItem.processingEndDate ? 'btn-outline-secondary' : selectedItem.processingStartDate ? 'btn-outline-success' : 'btn-outline-primary'}`}
-                                                                      disabled={!workflowFor(selectedItem).canProcess}
+                                                                      disabled={!workflowFor(selectedItem, applicationsettings?.settings).canProcess}
                                                                       onClick={() => setWorkflow('processing')}
                                                                  >
-                                                                      {workflowFor(selectedItem).processing === 'bypassed' ? 'Processing Bypassed' : !selectedItem.processingStartDate
+                                                                      {workflowFor(selectedItem, applicationsettings?.settings).processing === 'bypassed' ? 'Processing Bypassed' : !selectedItem.processingStartDate
                                                                            ? 'Start Processing'
                                                                            : !selectedItem.processingEndDate
                                                                                 ? 'Complete Processing'
@@ -666,7 +666,7 @@ export default function ClientVisit() {
                                                                  {selectedItem.isapproved !== 1 ? (
                                                                       <button
                                                                            className="btn btn-sm btn-outline-success"
-                                                                           disabled={!(workflowFor(selectedItem).canEnterResults && selectedItem.resultEntryEnd)}
+                                                                           disabled={!(workflowFor(selectedItem, applicationsettings?.settings).canEnterResults && selectedItem.resultEntryEnd)}
                                                                            onClick={() => setWorkflow('resultValidation')}
                                                                       >
                                                                            Validate Result

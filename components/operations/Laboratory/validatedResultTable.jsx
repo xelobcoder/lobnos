@@ -8,7 +8,7 @@ function isPaidResult(item) {
 
 function canPrintResult(item, allowPrintingUnpaid) {
      const printableItems = Array.isArray(item?.tests) ? item.tests : [item];
-     if (allowPrintingUnpaid === 1 || printableItems.some(isPaidResult)) return true;
+     if (Number(allowPrintingUnpaid) === 1 || printableItems.some(isPaidResult)) return true;
      alert("Printing of results is not allowed for unpaid tests.");
      return false;
 }

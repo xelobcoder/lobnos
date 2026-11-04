@@ -40,7 +40,9 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
      }, [isApproved, pinOnResultValidation, isBulk]);
 
 
+     const paymentBlocked = Object.values(snapshots).some(snapshot => snapshot.payment_allowed === false);
      const disableButton = () => {
+          if (paymentBlocked) return true;
           if (!snapshotsReady || validatingSpinner) return true;
           if (pinOnResultValidation) {
                return isBulk ? !isApproved || !pinValue : !isPinValidated
@@ -116,7 +118,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
      }
 
      const handleSaveValue = async () => {
-          if (validatingSpinner || !snapshotsReady) return;
+          if (validatingSpinner || !snapshotsReady || paymentBlocked) return;
           if (isBulk && Array.isArray(ascensions) && ascensions.length > 0) {
                try {
                     setValidatingSpinner(true);
@@ -214,8 +216,9 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                               <aside className={styles.approval} aria-label="Approval review">
                                    <div className={styles.sectionHeading}><h2 className="h6 fw-bold mb-0">Your approval</h2></div>
                                    <div className={styles.approvalBody}>
+                                        {paymentBlocked && <div role="alert" className="alert alert-warning">Payment is required before validating one or more selected services. Reload after payment or review your selection.</div>}
                                         <p className="small text-muted">Recorded as your signed-in account. Final release requires all configured validators to approve this revision.</p>
-                                        <Form.Check id="result-review-confirmation" type="checkbox" checked={isApproved} disabled={validatingSpinner}
+                                        <Form.Check id="result-review-confirmation" type="checkbox" checked={isApproved} disabled={validatingSpinner || paymentBlocked}
                                              onChange={handleCheck} label={isBulk ? 'I have reviewed the current results for every selected test.' : 'I have reviewed the patient details and current results.'} />
                                         {isApproved && pinOnResultValidation && <div className="mt-3">
                                              <label className="form-label small fw-semibold" htmlFor="result-validation-pin">Your secure PIN</label>

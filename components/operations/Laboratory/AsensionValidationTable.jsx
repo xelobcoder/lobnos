@@ -32,7 +32,7 @@ export default function ValidationAscensionTable({ employeeid }) {
 
 	const handleActionClick = (doc) => {
 		if (Array.isArray(doc) && doc.length > 0) {
-			const filterPaidCollection = doc.filter(item => settings?.allowValidationUpaid === 1 || item.paymentstatus === 'paid');
+			const filterPaidCollection = doc.filter(item => Number(settings?.allowValidationUpaid) === 1 || String(item.paymentstatus || '').trim().toLowerCase() === 'paid');
 			if (filterPaidCollection.length === 0) {
 				alert('No tests available for validation. Please ensure at least one test is paid or unpaid test validation is allowed in settings.');
 				return;
@@ -84,7 +84,7 @@ export default function ValidationAscensionTable({ employeeid }) {
 	};
 
 	const handleSelectAll = () => {
-		const filterPaidCollection = collection.filter(item => settings?.allowValidationUpaid === 1 || item.paymentstatus === 'paid');
+		const filterPaidCollection = collection.filter(item => Number(settings?.allowValidationUpaid) === 1 || String(item.paymentstatus || '').trim().toLowerCase() === 'paid');
 		if (selectedRows.size === filterPaidCollection.length) {
 			setSelectedRows(new Set());
 		} else {
@@ -186,7 +186,7 @@ export default function ValidationAscensionTable({ employeeid }) {
 				<div className="d-flex align-items-center gap-2">
 					<input
 						type="checkbox"
-						disabled={settings?.allowValidationUpaid !== 1 && row.original.paymentstatus !== 'paid'}
+						disabled={Number(settings?.allowValidationUpaid) !== 1 && String(row.original.paymentstatus || '').trim().toLowerCase() !== 'paid'}
 						checked={selectedRows.has(row.original.ascensionid)}
 						onChange={() => handleRowSelection(row.original.ascensionid)}
 						style={{ cursor: 'pointer' }}

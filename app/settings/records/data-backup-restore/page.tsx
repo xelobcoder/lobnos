@@ -1,19 +1,20 @@
 'use client';
 import {errorMessage} from '../../../../lib/errorMessage';
 
-import React, { useState, useEffect } from 'react';
-import { Row, Col, Button, Alert, Modal } from 'react-bootstrap';
-import { RiShieldCheckLine, RiAddLine, RiDatabaseLine } from '@remixicon/react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Button, Alert, Modal, Spinner } from 'react-bootstrap';
+import { RiShieldCheckLine, RiAddLine, RiDatabaseLine, RiRefreshLine } from '@remixicon/react';
 import Link from 'next/link';
 import { customFetch, customPost } from '../../../../components/Auth/customFetch';
 import { BackupDownloadError, requestBackupDownload } from '../../../../lib/backupDownload';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 import { toast } from 'react-toastify';
+import { roleAllowed } from '../../../../components/Auth/roles';
+import styles from '../../../../components/settings/backup/BackupWorkspace.module.css';
 import themeContrast from '../../../../styles/theme-contrast.module.css';
 
 import {
      BackupStatsCards,
-     BackupProgressSection,
      BackupSchedulesTable,
      BackupLogsTable,
      BackupScheduleModal
@@ -41,6 +42,7 @@ interface BackupLog {
      id: number;
      backup_name: string;
      is_successful: boolean;
+     encryption_key_id?: string | null;
      is_full_backup: boolean;
      backup_size_bytes: number;
      backup_type: string;
@@ -77,7 +79,9 @@ const BACKUP_TYPE_OPTIONS = [
 ];
 
 export default function DataBackupRestorePage() {
-     const { user } = useApplicationSettings().applicationsettings;
+     const { applicationsettings } = useApplicationSettings();
+     const user = applicationsettings?.user;
+     const canManageBackups = roleAllowed(user?.role, ['admin']);
      const employeeid = user?.employeeid;
 
      // New backup scheduling states
@@ -88,6 +92,12 @@ export default function DataBackupRestorePage() {
      const [backupLogs, setBackupLogs] = useState<BackupLog[]>([]);
      const [backupStats, setBackupStats] = useState<BackupStats | null>(null);
      const [loading, setLoading] = useState(false);
+     const [refreshing, setRefreshing] = useState(false);
+     const [loadError, setLoadError] = useState('');
+     const [downloading, setDownloading] = useState(false);
+     const downloadInFlight = useRef(false);
+     const schedulePage = useRef({ count: 50, page: 1, sortby: '' });
+     const historyPage = useRef({ count: 50, page: 1, sortby: '' });
 
      const [executingSchedules, setExecutingSchedules] = useState<Set<number>>(new Set());
 
@@ -107,16 +117,11 @@ export default function DataBackupRestorePage() {
      });
 
      useEffect(() => {
-          Promise.all([
-               loadBackupSchedules(),
-               loadBackupLogs(),
-               loadBackupStats()
-          ]).catch((error) => {
-               console.error('Error loading backup data:', error);
-          });
-     }, []);
+          if (canManageBackups) void refreshBackupData();
+     }, [canManageBackups]);
 
-     const loadBackupSchedules = async (count: number = 50, page: number = 1, sortby: string = '') => {
+     const loadBackupSchedules = async (count: number = schedulePage.current.count, page: number = schedulePage.current.page, sortby: string = schedulePage.current.sortby) => {
+          schedulePage.current = { count, page, sortby };
           try {
                const queryParams = new URLSearchParams({
                     page: page.toString(),
@@ -124,7 +129,8 @@ export default function DataBackupRestorePage() {
                     ...(sortby && { sortby })
                });
                const response = await customFetch(`${API_BASE}/schedules?${queryParams}`);
-               if (response.status) {
+               if (response.status === true || response.status === 'success') {
+                    if (!Array.isArray(response.data)) return { result: [], error: true };
                     setBackupSchedules(response.data);
                     return { result: response.data, error: false };
                } else {
@@ -137,7 +143,8 @@ export default function DataBackupRestorePage() {
           }
      };
 
-     const loadBackupLogs = async (count: number = 50, page: number = 1, sortby: string = '') => {
+     const loadBackupLogs = async (count: number = historyPage.current.count, page: number = historyPage.current.page, sortby: string = historyPage.current.sortby) => {
+          historyPage.current = { count, page, sortby };
           try {
                const queryParams = new URLSearchParams({
                     page: page.toString(),
@@ -145,7 +152,8 @@ export default function DataBackupRestorePage() {
                     ...(sortby && { sortby })
                });
                const response = await customFetch(`${API_BASE}/logs?${queryParams}`);
-               if (response.status) {
+               if (response.status === true || response.status === 'success') {
+                    if (!Array.isArray(response.data)) return { result: [], error: true };
                     setBackupLogs(response.data);
                     return { result: response.data, error: false };
                } else {
@@ -160,13 +168,27 @@ export default function DataBackupRestorePage() {
 
      const loadBackupStats = async () => {
           try {
-               const response = await customFetch(`${API_BASE}/stats?tenantId=1`);
-               if (response.status) {
+               const response = await customFetch(`${API_BASE}/stats`);
+               if (response.status === true || response.status === 'success') {
+                    if (!response.data || typeof response.data !== 'object') return { error: true };
                     setBackupStats(response.data);
+                    return { error: false };
                }
           } catch (error) {
                console.error('Failed to load backup stats:', error);
                toast.error('Failed to load backup statistics');
+          }
+          return { error: true };
+     };
+
+     const refreshBackupData = async () => {
+          setRefreshing(true);
+          setLoadError('');
+          try {
+               const results = await Promise.all([loadBackupSchedules(), loadBackupLogs(), loadBackupStats()]);
+               if (results.some(result => result.error)) setLoadError('Some backup information could not be loaded. Refresh to retry.');
+          } finally {
+               setRefreshing(false);
           }
      };
 
@@ -219,7 +241,7 @@ export default function DataBackupRestorePage() {
                };
 
                const response = await customPost(`${API_BASE}/schedules`, 'POST', payload);
-               if (response.status) {
+               if (response.status === true || response.status === 'success') {
                     toast.success('Backup schedule created successfully');
                     setShowCreateScheduleModal(false);
                     resetScheduleForm();
@@ -259,7 +281,7 @@ export default function DataBackupRestorePage() {
                };
 
                const response = await customPost(`${API_BASE}/schedules/${editingSchedule.id}`, 'PUT', payload);
-               if (response.status) {
+               if (response.status === true || response.status === 'success') {
                     toast.success('Backup schedule updated successfully');
                     setShowEditScheduleModal(false);
                     setEditingSchedule(null);
@@ -281,7 +303,7 @@ export default function DataBackupRestorePage() {
 
           try {
                const response = await customPost(`${API_BASE}/schedules/${scheduleId}`, 'DELETE', {});
-               if (response.status) {
+               if (response.status === true || response.status === 'success') {
                     toast.success('Backup schedule deleted successfully');
                     loadBackupSchedules();
                } else {
@@ -302,18 +324,10 @@ export default function DataBackupRestorePage() {
 
           try {
                const response = await customPost(`${API_BASE}/schedules/${scheduleId}/execute`, 'POST', {});
-               if (response.status) {
-                    toast.success('Backup execution started');
-                    loadBackupLogs();
-
-                    setTimeout(() => {
-                         setExecutingSchedules(prev => {
-                              const newSet = new Set(prev);
-                              newSet.delete(scheduleId);
-                              return newSet;
-                         });
-                         toast.success('Backup execution completed');
-                    }, 3000);
+               if (response.status === true || response.status === 'success') {
+                    toast.success('Backup completed successfully');
+                    await refreshBackupData();
+                    setExecutingSchedules(prev => { const next = new Set(prev); next.delete(scheduleId); return next; });
                } else {
                     toast.error(response.error || 'Failed to execute schedule');
                     setExecutingSchedules(prev => {
@@ -352,7 +366,7 @@ export default function DataBackupRestorePage() {
                backup_time: schedule.backup_time,
                retention_days: schedule.retention_days,
                backup_type: schedule.backup_type,
-               is_active: !!(schedule as any).is_active
+               is_active: Number(schedule.is_active) === 1
           });
           setShowEditScheduleModal(true);
      };
@@ -368,7 +382,10 @@ export default function DataBackupRestorePage() {
      };
 
      const performDownload = async (decrypt: boolean = false) => {
-          if (!backupToDownload) return;
+          if (!backupToDownload || downloadInFlight.current) return;
+          downloadInFlight.current = true;
+          setDownloading(true);
+          setDownloadError('');
 
           try {
                const response = await requestBackupDownload(backupToDownload.id, decrypt);
@@ -395,19 +412,22 @@ export default function DataBackupRestorePage() {
                document.body.removeChild(link);
 
                toast.success(`Download completed for backup: ${backupToDownload.backup_name}`);
+               setShowDecryptModal(false);
+               setBackupToDownload(null);
           } catch (error) {
                const message = errorMessage(error);
                setDownloadError(message);
                if (error instanceof BackupDownloadError && error.code === 'BACKUP_FILE_NOT_FOUND') {
                     setBackupLogs(logs => logs.map(log => log.id === backupToDownload.id ? { ...log, file_available: false } : log));
+                    setBackupToDownload(current => current ? { ...current, file_available: false } : current);
                     console.warn('Backup file unavailable:', message);
                } else {
                     console.error('Download backup error:', error);
                }
                toast.error(message);
           } finally {
-               setShowDecryptModal(false);
-               setBackupToDownload(null);
+               downloadInFlight.current = false;
+               setDownloading(false);
           }
      };
 
@@ -415,8 +435,8 @@ export default function DataBackupRestorePage() {
           if (!confirm(`Are you sure you want to delete the backup "${backupLog.backup_name}"? This action cannot be undone.`)) return;
 
           try {
-               const response = await customPost(`security-features/backup/${backupLog.id}?tenantId=1`, 'DELETE', {});
-               if (response.status) {
+               const response = await customPost(`security-features/backup/${backupLog.id}`, 'DELETE', {});
+               if (response.status === true || response.status === 'success') {
                     toast.success('Backup deleted successfully');
                     loadBackupLogs(); // Refresh logs
                } else {
@@ -446,69 +466,39 @@ export default function DataBackupRestorePage() {
           }
      };
 
+     if (!canManageBackups) return <section className={styles.workspace}>
+          <div className={styles.panel}><div className={styles.empty}><RiShieldCheckLine size={30} aria-hidden="true" />
+               <h1 className="h5">Administrator access required</h1><p>Backup administration is available to authorized administrators.</p>
+          </div></div>
+     </section>;
+
      return (
-          <div className={`container-fluid p-4 ${themeContrast.controls}`}>
-               <div className="d-flex align-items-center justify-content-between mb-4">
-                    <div>
-                         <h4 className="mb-1" style={{ fontSize: '1.5rem' }}>Data Backup & Restore</h4>
-                         <p className="text-muted mb-0" style={{ fontSize: '0.875rem' }}>Manage automated backups and restore points for data protection</p>
-                    </div>
-                    <div className="d-flex gap-2">
-                         <Button variant="outline-info" size="sm" onClick={() => setShowCreateScheduleModal(true)}>
-                              <RiAddLine size={16} className="me-2" />
-                              Create Schedule
-                         </Button>
-                         <Link href="/settings/records/backup-security">
-                              <Button variant="outline-warning" size="sm">
-                                   <RiShieldCheckLine size={16} className="me-2" />
-                                   Security Settings
-                              </Button>
-                         </Link>
-                    </div>
-               </div>
-
-               {downloadError && <Alert variant="danger" dismissible onClose={() => setDownloadError('')} role="alert">{downloadError}</Alert>}
-               <Alert variant="info" className="mb-4">
-                    <div className="d-flex align-items-start gap-3">
-                         <RiShieldCheckLine size={20} className="text-info-emphasis mt-1" />
-                         <div style={{ fontSize: '0.875rem' }}>
-                              <strong>Data Protection:</strong> Regular backups ensure business continuity and data recovery. Configure automated schedules and monitor backup status to maintain compliance and minimize data loss risks.
+          <div className={`${styles.workspace} ${themeContrast.controls}`}>
+               <header className={styles.header}>
+                    <div className={styles.heading}>
+                         <span className={styles.icon}><RiDatabaseLine size={23} aria-hidden="true" /></span>
+                         <div><span className={styles.eyebrow}>Records / Data protection</span>
+                              <h1>Data backup &amp; restore</h1>
+                              <p>Schedule backups, inspect results and download files for recovery.</p>
                          </div>
                     </div>
-               </Alert>
-
-               <Row className="g-4">
-                    <Col lg={12}>
-                         <div className=" mx-2 p-2 mb-4">
-                              <div className="d-flex align-items-center gap-2 mb-3">
-                                   <RiDatabaseLine size={20} />
-                                   <h5 className="mb-0">Backup Overview</h5>
-                              </div>
-                              <BackupStatsCards backupStats={backupStats} />
-                         </div>
-
-                    </Col>
-               </Row>
-
-               <Row className="g-4 mt-2">
-                    <Col lg={12}>
-                         <BackupSchedulesTable
-                              backupSchedules={backupSchedules}
-                              onExecuteSchedule={handleExecuteSchedule}
-                              onEditSchedule={openEditModal}
-                              onDeleteSchedule={handleDeleteSchedule}
-                              onServerFilter={handleSchedulesServerFilter}
-                              executingSchedules={executingSchedules}
-                         />
-
-                         <BackupLogsTable
-                              backupLogs={backupLogs}
-                              onDownloadBackup={handleDownloadFromLog}
-                              onDeleteBackup={handleDeleteFromLog}
-                              onServerFilter={handleLogsServerFilter}
-                         />
-                    </Col>
-               </Row>
+                    <div className={styles.actions}>
+                         <button type="button" className={styles.secondary} disabled={refreshing} onClick={() => void refreshBackupData()}>
+                              <RiRefreshLine size={17} aria-hidden="true" />{refreshing ? 'Refreshing…' : 'Refresh'}
+                         </button>
+                         <Link className={styles.secondary} href="/settings/records/backup-security"><RiShieldCheckLine size={17} aria-hidden="true" />Security settings</Link>
+                         <button type="button" className={styles.primary} disabled={loading} onClick={() => setShowCreateScheduleModal(true)}><RiAddLine size={18} aria-hidden="true" />New schedule</button>
+                    </div>
+               </header>
+               {loadError && <Alert variant="warning" role="alert">{loadError}</Alert>}
+               {downloadError && !showDecryptModal && <Alert variant="danger" dismissible onClose={() => setDownloadError('')} role="alert">{downloadError}</Alert>}
+               <BackupStatsCards backupStats={backupStats} />
+               <div className={styles.notice}><RiShieldCheckLine size={19} aria-hidden="true" /><span>Review encryption and storage in Security settings. Download an available backup when preparing a recovery.</span></div>
+               <BackupSchedulesTable backupSchedules={backupSchedules} onExecuteSchedule={handleExecuteSchedule}
+                    onEditSchedule={openEditModal} onDeleteSchedule={handleDeleteSchedule}
+                    onServerFilter={handleSchedulesServerFilter} executingSchedules={executingSchedules} loading={refreshing} />
+               <BackupLogsTable backupLogs={backupLogs} onDownloadBackup={handleDownloadFromLog}
+                    onDeleteBackup={handleDeleteFromLog} onServerFilter={handleLogsServerFilter} loading={refreshing} />
 
                <BackupScheduleModal
                     show={showCreateScheduleModal}
@@ -538,23 +528,23 @@ export default function DataBackupRestorePage() {
                     isEdit={true}
                />
 
-               {/* Decrypt Modal */}
-               <Modal show={showDecryptModal} onHide={() => setShowDecryptModal(false)} centered>
-                    <Modal.Header closeButton>
-                         <Modal.Title>Download Backup</Modal.Title>
-                    </Modal.Header>
+               <Modal show={showDecryptModal} onHide={() => { if (!downloading) { setShowDecryptModal(false); setBackupToDownload(null); } }} centered
+                    className={styles.modal} backdrop={downloading ? 'static' : true} keyboard={!downloading}>
+                    <Modal.Header closeButton={!downloading}><Modal.Title>Download backup</Modal.Title></Modal.Header>
                     <Modal.Body>
-                         <p>Would you like to decrypt the backup data before downloading?</p>
-                         <div className="alert alert-info">
-                              <strong>Note:</strong> Decrypted backups will be in plain text format. Encrypted backups maintain security but require decryption tools to access.
-                         </div>
+                         <p className={styles.fileName}>{backupToDownload?.backup_name}</p>
+                         {downloadError && <Alert variant="danger" role="alert">{downloadError}</Alert>}
+                         {backupToDownload?.encryption_key_id || backupToDownload?.backup_path?.endsWith('.encrypted') ?
+                              <p>Choose the encrypted file for secure storage, or a decrypted copy for recovery. A decrypted copy contains readable records and needs secure storage.</p> :
+                              <p>Download this available backup file for your recovery process.</p>}
+                         {downloading && <div role="status"><Spinner as="span" size="sm" className="me-2" />Preparing your download…</div>}
                     </Modal.Body>
                     <Modal.Footer>
-                         <Button variant="secondary" onClick={() => performDownload(false)}>
-                              Download Encrypted
-                         </Button>
-                         <Button variant="primary" onClick={() => performDownload(true)}>
-                              Download Decrypted
+                         <Button variant="outline-secondary" disabled={downloading} onClick={() => { setShowDecryptModal(false); setBackupToDownload(null); }}>Cancel</Button>
+                         {(backupToDownload?.encryption_key_id || backupToDownload?.backup_path?.endsWith('.encrypted')) &&
+                              <Button variant="outline-primary" disabled={downloading || backupToDownload?.file_available === false} onClick={() => void performDownload(true)}>Download decrypted copy</Button>}
+                         <Button variant="primary" disabled={downloading || backupToDownload?.file_available === false} onClick={() => void performDownload(false)}>
+                              {backupToDownload?.encryption_key_id || backupToDownload?.backup_path?.endsWith('.encrypted') ? 'Download encrypted' : 'Download file'}
                          </Button>
                     </Modal.Footer>
                </Modal>

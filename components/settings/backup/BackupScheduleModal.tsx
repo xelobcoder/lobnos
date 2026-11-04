@@ -1,3 +1,4 @@
+import styles from './BackupWorkspace.module.css';
 import React from 'react';
 import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
 
@@ -49,13 +50,13 @@ export default function BackupScheduleModal({
      };
 
      return (
-          <Modal show={show} onHide={onHide} size="lg">
-               <Modal.Header closeButton>
+          <Modal show={show} onHide={loading ? undefined : onHide} size="lg" centered className={styles.modal} backdrop={loading ? "static" : true} keyboard={!loading}>
+               <Modal.Header closeButton={!loading}>
                     <Modal.Title>{title}</Modal.Title>
                </Modal.Header>
                <Modal.Body>
-                    <Form>
-                         <Form.Group className="mb-3">
+                    <Form id="backup-schedule-form" onSubmit={event => { event.preventDefault(); if (!loading) onSubmit(); }}>
+                         <Form.Group className="mb-3" controlId="backup-schedule-name">
                               <Form.Label>Schedule Name *</Form.Label>
                               <Form.Control
                                    type="text"
@@ -68,7 +69,7 @@ export default function BackupScheduleModal({
 
                          <Row className="mb-3">
                               <Col md={6}>
-                                   <Form.Group>
+                                   <Form.Group controlId="backup-schedule-frequency">
                                         <Form.Label>Frequency *</Form.Label>
                                         <Form.Select
                                              value={scheduleForm.frequency}
@@ -83,7 +84,7 @@ export default function BackupScheduleModal({
                                    </Form.Group>
                               </Col>
                               <Col md={6}>
-                                   <Form.Group>
+                                   <Form.Group controlId="backup-schedule-time">
                                         <Form.Label>Backup Time (24-hour format) *</Form.Label>
                                         <Form.Control
                                              type="time"
@@ -97,7 +98,7 @@ export default function BackupScheduleModal({
 
                          <Row className="mb-3">
                               <Col md={6}>
-                                   <Form.Group>
+                                   <Form.Group controlId="backup-schedule-type">
                                         <Form.Label>Backup Type *</Form.Label>
                                         <Form.Select
                                              value={scheduleForm.backup_type}
@@ -112,7 +113,7 @@ export default function BackupScheduleModal({
                                    </Form.Group>
                               </Col>
                               <Col md={6}>
-                                   <Form.Group>
+                                   <Form.Group controlId="backup-schedule-retention">
                                         <Form.Label>Retention Days *</Form.Label>
                                         <Form.Control
                                              type="number"
@@ -127,6 +128,7 @@ export default function BackupScheduleModal({
 
                          <Form.Group className="mb-3">
                               <Form.Check
+                                   id="backup-schedule-active"
                                    type="checkbox"
                                    label="Active Schedule"
                                    checked={scheduleForm.is_active}
@@ -136,13 +138,13 @@ export default function BackupScheduleModal({
                     </Form>
                </Modal.Body>
                <Modal.Footer>
-                    <Button variant="secondary" size="sm" onClick={onHide}>
+                    <Button variant="outline-secondary" size="sm" onClick={onHide} disabled={loading}>
                          Cancel
                     </Button>
                     <Button
                          variant="primary"
                          size="sm"
-                         onClick={onSubmit}
+                         type="submit" form="backup-schedule-form"
                          disabled={loading}
                     >
                          {loading ? (isEdit ? 'Updating...' : 'Creating...') : (isEdit ? 'Update Schedule' : 'Create Schedule')}

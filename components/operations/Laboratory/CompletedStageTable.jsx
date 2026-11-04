@@ -104,7 +104,7 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 				<Button
 					variant="outline-success"
 					size="sm"
-					disabled={!allowResultEnteringUpaid && row.original.paymentstatus !== 'paid'}
+					disabled={!allowResultEnteringUpaid && String(row.original.paymentstatus || '').trim().toLowerCase() !== 'paid'}
 					className="p-1"
 					onClick={() => PrepareResultEntryHeader(row.original, false, branchid, false)}
 				>
@@ -363,7 +363,7 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 														<Button
 															variant="outline-success"
 															size="sm"
-															disabled={!allowResultEnteringUpaid && test.paymentstatus !== 'paid'}
+															disabled={!allowResultEnteringUpaid && String(test.paymentstatus || '').trim().toLowerCase() !== 'paid'}
 															className="p-1"
 															onClick={() => {
 
@@ -421,7 +421,7 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 														<Button
 															variant="primary"
 															size="sm"
-															disabled={!allowResultEnteringUpaid && test.paymentstatus !== 'paid'}
+															disabled={!allowResultEnteringUpaid && String(test.paymentstatus || '').trim().toLowerCase() !== 'paid'}
 															className="mx-2"
 															onClick={(ev) => {
 																PrepareResultEntryHeader(test, false, branchid);

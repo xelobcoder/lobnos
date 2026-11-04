@@ -10,7 +10,7 @@ const ActionDropdown = ({
   return (
     <ButtonGroup size="sm">
       <Button
-        disabled={allowValidationUpaid !== 1 && paymentstatus !== "paid"}
+        disabled={Number(allowValidationUpaid) !== 1 && String(paymentstatus || "").trim().toLowerCase() !== "paid"}
         variant="outline-success"
         onClick={onValidate}
       >

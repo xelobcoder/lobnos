@@ -1,3 +1,4 @@
+import styles from './BackupWorkspace.module.css';
 import React from 'react';
 import { Button, Spinner } from 'react-bootstrap';
 import { RiPlayCircleLine, RiEditLine, RiDeleteBinLine, RiSettings4Line } from '@remixicon/react';
@@ -72,7 +73,7 @@ export default function BackupSchedulesTable({
                accessor: 'is_active',
                Cell: ({ row }: {row: {original: BackupSchedule; index: number}}) => (
                     <span>
-                         {row.original.is_active ? 'Active' : 'Inactive'}
+                         {Number(row.original.is_active) === 1 ? 'Active' : 'Paused'}
                     </span>
                )
           },
@@ -91,7 +92,7 @@ export default function BackupSchedulesTable({
                Cell: ({ row }: {row: {original: BackupSchedule; index: number}}) => {
                     const isExecuting = executingSchedules.has(row.original.id);
                     return (
-                         <div className="d-flex gap-1">
+                         <div className={styles.rowActions}>
                               <Button
                                    variant="outline-primary"
                                    size="sm"
@@ -114,7 +115,7 @@ export default function BackupSchedulesTable({
                               <Button
                                    variant="outline-secondary"
                                    size="sm"
-                                   onClick={() => onEditSchedule(row.original)}
+                                   disabled={isExecuting} onClick={() => onEditSchedule(row.original)}
                                    title="Edit Schedule"
                               >
                                    <RiEditLine size={14} className="me-1" />
@@ -123,7 +124,7 @@ export default function BackupSchedulesTable({
                               <Button
                                    variant="outline-danger"
                                    size="sm"
-                                   onClick={() => onDeleteSchedule(row.original.id)}
+                                   disabled={isExecuting} onClick={() => onDeleteSchedule(row.original.id)}
                                    title="Delete Schedule"
                               >
                                    <RiDeleteBinLine size={14} className="me-1" />
@@ -136,11 +137,15 @@ export default function BackupSchedulesTable({
      ];
 
      return (
-          <div className="border p-3  rounded bg-body mx-2 p-2 mb-4">
-               <div className="d-flex align-items-center gap-2 mb-3">
-                    <RiSettings4Line size={20} />
-                    <h5 className="mb-0">Backup Schedules</h5>
-               </div>
+          <section className={styles.panel} aria-label="Backup schedules">
+               <header className={styles.sectionHeader}>
+                    <div className={styles.heading}>
+                         <RiSettings4Line size={21} aria-hidden="true" />
+                         <div><h2>Backup schedules</h2><p>Manage recurring runs, timing and retention.</p></div>
+                    </div>
+                    <span className={styles.count}>{backupSchedules.length} loaded</span>
+               </header>
+               <div className={styles.tableBody}>
                <PrimeTable
                     column={columns}
                     data={backupSchedules}
@@ -148,6 +153,7 @@ export default function BackupSchedulesTable({
                     serverSideFiltering={true}
                     handleSeverSideProcessing={onServerFilter || (() => { })}
                />
-          </div>
+               </div>
+          </section>
      );
 }

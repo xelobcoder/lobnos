@@ -1,114 +1,36 @@
 import React from 'react';
 import { RiDatabaseLine, RiCheckLine, RiCloseLine, RiBox3Line, RiBarChartLine, RiTimeLine } from '@remixicon/react';
+import styles from './BackupWorkspace.module.css';
 
-interface BackupStats {
-     total_backups: number;
-     successful_backups: number;
-     failed_backups: number;
-     total_size: number;
-     last_backup_date: string;
+interface BackupStats { total_backups: number; successful_backups: number; failed_backups: number; total_size: number; last_backup_date: string; }
+interface BackupStatsCardsProps { backupStats: BackupStats | null; }
+const count = (value: number) => Math.max(0, Number(value) || 0).toLocaleString();
+function fileSize(value: number) {
+    const bytes = Math.max(0, Number(value) || 0);
+    if (bytes === 0) return '0 B';
+    const unit = Math.min(4, Math.floor(Math.log(bytes) / Math.log(1024)));
+    return `${Number((bytes / 1024 ** unit).toFixed(1))} ${['B', 'KB', 'MB', 'GB', 'TB'][unit]}`;
 }
-
-interface BackupStatsCardsProps {
-     backupStats: BackupStats | null;
+function lastBackup(value: string) {
+    if (!value) return 'No backups yet';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? 'Date unavailable' : date.toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
-
-const formatFileSize = (bytes: number): string => {
-     if (bytes === 0) return '0 B';
-
-     const k = 1024;
-     const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-     const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-};
-
-const formatDate = (dateString: string): string => {
-     if (!dateString) return 'Never';
-
-     try {
-          const date = new Date(dateString);
-          return date.toLocaleDateString('en-US', {
-               year: 'numeric',
-               month: 'short',
-               day: 'numeric',
-               hour: '2-digit',
-               minute: '2-digit'
-          });
-     } catch {
-          return 'Invalid Date';
-     }
-};
-
 export default function BackupStatsCards({ backupStats }: BackupStatsCardsProps) {
-     return (
-          <div className="row g-3">
-               <div className="col-md-4">
-                    <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                         <div className="d-flex align-items-center mb-2">
-                              <RiDatabaseLine size={32} className="me-2 text-primary-emphasis" />
-                              <span className="fw-medium text-muted small">Total Backups</span>
-                         </div>
-                         <div className="fs-4 fw-bold text-primary-emphasis">{backupStats?.total_backups || 0}</div>
-                         <div className="small text-muted">All backup records</div>
-                    </div>
-               </div>
-               <div className="col-md-4">
-                    <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                         <div className="d-flex align-items-center mb-2">
-                              <RiCheckLine size={32} className="me-2 text-success-emphasis" />
-                              <span className="fw-medium text-muted small">Successful</span>
-                         </div>
-                         <div className="fs-4 fw-bold text-success-emphasis">{backupStats?.successful_backups || 0}</div>
-                         <div className="small text-muted">Completed backups</div>
-                    </div>
-               </div>
-               <div className="col-md-4">
-                    <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                         <div className="d-flex align-items-center mb-2">
-                              <RiCloseLine size={32} className="me-2 text-danger-emphasis" />
-                              <span className="fw-medium text-muted small">Failed</span>
-                         </div>
-                         <div className="fs-4 fw-bold text-danger-emphasis">{backupStats?.failed_backups || 0}</div>
-                         <div className="small text-muted">Failed backups</div>
-                    </div>
-               </div>
-               <div className="col-md-4">
-                    <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                         <div className="d-flex align-items-center mb-2">
-                              <RiBox3Line size={32} className="me-2 text-info-emphasis" />
-                              <span className="fw-medium text-muted small">Total Size</span>
-                         </div>
-                         <div className="fs-4 fw-bold text-info-emphasis">
-                              {backupStats ? formatFileSize(backupStats.total_size) : '0 B'}
-                         </div>
-                         <div className="small text-muted">Backup storage used</div>
-                    </div>
-               </div>
-               <div className="col-md-4">
-                    <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                         <div className="d-flex align-items-center mb-2">
-                              <RiBarChartLine size={32} className="me-2 text-warning-emphasis" />
-                              <span className="fw-medium text-muted small">Success Rate</span>
-                         </div>
-                         <div className="fs-4 fw-bold text-warning-emphasis">
-                              {backupStats ? Math.round((backupStats.successful_backups / Math.max(backupStats.total_backups, 1)) * 100) : 0}%
-                         </div>
-                         <div className="small text-muted">Backup reliability</div>
-                    </div>
-               </div>
-               <div className="col-md-4">
-                    <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                         <div className="d-flex align-items-center mb-2">
-                              <RiTimeLine size={32} className="me-2 text-body-secondary" />
-                              <span className="fw-medium text-muted small">Last Backup</span>
-                         </div>
-                         <div className="fs-6 fw-bold text-body-secondary" style={{ lineHeight: '1.2' }}>
-                              {backupStats ? formatDate(backupStats.last_backup_date) : 'Never'}
-                         </div>
-                         <div className="small text-muted">Most recent backup</div>
-                    </div>
-               </div>
-          </div>
-     );
+    const stats = backupStats;
+    const metrics = [
+        { label: 'Backup records', value: stats ? count(stats.total_backups) : '—', note: 'Across all recorded runs', icon: RiDatabaseLine },
+        { label: 'Successful', value: stats ? count(stats.successful_backups) : '—', note: 'Completed backup runs', icon: RiCheckLine, tone: styles.success },
+        { label: 'Failed', value: stats ? count(stats.failed_backups) : '—', note: 'Review details in run history', icon: RiCloseLine, tone: stats?.failed_backups ? styles.failed : '' },
+        { label: 'Recorded size', value: stats ? fileSize(stats.total_size) : '—', note: 'Size reported in backup logs', icon: RiBox3Line },
+        { label: 'Success rate', value: stats && Number(stats.total_backups) > 0 ? `${Math.round(Number(stats.successful_backups) / Number(stats.total_backups) * 100)}%` : '—', note: 'Successful runs / recorded runs', icon: RiBarChartLine },
+        { label: 'Latest backup', value: stats ? lastBackup(stats.last_backup_date) : '—', note: 'Most recent recorded backup', icon: RiTimeLine, date: true },
+    ];
+    return <section className={styles.metrics} aria-label="Backup overview">
+        {metrics.map(metric => <article key={metric.label} className={styles.metric}>
+            <div className={styles.metricLabel}><metric.icon size={17} aria-hidden="true" />{metric.label}</div>
+            <strong className={`${styles.metricValue} ${metric.tone || ''} ${metric.date ? styles.metricDate : ''}`}>{metric.value}</strong>
+            <span className={styles.metricHelp}>{metric.note}</span>
+        </article>)}
+    </section>;
 }
