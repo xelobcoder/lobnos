@@ -73,15 +73,22 @@ function EmptyState({ title, text }: { title: string; text: string }) {
 }
 function Metrics({ data }: { data: ReceivablesResult | null }) {
     const recovery = data && cents(data.totals.expected) > 0 ? (cents(data.totals.received) / cents(data.totals.expected)) * 100 : 0;
-    const percentage = recovery.toFixed(1);
-    return <dl className={`${summaryStyles.summaryStrip} ${styles.summary}`} aria-label="NHIS service-period totals">
-        <div><dt>Expected from NHIS</dt><dd>{data ? money(data.totals.expected) : "..."}</dd><dd className={`${summaryStyles.summaryDetail} ${styles.summaryNote}`}>Recognized bill amounts</dd></div>
+    const percentage = recovery.toFixed(2);
+    return <><dl className={`${summaryStyles.summaryStrip} ${styles.summary}`} aria-label="NHIS service-period totals">
+        <div><dt>Expected from NHIS</dt><dd>{data ? money(data.totals.expected) : "..."}</dd><dd className={`${summaryStyles.summaryDetail} ${styles.summaryNote}`}>From billing records</dd></div>
         <div><dt>Money received</dt><dd>{data ? money(data.totals.received) : "..."}</dd><dd className={`${summaryStyles.summaryDetail} ${styles.summaryNote}`}>Cash and bank remittances</dd></div>
         <div><dt>Still outstanding</dt><dd>{data ? money(data.totals.outstanding) : "..."}</dd><dd className={`${summaryStyles.summaryDetail} ${styles.summaryNote}`}>After adjustments and write-offs</dd></div>
         <div><dt>Cash recovery</dt><dd>{data ? `${percentage}%` : "..."}
             {data && <progress className={styles.recoveryProgress} aria-label="NHIS cash recovery" aria-valuetext={`${percentage}% received`} max={100} value={Math.min(100, Math.max(0, Number(percentage)))} />}</dd>
             <dd className={`${summaryStyles.summaryDetail} ${styles.summaryNote}`}>Received / expected</dd></div>
-    </dl>;
+    </dl>
+        {data?.accountingCoverage && data.accountingCoverage.unrecognizedBillCount > 0 && <div className="alert alert-warning mt-3" role="alert">
+            <strong>Legacy receivables need accounting reconciliation.</strong>
+            <p className="mb-2">{data.accountingCoverage.unrecognizedBillCount.toLocaleString()} bills, totaling {money(data.accountingCoverage.unrecognizedOutstanding)}, have outstanding billing balances awaiting accounting recognition.
+                Currently eligible for settlement: <strong>{money(data.accountingCoverage.eligibleOutstanding)}</strong> in this branch and service period.</p>
+            <Link href="/accounting/nhis/opening-balances" className="btn btn-sm btn-outline-primary">Review opening receivables</Link><Link href="/accounting/reconciliation" className="btn btn-sm btn-link">View accounting coverage</Link>
+        </div>}
+    </>;
 }
 function Receivables({ report, selected, toggle, enabled, openEntry }: {
     report: ReportState<ReceivablesResult>; selected: AllocationDraft[]; toggle: (bill: NhisBill) => void; enabled: boolean; openEntry: (kind: EntryKind) => void;

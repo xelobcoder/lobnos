@@ -23,6 +23,8 @@ export default function ReconciliationPage() {
      const [loading, setLoading] = useState(false);
      const [coverage, setCoverage] = useState<any>(null);
      const latestRequest = useRef(0);
+     const uninitialized = coverage?.initialization === 'opening_balances_required' || coverage?.goLive === null;
+     const coverageGaps = coverage?.lines?.some((line: any) => line.missingPreGoLive > 0 || line.missingPostGoLive > 0);
 
      useEffect(() => {
           accountingApi
@@ -93,9 +95,11 @@ export default function ReconciliationPage() {
                     </>
                }
           >
-               <div className={`alert py-2 ${balanced ? "alert-success" : "alert-danger"}`}>
-                    {balanced
-                         ? "Trial balance is in balance: total debits equal total credits."
+               <div className={`alert py-2 ${!coverage || uninitialized || coverageGaps ? "alert-warning" : balanced ? "alert-success" : "alert-danger"}`} role="status">
+                    {!coverage ? "Checking ledger coverage before confirming reconciliation." : uninitialized
+                         ? "Opening balances required. The ledger has no posted entries. Its zero balances do not reconcile the existing operational documents."
+                         : coverageGaps ? "Ledger coverage is incomplete. Equal debits and credits do not confirm that every operational balance has been recognized."
+                         : balanced ? "Trial balance is in balance. Total posted debits equal total posted credits."
                          : "Trial balance is out of balance. Review Posting Exceptions before trusting these figures."}
                </div>
 
@@ -124,8 +128,8 @@ export default function ReconciliationPage() {
                                                   {money(line.difference)}
                                              </td>
                                              <td>
-                                                  <span className={`badge ${outOfBalance ? "bg-danger" : "bg-success"}`}>
-                                                       {outOfBalance ? "Investigate" : "Reconciled"}
+                                                  <span className={`badge ${!coverage || uninitialized || coverageGaps ? "bg-warning text-dark" : outOfBalance ? "bg-danger" : "bg-success"}`}>
+                                                       {!coverage ? "Checking coverage" : uninitialized ? "Opening balances required" : outOfBalance ? "Investigate" : coverageGaps ? "Review coverage" : "Reconciled"}
                                                   </span>
                                              </td>
                                         </tr>

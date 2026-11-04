@@ -15,6 +15,7 @@ export interface ReceivablesResult extends PageResult<NhisBill> {
     to: string;
     totals: Balances;
     excludedMixedBills: number[];
+    accountingCoverage?: { eligibleOutstanding: Money; unrecognizedOutstanding: Money; unrecognizedBillCount: number; eligibleBillCount: number };
 }
 export interface CashRow { source: string; reference: string; billingId: number; date: string; amount: Money }
 export interface CashResult extends PageResult<CashRow> {

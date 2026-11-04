@@ -100,8 +100,8 @@ if (!isMainThread) {
             assert.equal(result.summaryTag, 'DL');
             assert.match(result.summaryClasses, /AccountingWorkspace_module_css_summaryStrip/);
             assert.doesNotMatch(result.summaryClasses, /AccountingWorkspace_module_css_compactStrip/);
-            assert.deepEqual(result.summaryValues, ['GH₵1,200,000.00', 'GH₵500,000.00', 'GH₵700,000.00', '41.7%']);
-            assert.deepEqual(result.recoveryBar, { value: 41.7, max: 100, text: '41.7% received' });
+            assert.deepEqual(result.summaryValues, ['GH₵1,200,000.00', 'GH₵500,000.00', 'GH₵700,000.00', '41.67%']);
+            assert.deepEqual(result.recoveryBar, { value: 41.67, max: 100, text: '41.67% received' });
             assert.equal(result.initialCalls, 4); // Authority + three independent reports.
             assert.equal(result.idleCalls, 4);
             assert.equal(result.idleMutations, 0);
