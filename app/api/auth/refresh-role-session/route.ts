@@ -1,5 +1,5 @@
 import {NextRequest,NextResponse} from 'next/server';
-import {getRequestContext} from '../../../../components/serverActions/requestHeaders';
+import {getServerRequestContext as getRequestContext} from '../../../../lib/serverRequestContext';
 import {getBackendAuthorization} from '../../../../lib/serverBackendAccess';
 import {POST as establishSession} from '../login/route';
 export async function POST(request:NextRequest){

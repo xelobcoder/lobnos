@@ -106,6 +106,7 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 		setDeletedItemDetails(service);
 		setShowDeleteDetailsModal(true);
 	};
+	const removalBusy=useRef(false);
 	const [isRemovingService, setIsRemovingService] = useState(false);
 	const [removingServiceId, setRemovingServiceId] = useState<number | null>(null);
 
@@ -270,9 +271,10 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 
 
 	const handleServiceItemRemoval = async (billingdata: BillingData) => {
-        if (!requireOpenSale()) return;
+        if (!requireOpenSale()||removalBusy.current) return;
+        if(!window.confirm('Remove '+(billingdata.name||'this service')+' from bill '+billingdata.billingid+'?'))return;
+        removalBusy.current=true;
 		try {
-			console.log("Removing service item:", billingdata);
 			const { serviceid } = billingdata;
 			setIsRemovingService(true);
 			setRemovingServiceId(serviceid || null);
@@ -296,6 +298,7 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 		} catch (err) {
 			toast.error('An error occurred while removing the service');
 		} finally {
+			removalBusy.current=false;
 			setIsRemovingService(false);
 			setRemovingServiceId(null);
 		}
@@ -1211,7 +1214,7 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 														</div>
 
 														{(row.paymentstatus === 'pending' && row.isDeleted == 0) &&
-															<Button variant='danger' size='sm' onClick={(ev) => { handleServiceItemRemoval(row) }}>
+															<Button variant='danger' size='sm' disabled={isRemovingService} onClick={(ev) => { handleServiceItemRemoval(row) }}>
 																Remove Item {isRemovingService && removingServiceId === row.serviceid && <Spinner size='sm' />}
 															</Button>
 														}

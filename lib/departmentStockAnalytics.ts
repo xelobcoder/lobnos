@@ -142,6 +142,16 @@ export function buildDepartmentStockAnalytics(data: DepartmentStockAnalyticsData
             if (validRange && from != null && to != null && Number.isFinite(from) && to >= from && to >= start && to < end + DAY) stage.samples.push((to - from) / 3600000);
         }
     }
+    const endToEndSamples: number[] = [];
+    for (const request of requests) {
+        if (!selected || stockItemKey(request) !== stockItemKey(selected)) continue;
+        const from = timestamp(request.created_at);
+        const received = eventTimes.get(request.id)?.get('receive');
+        if (validRange && Number.isFinite(from) && received != null && received >= from && received >= start && received < end + DAY) {
+            endToEndSamples.push((received - from) / 3600000);
+        }
+    }
+    const endToEnd = {hours: endToEndSamples.length ? endToEndSamples.reduce((sum,value)=>sum+value,0)/endToEndSamples.length : null, samples:endToEndSamples.length};
     const replenishment = (data.analytics ?? []).map(item => {
         const consumed = perItem.get(stockItemKey(item))?.consumed ?? 0;
         const rate = days ? consumed / days : 0;
@@ -205,6 +215,6 @@ export function buildDepartmentStockAnalytics(data: DepartmentStockAnalyticsData
         pipeline, ages, unknownAges, excludedEvents, orphanEvents, replenishment, exceptions, health,
         depletionRate: days?depleted/days:0,
         depletionCover: days&&depleted>0&&selected&&replenishment.find(item=>stockItemKey(item)===stockItemKey(selected))?.validSnapshot?amount(selected.remaining)/(depleted/days):null,
-        leadTimes: leadTimes.map(stage => ({ name: stage.name, samples: stage.samples.length, hours: stage.samples.length ? stage.samples.reduce((sum, hours) => sum + hours, 0) / stage.samples.length : null, median:quantile(stage.samples,.5), p90:quantile(stage.samples,.9) })),
+        endToEnd, leadTimes: leadTimes.map(stage => ({ name: stage.name, samples: stage.samples.length, hours: stage.samples.length ? stage.samples.reduce((sum, hours) => sum + hours, 0) / stage.samples.length : null, median:quantile(stage.samples,.5), p90:quantile(stage.samples,.9) })),
     };
 }

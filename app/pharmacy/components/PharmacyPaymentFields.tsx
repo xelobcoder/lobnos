@@ -31,9 +31,21 @@ export function usePharmacyPayment(scope: string) {
      const [reference, setReference] = useState(''), [amount, setAmount] = useState(''), [error, setError] = useState('');
      const [setup, setSetup] = useState<any>(null), [pending, setPending] = useState<Pending | null>(null);
      const current = useRef<Pending | null>(null), busy = useRef(false), restoreFailed = useRef(false);
+     const setupVerified=useRef(false), setupGeneration=useRef(0);
      const refresh = useCallback(async () => {
-          try { const response = await customFetch('pharmacy/checkout-setup'); if (!response?.success) throw new Error(response?.error?.message || 'Unable to load pharmacy checkout'); setSetup(response.data); if (!restoreFailed.current) setError(''); }
-          catch (e) { setError(e instanceof Error ? e.message : 'Unable to load checkout'); }
+          const generation=++setupGeneration.current;
+          setupVerified.current=false;
+          setSetup(null);
+          try {
+               const response=await customFetch('pharmacy/checkout-setup');
+               if(generation!==setupGeneration.current)return;
+               if(!response?.success)throw new Error(response?.error?.message||'Unable to load pharmacy checkout');
+               setupVerified.current=true;
+               setSetup(response.data);
+               if(!restoreFailed.current)setError('');
+          } catch(error) {
+               if(generation===setupGeneration.current)setError(error instanceof Error?error.message:'Unable to load checkout');
+          }
      }, []);
      useEffect(() => {
           try {
@@ -42,11 +54,13 @@ export function usePharmacyPayment(scope: string) {
                if (sessionStorage.getItem(legacyKey)) throw new Error('A legacy checkout needs review in sales history before starting another sale.');
                const saved = sessionStorage.getItem(storageKey); current.current = saved ? JSON.parse(saved) : null; setPending(current.current); restoreFailed.current = false;
           } catch (e) { restoreFailed.current = true; setError(e instanceof Error ? e.message : 'Unable to restore checkout. Review sales history.'); }
+          setupVerified.current=false;
           refresh();
+          return()=>{setupGeneration.current++;setupVerified.current=false;};
      }, [storageKey, refresh]);
      useEffect(()=>{const update=()=>{refresh();};window.addEventListener('focus',update);return()=>window.removeEventListener('focus',update);},[refresh]);
      const execute = async (endpoint: string, payload: Record<string, unknown>) => {
-          if (!current.current && setup?.day?.status!=='open') throw new Error('The pharmacy financial day must be opened before checkout.');
+          if (!current.current && (!setupVerified.current||setup?.day?.status!=='open')) throw new Error('The pharmacy financial day must be opened before checkout.');
           if (busy.current) throw new Error('A checkout is already running');
           if (restoreFailed.current) throw new Error('Review the saved checkout in sales history before collecting another payment.');
           busy.current = true;

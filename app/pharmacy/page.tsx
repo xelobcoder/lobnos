@@ -10,6 +10,7 @@ export default function PharmacyOverviewPage() {
      return <main className={`${styles.page} ${accountingStyles.page} ${purchasing.theme} ${styles.overview}`}>
           <header className={styles.header}><div><h1>Pharmacy overview</h1><p>Today's pharmacy sales, stock alerts and financial-day status.</p></div><div className={styles.actions}><button className="btn btn-outline-secondary" onClick={refresh} disabled={dashboard.loading||setup.loading}>Refresh</button>{access.selling&&<Link className="btn btn-primary" href="/pharmacy/sell">Start sale</Link>}{access.stock&&<Link className="btn btn-outline-primary" href="/pharmacy/inventory">Manage stock</Link>}</div></header>
           <Message error={dashboard.error||setup.error}/>
+          {dashboard.data&&dashboard.lastUpdated&&<p className="small text-muted" role="status">{dashboard.stale?'Earlier snapshot':'Last updated'} {new Date(dashboard.lastUpdated).toLocaleString()}</p>}
           <PharmacyTaskLinks/>
           <FinancialDayPanel setup={setupReady?setup.data:null} canManage={access.finance&&setupReady} onChange={refresh}/>
           {access.manager&&setupReady&&!setup.data.routes.length&&<div className="alert alert-info">Configure payment routing before cashiers start trading. <Link href="/pharmacy/settings">Set up pharmacy payments</Link></div>}

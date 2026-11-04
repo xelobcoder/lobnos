@@ -8,6 +8,7 @@ import Loader from '../../accessories/Loader';
 import { useApplication } from "../../Auth/useApplicationContext";
 import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
 import dayjs from 'dayjs';
+import ImagingResultActions from "./ImagingResultActions";
 
 
 export default function AscentionUltrasoundUnCompletedTable({ stage }) {
@@ -121,14 +122,17 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 			Cell: ({ row }) => (
 				// replace with your action buttons
 				<>
-					<div>
+					<div className="d-flex flex-wrap gap-2">
 						<Button type="button" variant="outline-primary" size="sm" className="me-1 fw-bold" onClick={() => PrepareResultEntryHeader(row.original, true, branchid, false)} disabled={row.original.clientstatus === 'pending'}>
 							<RiDoorClosedFill aria-hidden="true" />	{row.original.resultEntryStart ? 'Continue entry' : 'Enter result'}
 						</Button>
 						{stage == "ULTRASOUND_COMPLETED" && row.original.resultEntryEnd && (
+							<>
 							<Button type="button" variant="outline-success" size="sm" className="fw-bold" onClick={() => handlePrintResult(row.original)}>
 								<RiPrinterFill aria-hidden="true" />	Print result
 							</Button>
+							<ImagingResultActions item={{ ...row.original, testid: row.original.testid || row.original.id }} />
+							</>
 						)}
 
 

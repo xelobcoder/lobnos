@@ -171,3 +171,5 @@ test('depletion cover includes wastage and losses but not returned stock',()=>{
  ]},item,range);
  assert.equal(result.cover,4);assert.equal(result.depletionCover,2);assert.equal(result.depletionRate,10);
 });
+
+test('end-to-end turnaround uses paired requests rather than summing different stage cohorts',()=>{const rows=[{id:'a',...gloves,created_at:'2026-10-01T00:00:00Z'},{id:'b',...gloves,created_at:'2026-10-20T00:00:00Z'}];const events=[event('approve',0,'2026-10-02T00:00:00Z','a'),event('issue',1,'2026-10-03T00:00:00Z','a'),event('receive',1,'2026-11-01T00:00:00Z','a'),event('receive',1,'2026-11-02T00:00:00Z','b')];const result=build({requests:rows,events},gloves,range);assert.equal(result.endToEnd.samples,2);assert.equal(result.endToEnd.hours,(31*24+13*24)/2);});

@@ -5,6 +5,14 @@ const path=require('node:path');
 const vm=require('node:vm');
 const ts=require('typescript');
 const root=path.resolve(__dirname,'..');
+test('financial-day readiness uses the authenticated context and the requested ledger',async()=>{
+ const calls=[];
+ const invoke=async endpoint=>{calls.push(endpoint);return{status:'success'};};
+ const {accountingApi}=compile('lib/accounting/accountingApi.ts',{require:()=>({customFetch:invoke}),URLSearchParams});
+ await accountingApi.financialDayReadiness();
+ await accountingApi.financialDayReadiness('pharmacy');
+ assert.deepEqual(calls,['financial-day/readiness?ledger=facility','financial-day/readiness?ledger=pharmacy']);
+});
 function compile(file,context){const exports={};const source=ts.transpileModule(fs.readFileSync(path.join(root,file),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText;vm.runInNewContext(source,{exports,...context},{filename:file});return exports;}
 for(const runtime of ['browser','server'])test(`accounting delegation mutations use one API prefix in the ${runtime}`,async()=>{
  const {buildApiUrl}=compile('lib/apiBaseUrl.ts',{URL,process:{env:{NODE_ENV:'development',DEVELOPMENT_BASEURL:'http://backend.test/api/v1/'}},...(runtime==='browser'?{window:{location:{origin:'http://frontend.test'}}}:{})});

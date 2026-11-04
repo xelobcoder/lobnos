@@ -773,7 +773,7 @@ export default function ClientVisit() {
                <BulkWorkFlowResultDeliveryModal
                     show={workflow === 'bulkResultDelivery'}
                     onHide={() => { setWorkflow(null); }}
-                    onSuccess={() => { loadTestTransactions(true); setWorkflow(null); }}
+                    onSuccess={(shouldClose = true) => { loadTestTransactions(true); if (shouldClose) setWorkflow(null); }}
                     employeeid={Number(employeeid)}
                     items={testAscensions.filter(t => t.isapproved === 1 || (t.result_validation_stage || '').toLowerCase().includes('validated'))}
                />

@@ -1,3 +1,4 @@
+import {secureSessionCookies} from '../../../../lib/sessionCookies';
 import { NextRequest, NextResponse } from 'next/server';
 import { getBackendAuthorization } from '../../../../lib/serverBackendAccess';
 import { cookies } from 'next/headers';
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
         // Set cookies
         (await cookies()).set('PLS-SESSION', signedToken, {
             httpOnly: true,
-            secure: false,
+            secure: secureSessionCookies(request),
             sameSite: 'lax',
             path: '/',
             maxAge
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
 
         (await cookies()).set('pls-prime-tenant-session', accessToken, {
             httpOnly: true,
-            secure: false,
+            secure: secureSessionCookies(request),
             sameSite: 'lax',
             path: '/',
             maxAge
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
 
         (await cookies()).set("loginsessionId", loginsessionId || '', {
             httpOnly: true,
-            secure: false,
+            secure: secureSessionCookies(request),
             sameSite: 'lax',
             path: '/',
             maxAge

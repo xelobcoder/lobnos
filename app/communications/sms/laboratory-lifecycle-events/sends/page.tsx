@@ -11,6 +11,7 @@ import styles from '../../../../../styles/SmsTemplateList.module.css'
 import PreviewPatientInformation from "../../../../../components/petientsComponent/PreviewPatientInformation";
 import { useApplication } from "../../../../../components/Auth/useApplicationContext";
 import BillingPagePatientInformation from "../../../../../components/Billing/BillingContextComponents/PersonalInfoView";
+import { isResultSmsReady } from "../../../../../lib/resultSmsReadiness";
 
 
 export default function SendLabLifecycleSMS() {
@@ -22,6 +23,7 @@ export default function SendLabLifecycleSMS() {
 	const patientid: string = searchParams?.get("patientid") || "";
 	const ascensionid: string = searchParams?.get("ascensionid") || "";
 	const billingid: string = searchParams?.get("billingid") || "";
+	const imaging = searchParams?.get("service") === "imaging";
 
 	// Data state for fetched lab results (array)
 	type LabResult = {
@@ -53,6 +55,8 @@ export default function SendLabLifecycleSMS() {
 		qty_required: string;
 		shorttext: string;
 		iscustom: number;
+		isapproved: number | null;
+		requires_revalidation: number | null;
 	};
 
 	const [labResults, setLabResults] = React.useState<LabResult[]>([]);
@@ -63,6 +67,7 @@ export default function SendLabLifecycleSMS() {
 	const [showOverrideModal, setShowOverrideModal] = React.useState<boolean>(false);
 	const [sending, setSending] = React.useState<boolean>(false);
 	const [sendSuccess, setSendSuccess] = React.useState<boolean | null>(null);
+	const [sendError, setSendError] = React.useState("");
 
 
 	React.useEffect(() => {
@@ -73,7 +78,7 @@ export default function SendLabLifecycleSMS() {
 		(async () => {
 			try {
 				const [labRes, smsRes, patientInfoRes] = await Promise.all([
-					customFetch(`prime/sms/transaction/result/ready/${billingid}&&employeeid=${employeeid}`),
+					customFetch(`prime/sms/transaction/result/ready/${billingid}?employeeid=${employeeid}`),
 					customFetch(`sms/events/get/result-ready/result-sent?billingid=${billingid}&patientid=${patientid}&&employeeid=${employeeid}`),
 					fetchPatientPersonalInfo(patientid)
 				]);
@@ -81,7 +86,7 @@ export default function SendLabLifecycleSMS() {
 					setLabResults(labRes.data);
 				} else {
 					setLabResults([]);
-					setFetchError("No lab result found for this billing ID.");
+					setFetchError(labRes.error || "No ordered results found for this billing ID.");
 				}
 				if (smsRes.success && typeof smsRes.count === 'number') {
 					setSmsSentCount(smsRes.count);
@@ -105,21 +110,35 @@ export default function SendLabLifecycleSMS() {
 
 	// Approval status helper for table rendering
 	const getApprovalStatus = (result: LabResult) =>
-		result.iscustom === 1 ? 'approved' : 'not-approved';
+		isResultSmsReady(result) ? 'approved' : 'not-approved';
 
 	const handleSendSMS = async () => {
+		if (sending) return;
+		if (!labResults.length || labResults.some(result => !isResultSmsReady(result))) {
+			setSendError("All ordered results must be finalized before sending result-ready SMS.");
+			setSendSuccess(false);
+			return;
+		}
 		setSending(true);
 		setSendSuccess(null);
-		const response = await customFetch(
-			`sms/events/trigger/send/result-ready?patientid=${patientid}&&billingid=${billingid}&message=`
-		);
-		if (response.success) {
-			setSending(false);
-			setSendSuccess(true);
-			setTimeout(() => setSendSuccess(null), 3000);
-		} else {
-			setSending(false);
+		setSendError("");
+		try {
+			const response = await customFetch(
+				`sms/events/trigger/send/result-ready?patientid=${patientid}&&billingid=${billingid}&message=`
+			);
+			if (response?.success === true) {
+				setSendSuccess(true);
+				setTimeout(() => setSendSuccess(null), 3000);
+			} else {
+				setSendError(response?.error || "Failed to queue SMS. Please try again.");
+				setSendSuccess(false);
+			}
+		} catch (error) {
+			console.error("Unable to request result-ready SMS:", error);
+			setSendError("SMS could not be confirmed. Check message history before retrying.");
 			setSendSuccess(false);
+		} finally {
+			setSending(false);
 		}
 	};
 
@@ -141,7 +160,7 @@ export default function SendLabLifecycleSMS() {
 							<div className="spinner-border text-primary" role="status">
 								<span className="visually-hidden">Loading...</span>
 							</div>
-							<p className="mt-3 text-muted">Loading lab result details...</p>
+							<p className="mt-3 text-muted">Loading result details...</p>
 						</div>
 					) : fetchError ? (
 						<div className="alert alert-danger d-flex align-items-center" role="alert">
@@ -153,7 +172,7 @@ export default function SendLabLifecycleSMS() {
 							<div className="row g-4 mb-4">
 								<div className="col-12">
 									<div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-										<h5 className="mb-0 fw-semibold text-dark">Laboratory Test Details</h5>
+										<h5 className="mb-0 fw-semibold text-dark">{imaging ? "Imaging result SMS" : "Laboratory Test Details"}</h5>
 										<div className="d-flex gap-2">
 											<Button
 												variant="success"
@@ -189,18 +208,19 @@ export default function SendLabLifecycleSMS() {
 									{sendSuccess === true && (
 										<div className="alert alert-success d-flex align-items-center mb-3" role="alert">
 											<RiCheckLine size={20} className="me-2" />
-											<div>SMS sent successfully!</div>
+											<div>Result-ready SMS queued successfully. Check message history for delivery status.</div>
 										</div>
 									)}
 									{sendSuccess === false && (
 										<div className="alert alert-danger d-flex align-items-center mb-3" role="alert">
 											<RiCloseLine size={20} className="me-2" />
-											<div>Failed to send SMS. Please try again.</div>
+											<div>{sendError || "Failed to queue SMS. Please try again."}</div>
 										</div>
 									)}
 								</div>
 							</div>
 							<div className="row g-4">
+								<p className="text-muted small">This notification covers all results on this bill, including imaging. All ordered results must be finalized before sending. Sending SMS does not record report delivery.</p>
 								<div className="col-12">
 									{/* Desktop Table View */}
 									<div className="mb-4 d-none d-md-block">
@@ -209,7 +229,7 @@ export default function SendLabLifecycleSMS() {
 												<thead className="bg-light">
 													<tr>
 														<th className="py-3 text-dark" style={{ fontWeight: 600 }}>
-															<RiTestTubeLine size={18} className="me-2" />Lab Test
+															<RiTestTubeLine size={18} className="me-2" />Ordered test
 														</th>
 														<th className="py-3 text-dark" style={{ fontWeight: 600 }}>
 															<RiCalendarEventLine size={18} className="me-2" />Ascension Date

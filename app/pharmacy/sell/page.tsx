@@ -31,6 +31,7 @@ export default function PharmacySellPage(){
      const separate=counterMode==='separate_cashier';
      useEffect(()=>{customFetch('pharmacy/counter/settings').then(r=>{if(!r?.success)throw Error(r?.error?.message||'Unable to load checkout mode');setCounterMode(r.data.mode)}).catch(e=>setError(e.message));},[]);
      const [quantityDraft,setQuantityDraft]=useState<Record<string,string>>({}),[scanning,setScanning]=useState(0);
+     const explicitSelection=useRef(false);
      const scanQueue=useRef(Promise.resolve()),scanCount=useRef(0),addLatest=useRef<(item:Medicine)=>void>(()=>{}),cartRef=useRef<Line[]>([]);
      const [search,setSearch]=useState(''),[items,setItems]=useState<Medicine[]>([]),[cart,setCart]=useState<Line[]>([]),[priceType,setPriceType]=useState<PriceType>('retail');
      const [accounts,setAccounts]=useState<any[]>([]),[accountId,setAccountId]=useState(''),[accountError,setAccountError]=useState(''),[accountsLoading,setAccountsLoading]=useState(true),[accountRetry,setAccountRetry]=useState(0),[split,setSplit]=useState<Record<string,{amount:string;received:string;reference:string}>>({cash:{amount:'',received:'',reference:''},mobile_money:{amount:'',received:'',reference:''},card:{amount:'',received:'',reference:''}});
@@ -82,13 +83,13 @@ export default function PharmacySellPage(){
           setError('');setNotice(item.name+' added');setReceipt(null);payment.setAmount('');setSearch('');setItems([]);generation.current++;focusSearch();
      };
      addLatest.current=add;
-     const enqueueScan=(term:string,cached:Medicine[],chosen:number)=>{
+     const enqueueScan=(term:string,cached:Medicine[],chosen:number|null)=>{
           scanCount.current++;setScanning(scanCount.current);setSearch('');setItems([]);generation.current++;
           scanQueue.current=scanQueue.current.then(async()=>{
                let rows=cached;
                if(!rows.length){const r=await customFetch('pharmacy/catalogue?sellableOnly=true&count=20&search='+encodeURIComponent(term));if(!r?.success)throw new Error(r?.error?.message||'Unable to look up scanned medicine');rows=r.data.items||[];}
-               const item=rows.find(item=>(item.sku.toLowerCase()===term.toLowerCase()||item.barcodes?.some(code=>code.toLowerCase()===term.toLowerCase())))||rows[chosen]||rows[0];
-               if(!item)throw new Error('No medicine found for '+term);addLatest.current(item);
+               const item=rows.find(item=>(item.sku?.toLowerCase()===term.toLowerCase()||item.barcodes?.some(code=>code.toLowerCase()===term.toLowerCase()))) || (chosen!==null?cached[chosen]:undefined);
+               if(!item)throw new Error('No exact medicine code found for '+term+'. Select a medicine from the search results to add it.');addLatest.current(item);
           }).catch(error=>setError(error instanceof Error?error.message:'Unable to add scanned medicine')).finally(()=>{scanCount.current--;setScanning(scanCount.current);});
      };
      const setQuantity=(id:string,value:number)=>{
@@ -193,7 +194,7 @@ export default function PharmacySellPage(){
                <section className={styles.basket}>
                     <div className={styles.searchArea}><div className={styles.transaction}><div><h2>Current sale {heldId&&<span className="badge text-bg-info">Recalled</span>}</h2><p>One price basis applies to every item in this transaction.</p></div><div className={styles.priceSwitch} role="group" aria-label="Transaction pricing">{(['retail','wholesale'] as PriceType[]).map(type=><button type="button" key={type} aria-pressed={priceType===type} className={priceType===type?styles.selected:''} disabled={locked} onClick={()=>choosePrice(type)}>{type==='retail'?'Retail':'Wholesale'}</button>)}</div></div>
                          <label htmlFor="medicine-search" className={styles.searchLabel}>Search medicine or scan barcode <kbd>F2</kbd></label>
-                         <div className={styles.searchBox}><input ref={searchInput} id="medicine-search" autoFocus autoComplete="off" role="combobox" aria-expanded={!!search.trim()} aria-controls="medicine-options" aria-autocomplete="list" aria-activedescendant={items[active]?'medicine-option-'+active:undefined} placeholder="Start typing a name or scan SKU, then press Enter" value={search} disabled={locked} onChange={event=>{setSearch(event.target.value);setItems([]);setLoading(!!event.target.value.trim());}} onKeyDown={async event=>{if(event.key==='Escape'){setSearch('');setItems([]);}if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();setActive(value=>Math.max(0,Math.min(items.length-1,value+(event.key==='ArrowDown'?1:-1))));}if(event.key==='Enter'){event.preventDefault();const term=search.trim();if(!term)return;enqueueScan(term,resultsFor.current===term?items:[],active);}}}/>
+                         <div className={styles.searchBox}><input ref={searchInput} id="medicine-search" autoFocus autoComplete="off" role="combobox" aria-expanded={!!search.trim()} aria-controls="medicine-options" aria-autocomplete="list" aria-activedescendant={items[active]?'medicine-option-'+active:undefined} placeholder="Scan a code, or search and select a medicine" value={search} disabled={locked} onChange={event=>{explicitSelection.current=false;setSearch(event.target.value);setItems([]);setLoading(!!event.target.value.trim());}} onKeyDown={async event=>{if(event.key==='Escape'){setSearch('');setItems([]);}if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();explicitSelection.current=true;setActive(value=>Math.max(0,Math.min(items.length-1,value+(event.key==='ArrowDown'?1:-1))));}if(event.key==='Enter'){event.preventDefault();const term=search.trim();if(!term)return;enqueueScan(term,resultsFor.current===term?items:[],explicitSelection.current?active:null);explicitSelection.current=false;}}}/>
                               {search.trim()&&<div id="medicine-options" role="listbox" className={styles.results}>{loading?<p>Searching…</p>:items.length?items.map((item,index)=><button type="button" role="option" aria-selected={active===index} id={'medicine-option-'+index} key={item.inventoryItemId} className={active===index?styles.highlight:''} disabled={locked} onMouseEnter={()=>setActive(index)} onClick={()=>add(item)}><span><strong>{item.name}</strong><small>{item.sku} · {item.dispensableStock??item.availableStock} available{item.requiresPrescription?' · Prescription required':''}</small></span><span>{unitPrice(item,priceType)>0?money(unitPrice(item,priceType)):'Price not set'} <b>＋</b></span></button>):<p>No medicines found. Try another name or SKU.</p>}</div>}
                          </div>
                     </div>

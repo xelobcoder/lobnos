@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import { useSearchParams } from 'next/navigation';
 import DateFilterReusable from '../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
 import ExportPdfButton from '../../../components/reports/ExportPdfButton';
+import FinancialDayReadinessNotice from '../../../components/accounting/FinancialDayReadinessNotice';
 import { useApplication } from '../../../components/Auth/useApplicationContext';
 import { roleAllowed } from '../../../components/Auth/roles';
 import { accountingApi, FinancialDayClose, FinancialDayCloseDetail, FinancialDayCloseStatus } from '../../../lib/accounting/accountingApi';
@@ -62,6 +63,12 @@ export default function DailyFinancialClosePage() {
      }, [branchId, dates.from, dates.to, pagination.count, pagination.page, status]);
 
      useEffect(() => { load(); }, [load]);
+     useEffect(() => {
+          if (!requestedDate || requestedDate !== initialDate) return;
+          setDates({ from: initialDate, to: initialDate });
+          setFinancialDate(initialDate);
+          setPagination(current => ({ ...current, page: 1 }));
+     }, [requestedDate, initialDate]);
      useEffect(() => {
           if (!Number.isSafeInteger(requestedCloseId) || requestedCloseId <= 0) return;
           let active = true;
@@ -160,6 +167,7 @@ export default function DailyFinancialClosePage() {
      };
 
      return <div className="container-fluid px-3 py-3">
+          <FinancialDayReadinessNotice refreshKey={rows} />
           <div className="border rounded-3 bg-body p-3 mb-3"><div className="d-flex flex-wrap justify-content-between align-items-start gap-3"><div className="d-flex align-items-start gap-3"><div className="bg-dark text-white rounded-3 d-flex align-items-center justify-content-center" style={{ width: 44, height: 44 }}><RiLockLine size={24} /></div><div><h1 className="h4 fw-bold mb-1">Daily Financial Close</h1><p className="text-muted mb-0">Preparation, independent Finance Manager review, and permanent Facility Owner finalization.</p></div></div><div className="d-flex gap-2"><ExportPdfButton title="Daily Financial Close" subtitle="Close history" period={`${dayjs(dates.from).format('D MMM YYYY')} to ${dayjs(dates.to).format('D MMM YYYY')}`} getSpec={getPdfSpec} /><button className="btn btn-primary" onClick={() => openAction('submit')} disabled={!branchId || Boolean(actionRestriction('submit'))}>Submit for review</button></div></div><div className="alert alert-info mt-3 mb-0">Independent preparation, review, and finalization are recommended. Submitting does not change your role or lock the day. An administrator may explicitly override employee separation with a secure PIN and a recorded reason; reconciliation and final locks still apply.</div></div>
 
           <div className="border rounded-3 bg-body p-3 mb-3"><div className="row g-3 align-items-end"><div className="col-12 col-md-4"><label className="form-label small fw-semibold mb-1">Financial date range</label><DateFilterReusable value={dateFilter} onChange={setDateFilter} onDateRangeChange={(from, to) => { setDates({ from, to }); setPagination((current) => ({ ...current, page: 1 })); }} label="Choose date range" className="w-100" /><div className="small text-muted mt-1">{dates.from} to {dates.to}</div></div><div className="col-7 col-md-3"><label className="form-label small fw-semibold">Status</label><select className="form-select" value={status} onChange={(event) => { setStatus(event.target.value as FinancialDayCloseStatus | ''); setPagination((current) => ({ ...current, page: 1 })); }}><option value="">All statuses</option><option value="draft">Draft</option><option value="accountant_submitted">Submitted for review</option><option value="returned_to_accountant">Returned to preparer</option><option value="manager_approved">Review approved</option><option value="finalized">Finalized</option></select></div><div className="col-5 col-md-auto"><button className="btn btn-outline-secondary w-100" onClick={load} title="Refresh"><RiRefreshLine size={18} /></button></div></div></div>

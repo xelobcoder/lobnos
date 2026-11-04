@@ -25,7 +25,7 @@ function api(options = {}) {
     const calls = [];
     const helper = compile('lib/patientImages.ts', name => {
         if (name.endsWith('apiBaseUrl')) return { buildApiUrl: endpoint => `https://facility.test/api/v1/${endpoint}` };
-        if (name.endsWith('requestHeaders')) return { getRequestContext: async () => options.context || { tenantId: 7, PLS_SESSION: 'synthetic-staff-session', PLS_PRIME_TENANT_SESSION: 'synthetic-tenant-session', loginsessionId: '12' } };
+        if (name.endsWith('requestHeaders')) return { getRequestContext: async () => options.context || {tenantId:7,authenticated:true} };
         throw new Error(`Unexpected dependency ${name}`);
     }, { fetch: async (url, request) => {
         calls.push({ url: new URL(url), request });
@@ -51,9 +51,7 @@ test('a saved patient photo reloads on revisit, and replacement uses the current
         assert.equal(url.origin, 'https://facility.test');
         assert.equal(url.searchParams.get('tenantId'), '7');
         assert.equal(url.searchParams.get('patientid'), '42');
-        assert.equal(request.headers['pls-session'], 'synthetic-staff-session');
-        assert.equal(request.headers['pls-prime-tenant-session'], 'synthetic-tenant-session');
-        assert.equal(request.headers.loginsessionId, '12');
+        assert.equal(request.headers,undefined);
         assert.equal(request.credentials, 'include');
         assert.equal(request.cache, 'no-store');
         if (request.method === 'POST') {

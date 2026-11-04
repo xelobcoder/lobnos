@@ -1,5 +1,5 @@
 import {NextRequest, NextResponse} from 'next/server';
-import {getRequestContext} from '../../../components/serverActions/requestHeaders';
+import {getServerRequestContext as getRequestContext} from '../../../lib/serverRequestContext';
 import {getBackendAuthorization} from '../../../lib/serverBackendAccess';
 export const runtime = 'nodejs';
 export async function GET(request: NextRequest) {

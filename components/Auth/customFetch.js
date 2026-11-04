@@ -1,6 +1,7 @@
 import Cookies from "js-cookie";
 import moment from "moment";
 import { toast } from "react-toastify";
+import {requestBackendJson} from "../serverActions/backendRequest";
 import { getRequestContext } from "../serverActions/requestHeaders";
 import { buildApiUrl, usesTenantQuery } from "../../lib/apiBaseUrl";
 
@@ -8,7 +9,7 @@ export async function customFile(endpoint, formbody) {
 	const url = new URL(buildApiUrl(endpoint));
 
 	const context = await getRequestContext();
-	if (!context?.PLS_PRIME_TENANT_SESSION || !context?.PLS_SESSION) {
+	if (!context?.authenticated) {
 		return { error: "Session not found" };
 	}
 	const tenantId = context?.tenantId;
@@ -16,13 +17,11 @@ export async function customFile(endpoint, formbody) {
 		throw new Error("A valid tenant is required for this request");
 	}
 	url.searchParams.set("tenantId", String(tenantId));
-	const { PLS_PRIME_TENANT_SESSION, PLS_SESSION } = context;
+	
 	const response = await fetch(url.toString(), {
 		method: "POST",
 		headers: {
 			cache: "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0",
-			"pls-prime-tenant-session": PLS_PRIME_TENANT_SESSION,
-			"pls-session": PLS_SESSION,
 		},
 		cache: "no-cache",
 		credentials: "include",
@@ -39,101 +38,23 @@ export async function customFile(endpoint, formbody) {
  * @param {string} endpoint - The endpoint URL to send the request to.
  * @returns {Promise<object>} - The response from the server as JSON.
  */
+async function checkSessionResponse(source) {
+    if (typeof window !== 'undefined' && source && typeof source === 'object') {
+        const message = String(source.message || '').toLowerCase();
+        if (source.isExpired === true || ([401, '401'].includes(source.statusCode ?? source.status) && ['unauthorized', 'token not provided', 'token expired'].includes(message))) {
+            if (source.code === 'SESSION_REPLACED') toast.warning(source.message);
+            await handleLogout();
+        }
+    }
+    return source;
+}
+
 export async function customFetch(endpoint, isLogin = false) {
-	try {
-		const url = new URL(buildApiUrl(endpoint));
-		const context = await getRequestContext();
-		if (
-			!isLogin &&
-			(!context ||
-				!context["PLS_PRIME_TENANT_SESSION"] ||
-				!context["PLS_SESSION"])
-		) {
-			if (
-				typeof window !== "undefined" &&
-				!window.location.pathname.startsWith("/authentication/logout") &&
-				!window.location.pathname.startsWith("/authentications/login")
-			) {
-				window.location.href = "/authentication/logout";
-			}
-			return { error: "Session not found" };
-		}
-
-		const tenantId = context?.tenantId;
-		if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
-			throw new Error("A valid tenant is required for this request");
-		}
-		if (usesTenantQuery(endpoint)) url.searchParams.set("tenantId", String(tenantId));
-
-		const { PLS_PRIME_TENANT_SESSION, PLS_SESSION } = context;
-
-		const response = await fetch(url.toString(), {
-			headers: {
-				"Content-Type": "application/json",
-				cache: "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0",
-				"pls-prime-tenant-session": PLS_PRIME_TENANT_SESSION
-					? PLS_PRIME_TENANT_SESSION
-					: null,
-				"pls-session": PLS_SESSION ? PLS_SESSION : null,
-				loginsessionId: context?.loginsessionId ? context.loginsessionId : null,
-			},
-			cache: "no-cache",
-			credentials: "include",
-		});
-
-		const source = await response.json();
-
-		if (typeof window !== "undefined" && source && typeof source === "object" && source.isExpired === true) {
-			if (source.code === "SESSION_REPLACED") {
-				toast.warning(source.message || "You were signed out because your account was used on another device.");
-			}
-			handleLogout();
-			return { error: source.message || "Session expired" };
-		}
-
-		const { status, message, statusCode } = source;
-		const normalizedMessage = typeof message === "string" ? message.toLowerCase() : "";
-		if (
-			(status == 401 || statusCode == 401 || statusCode == 500) &&
-			(normalizedMessage === "unauthorized" ||
-				normalizedMessage === "token not provided" ||
-				normalizedMessage === "token expired")
-		) {
-			handleLogout();
-		} else {
-			return source;
-		}
-	} catch (err) {
-		throw err;
-	}
+    return checkSessionResponse(await requestBackendJson(endpoint, 'GET', undefined, isLogin));
 }
 
 export async function customFetchMutation(endpoint, method, body) {
-	const url = new URL(buildApiUrl(endpoint));
-	const context = await getRequestContext();
-	if (!context?.PLS_PRIME_TENANT_SESSION || !context?.PLS_SESSION) {
-		return { error: "Session not found" };
-	}
-	const tenantId = context?.tenantId;
-	if (!Number.isSafeInteger(tenantId) || tenantId <= 0) {
-		throw new Error("A valid tenant is required for this request");
-	}
-	if (usesTenantQuery(endpoint)) url.searchParams.set("tenantId", String(tenantId));
-
-	const response = await fetch(url.toString(), {
-		method,
-		headers: {
-			"Content-Type": "application/json",
-			"pls-prime-tenant-session": context.PLS_PRIME_TENANT_SESSION,
-			"pls-session": context.PLS_SESSION,
-			loginsessionId: context.loginsessionId || "",
-		},
-		cache: "no-cache",
-		credentials: "include",
-		body: body ? JSON.stringify(body) : undefined,
-	});
-
-	return response.json();
+    return checkSessionResponse(await requestBackendJson(endpoint, method, body));
 }
 
 let logoutPromise = null;
@@ -270,63 +191,8 @@ export const Glucoseoptions = ["mg/dl", "mmol/L"];
  * @param {number} [requestedTenantId] - Tenant selected for login.
  * @returns {Promise<object>} - The parsed response from the POST request.
  */
-export async function customPost(
-	endpoint,
-	method,
-	data,
-	hash = false,
-	login = false,
-	requestedTenantId = undefined,
-) {
-	try {
-		var requestBody = data;
-		const url = new URL(buildApiUrl(endpoint));
-
-		const context = login ? null : await getRequestContext();
-		if (
-			!login &&
-			(!context ||
-				!context["PLS_PRIME_TENANT_SESSION"] ||
-				!context["PLS_SESSION"])
-		) {
-			return { error: "Session not found" };
-		}
-
-		const tenantId = requestedTenantId === undefined
-			? (login ? undefined : context?.tenantId)
-			: Number(requestedTenantId);
-		const hasTenant = Number.isSafeInteger(tenantId) && tenantId > 0;
-		// Unauthenticated login/recovery resolves the organization prefix through the backend registry.
-		if (!hasTenant && !login) {
-			return { error: "A valid tenant is required for this request" };
-		}
-		if (hasTenant) url.searchParams.set("tenantId", String(tenantId));
-
-		const { PLS_PRIME_TENANT_SESSION, PLS_SESSION } = context || {};
-		let response = await fetch(url.href, {
-			method: method,
-			headers: {
-				"content-type": "application/json",
-				"pls-prime-tenant-session": PLS_PRIME_TENANT_SESSION
-					? PLS_PRIME_TENANT_SESSION
-					: "",
-				"pls-session": PLS_SESSION ? PLS_SESSION : "",
-			},
-			cache: "no-cache",
-			body: JSON.stringify(requestBody),
-			credentials: "include",
-		});
-		let datasource = await response.json();
-		const { status, message } = datasource;
-
-		if (status == 401 && message == "Unauthorized") {
-			window.location.href = "/authentication/login";
-		} else {
-			return datasource;
-		}
-	} catch (err) {
-		console.log(err);
-	}
+export async function customPost(endpoint, method, data, hash = false, login = false, requestedTenantId = undefined) {
+    return checkSessionResponse(await requestBackendJson(endpoint, method, data, login, requestedTenantId));
 }
 
 export async function CheckResultEntered(testname, billingid) {

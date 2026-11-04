@@ -61,6 +61,7 @@ export const ApplicationSettingsLinks: Link[] =
             children: [
                 { title: "Company Info", link: "/settings/companyprofile", icon: <RiBuildingLine /> },
                 { title: "Application Settings", link: "/settings/applicationsettings", icon: <RiSettings4Line /> },
+                { title: "Financial Day Settings", link: "/settings/financial-days", icon: <RiTimeLine />, roles: ['admin', 'owner', 'super-admin', 'super_admin'] },
                 { title: "Expense Controls", link: "/accounting/expense-controls", icon: <RiShieldCheckLine />, roles: ['admin', 'super-admin', 'super_admin'] },
                 { title: "Referral Codes", link: "/settings/applicationsettings/referral-codes", icon: <RiGift2Line />, roles: ['admin', 'super-admin', 'super_admin'] },
                 { title: "Patient Portal", link: "/settings/applicationsettings/patient-portal", icon: <RiUserHeartLine />, roles: ['admin', 'manager', 'super-admin', 'super_admin'] },

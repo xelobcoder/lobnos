@@ -12,15 +12,10 @@ export function validatePatientImage(file: Blob): void {
 async function requestScope(patientId: number) {
     if (!Number.isSafeInteger(patientId) || patientId <= 0) throw new Error('A valid patient record is required.');
     const context = await getRequestContext();
-    if (!context?.PLS_SESSION || !context?.PLS_PRIME_TENANT_SESSION ||
+    if (!context?.authenticated ||
         !Number.isSafeInteger(context.tenantId) || Number(context.tenantId) <= 0) {
         throw new Error('Your staff session is unavailable. Sign in again to access patient photos.');
     }
-    const headers = {
-        'pls-prime-tenant-session': context.PLS_PRIME_TENANT_SESSION,
-        'pls-session': context.PLS_SESSION,
-        loginsessionId: context.loginsessionId || '',
-    };
     return {
         url(endpoint: string) {
             const url = new URL(buildApiUrl(endpoint));
@@ -28,7 +23,7 @@ async function requestScope(patientId: number) {
             url.searchParams.set('patientid', String(patientId));
             return url.toString();
         },
-        options: { headers, cache: 'no-store' as RequestCache, credentials: 'include' as RequestCredentials },
+        options: { cache: 'no-store' as RequestCache, credentials: 'include' as RequestCredentials },
     };
 }
 

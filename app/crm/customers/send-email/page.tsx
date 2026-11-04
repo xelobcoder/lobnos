@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button, Form, Spinner, Row, Col } from 'react-bootstrap';
 import * as yup from 'yup';
@@ -50,45 +50,33 @@ const SendEmailPage: React.FC = () => {
      const [isLoadingHistory, setIsLoadingHistory] = useState(false);
      const [messageContent, setMessageContent] = useState('');
 
+     const loadedPatient = useRef<string|null>(null);
+     const patientScope = useRef(patientid);
+     patientScope.current = patientid;
      useEffect(() => {
-          if (patientid) {
-               setIsLoadingPatient(true);
-               setIsLoadingHistory(true);
-
-               customFetch(`patients/${patientid}`)
-                    .then((data) => {
-                         if (data) {
-                              setPatientData(data);
-                              if (data.email) {
-                                   reset({ recipientEmail: data.email });
-                              }
-                         }
-                    })
-                    .catch((err) => {
-                         console.log(err);
-                         toast.error('Failed to load patient information');
-                    })
-                    .finally(() => {
-                         setIsLoadingPatient(false);
-                    });
-
-               customFetch(`emails/history/${patientid}`)
-                    .then((data) => {
-                         if (data && Array.isArray(data)) {
-                              setEmailHistory(data);
-                         }
-                    })
-                    .catch((err) => {
-                         console.log(err);
-                    })
-                    .finally(() => {
-                         setIsLoadingHistory(false);
-                    });
-          }
-     }, [patientid, reset]);
+          let active=true;
+          loadedPatient.current=null;
+          setPatientData(null);
+          setEmailHistory([]);
+          setMessageContent('');
+          reset({subject:'',message:'',recipientEmail:''});
+          if(!patientid)return;
+          setIsLoadingPatient(true);
+          setIsLoadingHistory(true);
+          customFetch(`patients/${patientid}`).then(data=>{
+               if(!active)return;
+               if(!data||data.error||data.status===false)throw new Error('Unable to load patient');
+               if(data.patientid!=null&&String(data.patientid)!==String(patientid))throw new Error('Patient identity mismatch');
+               setPatientData(data);
+               loadedPatient.current=patientid;
+               reset({subject:'',message:'',recipientEmail:data.email||''});
+          }).catch(()=>{if(active)toast.error('Failed to load patient information. Reload before sending.');}).finally(()=>{if(active)setIsLoadingPatient(false);});
+          customFetch(`emails/history/${patientid}`).then(data=>{if(active)setEmailHistory(Array.isArray(data)?data:[]);}).catch(()=>{}).finally(()=>{if(active)setIsLoadingHistory(false);});
+          return()=>{active=false;};
+     }, [patientid,reset]);
 
      const submitEmail = async (data: EmailFormData) => {
-          if (!patientid) {
+          if (!patientid||loadedPatient.current!==patientid||isLoadingPatient||isLoading) {
                toast.error('Patient ID is required');
                return;
           }
@@ -108,6 +96,7 @@ const SendEmailPage: React.FC = () => {
                };
 
                const response = await customPost('emails/send', 'POST', emailData);
+               if(patientScope.current!==patientid)return;
                const { error, message } = response;
 
                if (error) {
@@ -268,7 +257,7 @@ const SendEmailPage: React.FC = () => {
                                              type="submit"
                                              variant="success"
                                              className='btn-sm d-flex align-items-center gap-2'
-                                             disabled={isLoading}
+                                             disabled={isLoading||isLoadingPatient||loadedPatient.current!==patientid}
                                         >
                                              {isLoading ? (
                                                   <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
@@ -286,7 +275,7 @@ const SendEmailPage: React.FC = () => {
                                                   reset();
                                                   setMessageContent('');
                                              }}
-                                             disabled={isLoading}
+                                             disabled={isLoading||isLoadingPatient||loadedPatient.current!==patientid}
                                         >
                                              Clear
                                         </Button>

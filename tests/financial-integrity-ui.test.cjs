@@ -67,6 +67,63 @@ function harness(file, api = {}, fetch = async () => ({ success: true, data: { r
 const sheet = (totals = {}, rows = {}) => ({ status: "success", result: { assets: [], liabilities: [], equity: [], ...rows, totals: { assets: 0, liabilities: 0, equity: 0, retainedProfit: 0, liabilitiesAndEquity: 0, difference: 0, ...totals } } });
 const pnl = () => ({ status: "success", result: { revenue: [], costOfSales: [], operatingExpenses: [], totals: { revenue: 0, costOfSales: 0, grossProfit: 0, operatingExpenses: 0, netProfit: 0 } } });
 const tb = (debits = 0, credits = 0) => ({ status: "success", result: { rows: [], totals: { debits, credits, balanced: true } } });
+test('financial closing notice shows the authoritative overdue date and leaves closing available', async () => {
+     for (const ledger of ['facility', 'pharmacy']) {
+          const calls = [];
+          const closeUrl = ledger === 'pharmacy' ? '/pharmacy/finance' : '/accounting/daily-close?financialDate=2026-11-02';
+          const h = harness('components/accounting/FinancialDayReadinessNotice.tsx', {
+               financialDayReadiness: async selected => {
+                    calls.push(selected);
+                    return { status: 'success', result: { branchId: 1, blocked: true, graceHours: 48, oldestFinancialDate: '2026-11-02', deadline: '2026-11-04T00:00:00.000Z', closeUrl } };
+               },
+          });
+          try {
+               h.render({ ledger }); h.flush(); await tick();
+               const tree = h.render({ ledger });
+               assert.match(text(tree), /Transactions blocked.*2026-11-02.*2026-11-04.*UTC/);
+               assert.match(text(tree), /Administrator status does not bypass/);
+               assert.equal(nodes(tree, node => node.props?.href === closeUrl).length, 1);
+               assert.deepEqual(calls, [ledger]);
+          } finally { h.close(); }
+     }
+});
+test('financial closing notice never reports an unknown or cross-branch status as ready', async () => {
+     for (const response of [{ status: 'error', message: 'Closing status unavailable' }, { status: 'success', result: { branchId: 2, blocked: false } }]) {
+          const h = harness('components/accounting/FinancialDayReadinessNotice.tsx', { financialDayReadiness: async () => response });
+          try {
+               h.render(); h.flush(); await tick();
+               const tree = h.render();
+               assert.match(text(tree), /Closing and reconciliation remain available/);
+               assert.doesNotMatch(text(tree), /No unclosed financial activity/);
+          } finally { h.close(); }
+     }
+});
+test('financial closing notice refreshes after closing and preserves the grace-period deadline', async () => {
+     let blocked = true;
+     const h = harness('components/accounting/FinancialDayReadinessNotice.tsx', {
+          financialDayReadiness: async () => ({ status: 'success', result: { branchId: 1, blocked, oldestFinancialDate: blocked ? '2026-11-02' : null, graceHours: 48, deadline: blocked ? '2026-11-04T00:00:00.000Z' : null, closeUrl: '/pharmacy/finance' } }),
+     });
+     try {
+          h.render({ ledger: 'pharmacy', refreshKey: 1 }); h.flush(); await tick();
+          assert.match(text(h.render({ ledger: 'pharmacy', refreshKey: 1 })), /Transactions blocked/);
+          blocked = false;
+          h.render({ ledger: 'pharmacy', refreshKey: 2 }); h.flush(); await tick();
+          assert.match(text(h.render({ ledger: 'pharmacy', refreshKey: 2 })), /No unclosed financial activity/);
+     } finally { h.close(); }
+});
+test('an overdue-day link updates an already-open daily-close page to the blocking date', async () => {
+     const filters = [];
+     const api = { __query: '', dailyCloses: async value => { filters.push(value); return { status: 'success', result: { data: [], total: 0 } }; } };
+     const h = harness('app/accounting/daily-close/page.tsx', api);
+     try {
+          h.render(); h.flush(); await tick();
+          api.__query = 'financialDate=2026-11-02';
+          h.render(); h.flush(); await tick();
+          h.render(); h.flush(); await tick();
+          assert.equal(filters.at(-1).from, '2026-11-02');
+          assert.equal(filters.at(-1).to, '2026-11-02');
+     } finally { h.close(); }
+});
 for (const [page, method, success] of [
      ["balance-sheet", "balanceSheet", sheet],
      ["trial-balance", "trialBalance", tb],

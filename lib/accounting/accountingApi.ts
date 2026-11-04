@@ -6,6 +6,16 @@ export interface ApiResponse<T> {
      message?: string;
      result: T;
 }
+export interface FinancialDayReadiness {
+     branchId: number;
+     enabled: boolean;
+     overdue: boolean;
+     graceHours: number;
+     oldestFinancialDate: string | null;
+     deadline: string | null;
+     blocked: boolean;
+     closeUrl: string;
+}
 export interface CashFlowAllocation {
      category: "operating" | "investing" | "financing";
      inflow: number;
@@ -554,6 +564,10 @@ export const accountingApi = {
 
      dailyCloses(filters: { branchId?: number; from?: string; to?: string; status?: FinancialDayCloseStatus; page?: number; count?: number }): Promise<ApiResponse<Paginated<FinancialDayClose>>> {
           return customFetch(`${BASE}/daily-closes${query(filters)}`);
+     },
+
+     financialDayReadiness(ledger: 'facility' | 'pharmacy' = 'facility'): Promise<ApiResponse<FinancialDayReadiness>> {
+          return customFetch(`financial-day/readiness${query({ ledger })}`);
      },
 
      dailyClose(id: number): Promise<ApiResponse<FinancialDayCloseDetail>> {

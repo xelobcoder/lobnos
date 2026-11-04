@@ -17,15 +17,16 @@ export function usePharmacyAccess() {
 }
 export function usePharmacyResource(endpoint: string) {
      const [data, setData] = useState<any>(null), [loading, setLoading] = useState(true), [error, setError] = useState('');
-     const generation = useRef(0);
+     const generation = useRef(0),loadedEndpoint=useRef(''),updated=useRef<string|null>(null);
+     const [lastUpdated,setLastUpdated]=useState<string|null>(null);
      const refresh = useCallback(async () => {
           const request = ++generation.current; setLoading(true); setError('');
-          try { const response = await customFetch(endpoint); if (!response?.success) throw new Error(response?.error?.message || 'Unable to load this pharmacy page.'); if (request === generation.current) setData(response.data); }
-          catch (e) { if (request === generation.current) setError(e instanceof Error ? e.message : 'Unable to load this page.'); }
+          try { const response = await customFetch(endpoint); if (!response?.success) throw new Error(response?.error?.message || 'Unable to load this pharmacy page.'); if (request === generation.current) {loadedEndpoint.current=endpoint;updated.current=new Date().toISOString();setLastUpdated(updated.current);setData(response.data);} }
+          catch (e) { if (request === generation.current) setError((e instanceof Error ? e.message : 'Unable to load this page.')+(loadedEndpoint.current===endpoint&&updated.current?' Showing the last successful snapshot from '+new Date(updated.current).toLocaleString()+'.':'')); }
           finally { if (request === generation.current) setLoading(false); }
      }, [endpoint]);
      useEffect(() => { refresh(); return () => { generation.current++; }; }, [refresh]);
-     return { data, loading, error, refresh };
+     return {data:loadedEndpoint.current===endpoint?data:null,loading,error,refresh,lastUpdated,stale:!!error&&loadedEndpoint.current===endpoint};
 }
 export function Message({ error, notice }: { error?: string; notice?: string }) {
      return <>{error && <div className="alert alert-danger" role="alert">{error}</div>}{notice && <div className="alert alert-success" role="status">{notice}</div>}</>;

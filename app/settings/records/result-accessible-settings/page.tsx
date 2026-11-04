@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button, Form, Modal, Alert } from 'react-bootstrap';
 import { RiShieldCheckLine, RiSettings4Line, RiSaveLine } from '@remixicon/react';
 import { customFetch, customPost } from '../../../../components/Auth/customFetch';
@@ -80,40 +80,34 @@ export default function ResultAccessibleSettingsPage() {
           fetchAllAccessWindows();
      }, []);
 
-     useEffect(() => {
-          if (employeeId) {
-               const selectedEmployee = employees.find(emp => emp.employeeid === employeeId);
-               if (selectedEmployee) {
-                    setEmployeeRole(selectedEmployee.role);
+     const employeeGeneration=useRef(0),loadedEmployee=useRef<number|null>(null);
+     const [employeeLoading,setEmployeeLoading]=useState(false);
+     const [employeeError,setEmployeeError]=useState('');
+     useEffect(()=>{
+          const generation=++employeeGeneration.current;
+          loadedEmployee.current=null;
+          setEditingId(null);
+          setEmployeeEditWindow('24h');
+          setEmployeeAccessWindow('24h');
+          setEmployeeRequireApproval(true);
+          setEmployeeError('');
+          const selected=employees.find(employee=>employee.employeeid===employeeId);
+          setEmployeeRole(selected?.role||'');
+          if(!employeeId){setEmployeeLoading(false);return;}
+          setEmployeeLoading(true);
+          customFetch(`security-features/access-windows/employee/${employeeId}`).then(response=>{
+               if(generation!==employeeGeneration.current)return;
+               const missing=response?.status===false&&response.error==='Access window not found for this employee';
+               if(!response||response.error&&!missing||response.statusCode>=500)throw new Error('Unable to load employee access settings');
+               if(response.status===true){
+                    const window=response.data??response;
+                    if(window.employeeid!=null&&Number(window.employeeid)!==Number(employeeId))throw new Error('Employee identity mismatch');
+                    setEmployeeEditWindow(window.edit_window);setEmployeeAccessWindow(window.access_window);setEmployeeRequireApproval(!!window.require_approval);setEditingId(window.id);
                }
-               // Fetch existing access window
-               fetchExistingAccessWindow(employeeId);
-          } else {
-               // Reset fields when no employee selected
-               setEmployeeRole('');
-               setEmployeeEditWindow('24h');
-               setEmployeeAccessWindow('24h');
-               setEmployeeRequireApproval(true);
-          }
-     }, [employeeId, employees]);
-
-     const fetchExistingAccessWindow = async (id: number) => {
-          try {
-               const response = await customFetch(`security-features/access-windows/employee/${id}`);
-               if (response && response.status === true) {
-                    setEmployeeEditWindow(response.edit_window);
-                    setEmployeeAccessWindow(response.access_window);
-                    setEmployeeRequireApproval(!!response.require_approval);
-                    setEditingId(response.id);
-               } else {
-                    setEditingId(null);
-               }
-          } catch (error) {
-               console.error('Failed to fetch existing access window:', error);
-               setEditingId(null);
-               // Keep default values if no existing data
-          }
-     };
+               loadedEmployee.current=Number(employeeId);
+          }).catch(error=>{if(generation===employeeGeneration.current)setEmployeeError(error.message);}).finally(()=>{if(generation===employeeGeneration.current)setEmployeeLoading(false);});
+          return()=>{employeeGeneration.current++;};
+     },[employeeId,employees]);
 
      const handleSaveDefaults = async () => {
           setIsSavingDefaults(true);
@@ -149,6 +143,7 @@ export default function ResultAccessibleSettingsPage() {
      };
 
      const handleSaveIndividual = async () => {
+          if(!employeeId||employeeLoading||loadedEmployee.current!==Number(employeeId)||isSavingIndividual)return;
           setIsSavingIndividual(true);
           try {
                const payload = {
@@ -328,7 +323,7 @@ export default function ResultAccessibleSettingsPage() {
                               <Modal.Title className="h6">{editingId ? 'Edit' : 'Add'} Individual Employee Access</Modal.Title>
                          </Modal.Header>
                          <Modal.Body>
-                              <Form>
+                              {employeeLoading&&<p role="status">Loading employee settings...</p>}{employeeError&&<p role="alert" className="text-danger">{employeeError}</p>}<Form>
                                    <Form.Group className="mb-3">
                                         <Form.Label>Select Employee</Form.Label>
                                         <Form.Select
@@ -415,7 +410,7 @@ export default function ResultAccessibleSettingsPage() {
                               <Button variant="secondary" onClick={() => setShowModal(false)}>
                                    Cancel
                               </Button>
-                              <Button variant="primary" onClick={handleSaveIndividual} disabled={isSavingIndividual}>
+                              <Button variant="primary" onClick={handleSaveIndividual} disabled={isSavingIndividual||employeeLoading||!employeeId||loadedEmployee.current!==Number(employeeId)}>
                                    {isSavingIndividual ? 'Saving...' : <><RiSaveLine size={14} className="me-1" />{editingId ? 'Update' : 'Save'} Individual Access</>}
                               </Button>
                          </Modal.Footer>

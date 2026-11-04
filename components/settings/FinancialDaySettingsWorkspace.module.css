@@ -1,0 +1,50 @@
+.workspace { padding: 8px 0 24px; }
+.workspace :global(.alert), .preview p, .preview label { line-height: 1.6; }
+.header, .sectionHeading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.header { align-items: flex-start; }
+.header > div:first-child { flex: 1 1 400px; }
+.header a { color: var(--settings-deep); }
+.refresh { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.scope { border-inline-start: 3px solid var(--settings-line); padding-inline-start: 12px; }
+.panel { padding: 20px; }
+.sectionHeading { margin-bottom: 16px; }
+.status { font-size: 12px; padding: 5px 8px; border: 1px solid var(--settings-line); border-radius: 6px; background: var(--settings-soft); }
+.bounds, .counts { display: grid; gap: 16px; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0 0 16px; }
+.bounds > div { border-inline-start: 2px solid var(--settings-line); padding-inline-start: 12px; }
+.bounds dt, .counts dt { font-size: 12px; font-weight: 500; color: var(--bs-secondary-color); margin-bottom: 6px; }
+.bounds dd, .counts dd { margin: 0; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.workflows { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.workflows a { display: flex; flex-direction: column; gap: 4px; padding: 12px; border: 1px solid var(--settings-line); border-radius: 6px; color: var(--settings-deep); text-decoration: none; background: var(--settings-paper); }
+.workflows a:hover { background: var(--settings-soft); text-decoration: underline; }
+.workflows span { color: var(--bs-secondary-color); font-size: 12px; }
+.workflowGrid { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(0, 1.7fr); gap: 20px; align-items: start; }
+.workflowGrid > section { min-width: 0; }
+.workspace h2, .workspace h3 { scroll-margin-top: 100px; }
+.toggle { margin-bottom: 8px; }
+.toggle label { cursor: pointer; padding-bottom: 6px; line-height: 1.6; }
+.steps { display: flex; flex-wrap: wrap; gap: 8px 24px; padding-inline-start: 20px; font-size: 12px; color: var(--bs-secondary-color); margin: 12px 0 20px; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; border-top: 1px solid var(--settings-line); padding-top: 16px; }
+.preview { margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--settings-line); }
+.counts { grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 16px; background: var(--settings-soft); border-radius: 6px; }
+.counts dd { font-size: 24px; }
+.reason { white-space: pre-wrap; overflow-wrap: anywhere; }
+.history { max-height: 440px; }
+.history table { min-width: 720px; }
+.history thead { position: sticky; top: 0; z-index: 1; }
+.history th { background: var(--settings-soft); }
+.history td { vertical-align: top; }
+.history td:nth-child(4) { min-width: 220px; max-width: 420px; }
+.empty { padding: 20px; border: 1px dashed var(--settings-line); border-radius: 6px; background: var(--settings-soft); }
+.workspace :is(a, button, input, select, textarea, [tabindex]):focus-visible { outline: 3px solid var(--settings-deep); outline-offset: 3px; }
+@media (max-width: 1100px) {
+  .workflowGrid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 650px) {
+  .panel { padding: 16px; }
+  .bounds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .workflows { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .refresh { align-items: flex-start; }
+  .counts { gap: 8px; padding: 12px; }
+  .actions { align-items: stretch; flex-direction: column; }
+  .actions button, .preview > button { width: 100%; }
+}

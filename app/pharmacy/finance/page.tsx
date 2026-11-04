@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import FinancialDayReadinessNotice from '../../../components/accounting/FinancialDayReadinessNotice';
 import ShiftHandoverForm from '../components/ShiftHandoverForm';
 import { useEffect, useState } from 'react';
 import { customFetchMutation } from '../../../components/Auth/customFetch';
@@ -58,6 +59,7 @@ export default function PharmacyFinancePage() {
 
      if(!access.finance)return <main className={styles.page}><h1>Pharmacy finances</h1><Empty>A pharmacy manager or pharmacy accountant role is required.</Empty></main>;
      return <main className={styles.page}><header className={styles.header}><div><h1>Cash &amp; day closing</h1><p>Review cashier handovers, check collections and finish the trading day.</p></div><div className={styles.actions}><Link className="btn btn-outline-primary" href="/pharmacy/cashier">Cashier shifts</Link><button className="btn btn-outline-secondary" onClick={refresh} disabled={busy||report.loading||setup.loading}>Refresh</button></div></header><Message error={error||setup.error||suppliers.error} notice={notice}/>
+          <FinancialDayReadinessNotice ledger="pharmacy" refreshKey={report.data} onReview={href => { if (href === '/pharmacy/finance') showDays(); }} />
           {accounting.mode!=='enabled'&&<LinkedAccountingNotice policy={accounting}/>}
           <div className={financeLayout.help}><Link href="/pharmacy/guide/close-day">How cash &amp; day closing works</Link><Link href="/pharmacy/accounting">Expenses, supplier payments &amp; financial reports</Link>{access.manager&&<Link href="/pharmacy/settings">Payment setup</Link>}</div>
           <div className={financeLayout.dayPanel}><FinancialDayPanel setup={setup.error?null:setup.data} canManage={access.finance&&ready} onChange={refresh} onReviewPrevious={showDays} onReviewBeforeClose={tab==='days'?undefined:showDays} closeBlockedReason={!ready?'Refresh the financial-day and handover records before closing.':currentBlockers.length?`${currentBlockers.length} cashier shift(s) need closing or review before this day can close.`:undefined}/></div>

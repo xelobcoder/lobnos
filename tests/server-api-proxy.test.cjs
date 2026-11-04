@@ -30,7 +30,7 @@ for (const route of ["v1", "inventory"]) {
 	});
 }
 
-function loadProxy({ env, fetch }) {
+function loadProxy({ env, fetch, context={PLS_SESSION:'signed-session',PLS_PRIME_TENANT_SESSION:'tenant-session',tenantId:42} }) {
 	const accessExports = {};
 	vm.runInNewContext(ts.transpileModule(
 		readFileSync(path.join(root, "lib/serverBackendAccess.ts"), "utf8"),
@@ -47,7 +47,18 @@ function loadProxy({ env, fetch }) {
 			if (name === "next/server") {
 				return { NextResponse: { json: (body, options) => ({ body, status: options.status }) } };
 			}
-			if (name === "./serverBackendAccess") {
+			if(name==='./serverBackendRequest') {
+                const nested={};
+                vm.runInNewContext(ts.transpileModule(readFileSync(path.join(root,'lib/serverBackendRequest.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,{exports:nested,URL,Headers,AbortSignal,process:{env},fetch,require:dependency=>{
+                    if(dependency==='server-only')return {};
+                    if(dependency==='./serverRequestContext')return {getServerRequestContext:async()=>context||{}};
+                    if(dependency==='./serverBackendAccess')return accessExports;
+                    if(dependency==='./apiBaseUrl')return {usesTenantQuery:endpoint=>!endpoint.startsWith('marketplace/')};
+                    throw Error(dependency);
+                }});
+                return nested;
+            }
+            if (name === "./serverBackendAccess") {
 				return accessExports;
 			}
 			throw new Error(`Unexpected dependency: ${name}`);
@@ -90,7 +101,7 @@ test("server API proxy replaces browser authorization and preserves session and 
 
 	assert.equal(upstreamUrl.toString(), "http://backend.test/api/v1/lab/results?tenantId=42");
 	assert.equal(upstreamOptions.headers.get("authorization"), "Bearer server-only-test-token");
-	assert.equal(upstreamOptions.headers.get("cookie"), "PLS-SESSION=session-cookie");
+	assert.equal(upstreamOptions.headers.get("cookie"), null);
 	assert.equal(upstreamOptions.headers.get("pls-session"), "signed-session");
 	assert.equal(new TextDecoder().decode(upstreamOptions.body), "payload");
 	assert.equal(response.status, 201);
@@ -138,7 +149,7 @@ test("Next.js build-time environment contains no authentication secrets", () => 
 test("public patient login reaches backend through same-origin proxy without tenant or session cookies", async () => {
     let reached = false;
     const proxy = loadProxy({
-        env: {},
+        env: {}, context:null,
         fetch: async (url, options) => {
             reached = true;
             assert.equal(url.pathname, "/api/v1/login/patient");

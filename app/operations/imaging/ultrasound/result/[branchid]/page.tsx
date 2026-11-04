@@ -16,6 +16,7 @@ import { RiFileTextLine, RiImageLine, RiHistoryLine, RiFileList2Line } from '@re
 import AccessHistoryTab from './AccessHistoryTab';
 import AccessRequestForm from './AccessRequestForm';
 import ImageUploadTab from './ImageUploadTab';
+import ImagingResultActions from '../../../../../../components/operations/Ultrasound/ImagingResultActions';
 
 const ResultValidationModal = dynamic(() => import('../../../../../../components/operations/Laboratory/ValidationModal'), { ssr: false });
 
@@ -92,6 +93,11 @@ export default function EnterResultUltrasound() {
      const [isPinUsed] = useState(true);
      const [pin, setPin] = useState('');
      const [isTemplateLoading, setIsTemplateLoading] = useState(false);
+     const [hydrationError,setHydrationError]=useState(''),[hydrationRevision,setHydrationRevision]=useState(0),[loadedResultKey,setLoadedResultKey]=useState('');
+     const resultKey=`${ascensionid}:${urlpatientid}:${urlbillingid}:${testid}`;
+     const templateGeneration=useRef(0);
+     const [templateUndo,setTemplateUndo]=useState<{fields:any[];impression:string;template:UltrasoundTemplateOption|null}|null>(null);
+
 
      const fetchTemplates = async () => {
           try {
@@ -115,9 +121,13 @@ export default function EnterResultUltrasound() {
      }, [employeeid, testid, viewAllTemplates]);
 
      const handleTemplateChange = async (selectedOption: UltrasoundTemplateOption | null) => {
-          setSelectedTemplate(selectedOption);
+          if(loadedResultKey!==resultKey||submitting)return;
+          if((fields.some(field=>String(field.value||'').trim())||impression.trim())&&!window.confirm('Replace the current findings with this template? You can undo the replacement before saving.'))return;
+          const generation=++templateGeneration.current;
+          const previous={fields:fields.map(field=>({...field})),impression,template:selectedTemplate};
           setIsTemplateLoading(true);
           if (!selectedOption) {
+               setTemplateUndo(previous);setSelectedTemplate(null);
                setFields([]);
                setImpression('');
                setIsTemplateLoading(false);
@@ -132,7 +142,9 @@ export default function EnterResultUltrasound() {
                const responseTestId = response.testid || selectedOption.details?.testid || testid;
                const rulesResponse = await customFetch(`testpanel/list/customtestrule?testid=${responseTestId}`);
                const rules = Array.isArray(rulesResponse) ? rulesResponse : rulesResponse?.data || [];
+               if(generation!==templateGeneration.current)return;
                const updatedFields = mapFieldsToRules(Array.isArray(response.fields) ? response.fields : [], rules);
+               setTemplateUndo(previous);setSelectedTemplate(selectedOption);
                setFields(updatedFields);
                const impressionField = updatedFields.find((field) => field.name.toLowerCase() === 'impression');
                setImpression(impressionField?.value || '');
@@ -140,12 +152,13 @@ export default function EnterResultUltrasound() {
                console.error('Failed to fetch template details:', error);
                toast.error(error instanceof Error ? error.message : 'Failed to load template');
           } finally {
-               setIsTemplateLoading(false);
+               if(generation===templateGeneration.current)setIsTemplateLoading(false);
           }
      };
 
      useEffect(() => {
           let cancelled = false;
+          templateGeneration.current++;setIsTemplateLoading(false);setLoading(true);setHydrationError('');setLoadedResultKey('');setTemplateUndo(null);
           const loadExistingResult = async () => {
                try {
                     const [commentsResponse, resultResponse, clinicalHistoryResponse, rulesResponse] = await Promise.all([
@@ -155,6 +168,7 @@ export default function EnterResultUltrasound() {
                          customFetch(`testpanel/list/customtestrule?testid=${testid}`),
                     ]);
                     if (cancelled) return;
+                    if([commentsResponse,resultResponse,clinicalHistoryResponse,rulesResponse].some(value=>!value||value.error||value.status===false||value.status==='error')||!Array.isArray(resultResponse?.result))throw new Error('Unable to load the existing report completely. Retry before editing.');
 
                     const rules = Array.isArray(rulesResponse) ? rulesResponse : rulesResponse?.data || [];
                     if (Array.isArray(resultResponse?.result)) {
@@ -164,12 +178,12 @@ export default function EnterResultUltrasound() {
                     }
                     if (resultResponse?.testname) setTestName(resultResponse.testname);
                     setImpression(commentsResponse?.comments || '');
-                    if (clinicalHistoryResponse?.clinical_history) setClinicalHistory(clinicalHistoryResponse.clinical_history);
+                    setClinicalHistory(clinicalHistoryResponse?.clinical_history||'');
+                    setLoadedResultKey(resultKey);
                } catch (error) {
                     console.error('Failed to load existing ultrasound result:', error);
                     if (!cancelled) {
-                         setFields([]);
-                         setImpression('');
+                         setHydrationError(error instanceof Error?error.message:'Unable to load the existing report. Please retry.');
                     }
                } finally {
                     if (!cancelled) setLoading(false);
@@ -177,9 +191,9 @@ export default function EnterResultUltrasound() {
           };
 
           if (urlbillingid && urlpatientid && ascensionid) void loadExistingResult();
-          else setLoading(false);
+          else {setHydrationError('The report identity is incomplete. Reopen it from the worklist.');setLoading(false);}
           return () => { cancelled = true; };
-     }, [urlbillingid, urlpatientid, ascensionid, scan, testid]);
+     }, [urlbillingid, urlpatientid, ascensionid, scan, testid, hydrationRevision]);
 
      const handleFieldChange = (value: string, index: number) => {
           setFields((current) => current.map((field, fieldIndex) => fieldIndex === index ? { ...field, value } : field));
@@ -191,6 +205,7 @@ export default function EnterResultUltrasound() {
      // structured generation removed — keep impression/fields editable only via freeform editor or templates
 
      const handleResult = async () => {
+          if(loadedResultKey!==resultKey||hydrationError||isTemplateLoading)return;
           if (!saveSession.current!.start()) return;
           setSubmitting(true);
           try {
@@ -252,6 +267,7 @@ export default function EnterResultUltrasound() {
      };
 
      const handleSaveClinicalHistory = async () => {
+          if(loadedResultKey!==resultKey||hydrationError)return;
           if (!clinicalHistory.trim() || clinicalHistory.trim().length < 5) {
                toast.error('Please enter at least 5 characters for clinical history');
                return;
@@ -261,9 +277,11 @@ export default function EnterResultUltrasound() {
      };
 
      if (isLoading) return <Loader />;
+     if(hydrationError)return <div className="alert alert-danger" role="alert"><p>{hydrationError}</p><button className="btn btn-outline-danger" onClick={()=>setHydrationRevision(value=>value+1)}>Retry loading report</button></div>;
 
      return (
           <div>
+               {templateUndo&&<button type="button" className="btn btn-outline-secondary mb-3" disabled={submitting||isTemplateLoading} onClick={()=>{templateGeneration.current++;setFields(templateUndo.fields);setImpression(templateUndo.impression);setSelectedTemplate(templateUndo.template);setTemplateUndo(null);}}>Undo template replacement</button>}
                <PreviewPatientInformation patientid={patientid} compact />
                <div className="mt-3 card">
                     <div className="card-header bg-body d-flex flex-wrap align-items-center justify-content-between gap-3">
@@ -271,7 +289,13 @@ export default function EnterResultUltrasound() {
                               <div className="fw-semibold text-uppercase">{testname || scan || 'Ultrasound'}</div>
                               <div className="small text-muted">Ascension: {ascensionid || 'N/A'} · Test ID: {testid || 'N/A'} · Billing ID: {billingid || 'N/A'}</div>
                          </div>
-                         <div className="d-flex flex-wrap gap-2 align-items-center">{entered && <button className="btn btn-sm btn-outline-primary" onClick={() => setShowResultValidation(true)}>Review / validate current result</button>}<span className={`badge ${entered ? 'bg-success' : 'bg-secondary'}`}>{requiresRevalidation ? 'Changed - revalidation required' : entered ? 'Saved' : 'Draft'}</span></div>
+                         <div className="d-flex flex-wrap gap-2 align-items-center">
+                              {entered && <button className="btn btn-sm btn-outline-primary" onClick={() => setShowResultValidation(true)}>Review / validate current result</button>}
+                              {entered && testid && patientid && billingid && ascensionid && <ImagingResultActions
+                                   key={`${billingid}:${ascensionid}`}
+                                   item={{ testid, patientid, billingid, ascensionid, name: testname || scan || 'Ultrasound' }} />}
+                              <span className={`badge ${entered ? 'bg-success' : 'bg-secondary'}`}>{requiresRevalidation ? 'Changed - revalidation required' : entered ? 'Saved' : 'Draft'}</span>
+                         </div>
                     </div>
                     <div className="card-body">
                          <nav className="nav nav-tabs mb-4" aria-label="Ultrasound result sections">
@@ -356,7 +380,7 @@ export default function EnterResultUltrasound() {
                                              </div>
                                         )}
                                         <div className="d-flex flex-wrap gap-2 ms-auto">
-                                             <button type="button" onClick={handleResult} className="btn btn-primary" disabled={submitting || isTemplateLoading}>{submitting ? 'Saving…' : 'Save Result'}</button>
+                                             <button type="button" onClick={handleResult} className="btn btn-primary" disabled={submitting || isTemplateLoading || loadedResultKey!==resultKey}>{submitting ? 'Saving…' : 'Save Result'}</button>
                                              <button type="button" className="btn btn-outline-primary" onClick={() => {
                                                   const billing_id = `${generateRandomTextAndNumbers(70)}${billingid}`;
                                                   const patientid_id = `${generateRandomTextAndNumbers(50)}${patientid}`;

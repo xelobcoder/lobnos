@@ -88,11 +88,11 @@ export default function AnalyticsPage() {
           <div className="container-fluid p-3">
                <div className="row g-3 mt-2">
                     <div className="col-12 d-flex flex-column">
-                         <div className="card shadow-sm h-100">
+                         <div className="card  h-100">
                               <div className="card-body d-flex flex-column">
                                    <div className="d-flex justify-content-between align-items-center mb-4">
                                         <div>
-                                             <p className="text-uppercase text-primary fw-semibold small mb-2">Prime Laboratory Software · Insights</p>
+                                             {/* <p className="text-uppercase text-primary fw-semibold small mb-2">Prime Laboratory Software · Insights</p> */}
                                              <h1 className="card-title fs-4 fw-bold text-dark mb-1">Analytics &amp; reports</h1>
                                              <p className="text-muted small mb-0">Open reports available to your role and facility modules.</p>
                                         </div>
@@ -103,7 +103,7 @@ export default function AnalyticsPage() {
                                         <Row className="g-3">
                                              {sections.map(section => (
                                                   <Col md={6} lg={4} key={section.path}>
-                                                       <Card className="h-100 shadow-sm border-0">
+                                                       <Card className="h-100  border-1">
                                                             <Card.Body className="d-flex flex-column p-4">
                                                                  <div className="d-flex align-items-center mb-3">
                                                                       <div className={`bg-${section.color} bg-opacity-10 p-2 rounded me-3`}>
@@ -112,7 +112,7 @@ export default function AnalyticsPage() {
                                                                  </div>
                                                                  <h2 className="h6 fw-semibold mb-2">{section.title}</h2>
                                                                  <p className="text-muted small mb-4 flex-grow-1">{section.description}</p>
-                                                                 <Link href={section.path} className={`btn btn-outline-${section.color} btn-sm mt-auto`}>
+                                                                 <Link href={section.path} className={`btn btn-${section.color} btn-sm mt-auto`}>
                                                                       Open report <RiArrowRightLine size={16} className="ms-1" />
                                                                  </Link>
                                                             </Card.Body>

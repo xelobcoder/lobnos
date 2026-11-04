@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRequestContext } from '../../../../components/serverActions/requestHeaders';
+import {getServerRequestContext as getRequestContext} from '../../../../lib/serverRequestContext';
 import { getBackendAuthorization } from '../../../../lib/serverBackendAccess';
 
 // Expire both frontend and backend credentials before returning an auth rejection.

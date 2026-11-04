@@ -127,6 +127,37 @@ If rolling back the database migration, its `down` step first converts only
 transactional: use the approved maintenance window and backup procedure.
 Do not roll back the original migration, which drops the layout column.
 
+## Financial-day policy and historical migration locks
+
+- [ ] As an admin/owner, open **Settings → Organization → Financial Day Settings**
+  (`/settings/financial-days`) in the intended active branch. Requests use the
+  existing authenticated context; there is no branch or tenant override.
+- [ ] Check earliest/latest financial dates and the current **server** date.
+  Migration starts at the earliest historical date and ends no later than
+  server yesterday (the latest date may include today/future activity).
+- [ ] Enter inclusive historical dates and a reason, preview financial-day /
+  already-locked / eligible counts, then explicitly acknowledge the irreversible
+  lock before submitting. Preview counts are informational; the range includes
+  dates without existing financial-day records. A lock does not reconcile or
+  finalize days, has no UI undo, and remains immutable with enforcement off.
+  Review outstanding balances and pending refunds first: source records,
+  including old bills, are frozen. Normal collections/refunds that mutate
+  locked bills may be prevented by existing immutability rules; use appropriate
+  current-period linked corrections or opening balances, not direct mutation
+  of locked bills. Locking history does not assert reconciliation.
+- [ ] Save overdue enforcement separately with a reason: optional on/off and
+  24, 48, 168 or custom whole hours (1–8760). Existing installations default to
+  off / 48 hours. Migration never requests activation or saves policy drafts.
+  This is lab/facility policy including shared-ledger pharmacy transactions;
+  independent pharmacy own-day policy is unchanged.
+- [ ] Verify backend `financial-day/settings` GET/PUT and
+  `financial-day/historical-locks/preview`, `financial-day/historical-locks`
+  POST contracts are deployed before enabling this frontend. Refresh and
+  verify saved policy/ranges after a network error before retrying a mutation.
+  Refresh discards unsaved drafts; switching branches discards drafts/previews.
+  Dates used for locking remain server ISO dates; audit timestamps use the
+  browser locale, consistent with existing frontend formatting.
+
 ## Rollback triggers and steps
 
 Roll back if authentication fails broadly, tenant-scoped requests return data

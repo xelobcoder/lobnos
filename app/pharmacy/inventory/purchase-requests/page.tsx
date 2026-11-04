@@ -75,19 +75,21 @@ export default function PharmacyPurchaseRequestsPage() {
 }
 export function PurchaseRequests() {
   const access = usePharmacyAccess();
-  const resource = usePharmacyResource('pharmacy/enterprise/workflows?kind=purchase_requisition');
+  const [page,setPage]=useState(1),[search,setSearch]=useState(''),[status,setStatus]=useState('all'),[serverSearch,setServerSearch]=useState('');
+  useEffect(()=>{const timer=setTimeout(()=>{setServerSearch(search);setPage(1);},250);return()=>clearTimeout(timer);},[search]);
+  const resource = usePharmacyResource(`pharmacy/enterprise/purchase-requests?page=${page}&count=25&search=${encodeURIComponent(serverSearch)}&status=${encodeURIComponent(status)}`);
   const suppliers = usePharmacyResource('pharmacy/suppliers');
   const document = usePharmacyDocument('purchase-request-review');
   const [selectedId, setSelectedId] = useState(''), [decision, setDecision] = useState(''), [busy, setBusy] = useState(false);
   const [error, setError] = useState(''), [notice, setNotice] = useState('');
-  const [search, setSearch] = useState(''), [status, setStatus] = useState('all');
+
   const reviewHeading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     if (selectedId) { reviewHeading.current?.focus(); reviewHeading.current?.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
   }, [selectedId]);
   const decoded = useMemo(() => {
     if (resource.data == null && (resource.loading || resource.error)) return { rows: [], error: '' };
-    try { return { rows: decodePurchaseRequests(resource.data), error: '' }; }
+    try { return { rows: decodePurchaseRequests(resource.data?.items??resource.data), error: '' }; }
     catch (error) { return { rows: [], error: error instanceof Error ? error.message : 'Unable to read purchase requests.' }; }
   }, [resource.data, resource.loading, resource.error]);
   const available = !resource.loading && !resource.error && !decoded.error;
@@ -145,11 +147,12 @@ export function PurchaseRequests() {
     </dl>}
     <div className={`${accountingStyles.filters} ${layout.panel} ${layout.filterPanel}`}>
       <label className="form-label">Find a request<input className="form-control" type="search" placeholder="Reference, medicine, supplier or reason" value={search} onChange={event => setSearch(event.target.value)}/></label>
-      <label className="form-label">Status<select className="form-select" value={status} onChange={event => setStatus(event.target.value)}><option value="all">All requests</option><option value="requested">Awaiting review</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></label>
+      <label className="form-label">Status<select className="form-select" value={status} onChange={event => {setStatus(event.target.value);setPage(1);}}><option value="all">All requests</option><option value="requested">Awaiting review</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></label>
       <button type="button" className="btn btn-outline-secondary" disabled={busy || resource.loading} onClick={() => { resource.refresh(); suppliers.refresh(); }}>Refresh requests</button>
     </div>
-    <p className={styles.muted}>{available ? `${visible.length} of ${decoded.rows.length} requests shown. ` : ''}Latest 200 requests for this branch; summary counts cover this list.</p>
+    <p className={styles.muted}>{available ? `${visible.length} of ${decoded.rows.length} requests shown. ` : ''}Purchase requests for this branch; summary counts cover this list.</p>
     {resource.loading ? <p role="status">Loading purchase requests...</p> : available && (visible.length ? <div className={`table-responsive ${layout.tableCard}`} tabIndex={0} role="region" aria-label="Purchase requests table"><table className={`${styles.table} ${layout.requestTable}`}><thead><tr><th>Request / date</th><th>What is needed</th><th>Estimated cost</th><th>Status</th><th>Action</th></tr></thead><tbody>{visible.map(row => <tr key={row.id} aria-selected={row.id === selectedId}><td data-label="Request"><span title={row.id}>{accountingReference(row.id)}</span><small className="d-block text-muted">{dateLabel(row.createdAt)}</small>{row.createdBy === actor && <small className={layout.ownRequest}>Requested by you</small>}</td><td data-label="What is needed"><strong>{row.reason}</strong><small className="d-block text-muted">{row.lines.length} {row.lines.length === 1 ? 'medicine' : 'medicines'} · {row.quotes.length} {row.quotes.length === 1 ? 'quotation' : 'quotations'}</small></td><td data-label="Estimated cost">{money(row.estimatedValue)}</td><td data-label="Status"><span className={layout.status} data-status={row.status}>{statusLabel(row.status)}</span></td><td data-label="Action"><button type="button" className="btn btn-sm btn-outline-primary" disabled={busy || !!document.pending} aria-expanded={row.id === selectedId} aria-controls="purchase-request-review" onClick={() => { setSelectedId(row.id); setDecision(''); setError(''); setNotice(''); }}>{row.status === 'requested' ? 'Review request' : 'View details'}</button></td></tr>)}</tbody></table></div> : <p role="status">{decoded.rows.length ? 'No requests match these filters. Change the status or search text.' : <>No purchase requests yet. <Link href="/pharmacy/inventory?tab=orders&action=request">Create your first request</Link>.</>}</p>)}
+    <div className="d-flex justify-content-between align-items-center gap-3 flex-wrap my-3" aria-label="Purchase request pages"><small>Page {page} - {Number(resource.data?.total??decoded.rows.length).toLocaleString()} matching requests</small><div className="d-flex gap-2"><button className="btn btn-outline-secondary" disabled={resource.loading||page<=1||busy||!!document.pending} onClick={()=>setPage(value=>value-1)}>Previous page</button><button className="btn btn-outline-secondary" disabled={resource.loading||busy||!!document.pending||page*25>=Number(resource.data?.total??decoded.rows.length)} onClick={()=>setPage(value=>value+1)}>Next page</button></div></div>
     {selected && <section id="purchase-request-review" className={`${layout.review} mt-4 pt-4 border-top`} aria-label="Purchase request review">
       <div className={styles.toolbar}><h2 ref={reviewHeading} tabIndex={-1} className="mb-0">Review purchase request <span title={selected.id}>{accountingReference(selected.id)}</span></h2><div className={styles.actions}><button className="btn btn-sm btn-outline-primary" type="button" onClick={async () => { try { await downloadPurchaseRequest({ ...selected, reference: accountingReference(selected.id) }); } catch (e) { setError(e instanceof Error ? e.message : 'Unable to generate purchase request PDF.'); } }}>Download / print PDF</button><button className="btn btn-sm btn-outline-secondary" type="button" disabled={busy} onClick={() => setSelectedId('')}>Close review</button></div></div>
       <p>{selected.reason}</p><p className={styles.muted}>Requested {dateLabel(selected.createdAt)} · {statusLabel(selected.status)} · Version {selected.version}</p>

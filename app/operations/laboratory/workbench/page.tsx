@@ -21,6 +21,7 @@ export default function LaboratoryWorkbench() {
      const [loading, setLoading] = useState(false), [error, setError] = useState(''), [saving, setSaving] = useState(false);
      const [selected, setSelected] = useState<any>(null), [edit, setEdit] = useState<any>({}), [history, setHistory] = useState<any[]>([]);
      const [targets, setTargets] = useState<any>({ routine: '', urgent: '', stat: '' });
+     const planGeneration=useRef(0),planIdentity=useRef<string|null>(null);
      const [materialRow, setMaterialRow] = useState<any>(null), [plan, setPlan] = useState<any>(null), [quantities, setQuantities] = useState<Record<string, string>>({});
      const [retryKey, setRetryKey] = useState(''), [planLoading, setPlanLoading] = useState(false);
      const generation = useRef(0);
@@ -101,24 +102,30 @@ export default function LaboratoryWorkbench() {
           } catch (error: any) { toast.error(error.message); } finally { setSaving(false); }
      }
      async function loadPlan(row: any, templateId?: number) {
-          setPlanLoading(true); setPlan(null);
+          const generation=++planGeneration.current;planIdentity.current=null;
+          setPlanLoading(true); setPlan(null);setQuantities({});
           try {
                const result = await customFetch(`${base}/${row.ascensionid}/consumption${templateId ? `?template_id=${templateId}` : ''}`);
+               if(generation!==planGeneration.current)return;
                if (!result?.success) throw new Error(result?.message || 'Unable to load material usage');
+               planIdentity.current=String(row.ascensionid);
                setPlan(result.data);
                setQuantities(Object.fromEntries((result.data.items || []).map((item: any) => [item.item_id, String(item.remaining)])));
                setRetryKey(crypto.randomUUID());
-          } catch (error: any) { toast.error(error.message); } finally { setPlanLoading(false); }
+          } catch (error: any) { if(generation===planGeneration.current)toast.error(error.message); } finally { if(generation===planGeneration.current)setPlanLoading(false); }
      }
      async function recordMaterials() {
+          if(saving||planLoading||!plan||!materialRow||planIdentity.current!==String(materialRow.ascensionid)){toast.error('Load the current request material plan before recording usage');return;}
+          const generation=planGeneration.current;
           const lines = Object.entries(quantities).map(([item_id, quantity]) => ({ item_id, quantity: Number(quantity) })).filter(line => line.quantity > 0);
           if (!lines.length) { toast.error('Enter the actual quantities used'); return; }
           try {
                setSaving(true);
                const result = await customPost(`${base}/${materialRow.ascensionid}/consumption`, 'POST', { idempotency_key: retryKey, template_id: plan.template_id, lines });
+               if(generation!==planGeneration.current)return;
                if (!result?.success) throw new Error(result?.message || 'Unable to record material usage');
                toast.success(result.data.retried ? 'This material usage was already recorded' : 'Material usage and accounting recorded');
-               setMaterialRow(null); await load();
+               planGeneration.current++;planIdentity.current=null;setMaterialRow(null); await load();
           } catch (error: any) { toast.error(error.message); } finally { setSaving(false); }
      }
      const canManage = (row: any) => options.supervisor || !row.assigned_employeeid || Number(row.assigned_employeeid) === employeeid;
@@ -162,7 +169,7 @@ export default function LaboratoryWorkbench() {
                     <h3 className="h6 mt-4">Work history</h3>{!history.length && <p className="small text-muted">No work actions recorded yet.</p>}{history.map(item => <div key={item.id} className="border-bottom py-2 small"><strong>{item.action.replaceAll('_', ' ')}</strong> · {item.username || `Staff #${item.employeeid}`}<div>{displayDate(item.created_at)}</div>{item.reason && <div>{item.reason}</div>}</div>)}
                </>}
           </Offcanvas.Body></Offcanvas>
-          <Modal show={!!materialRow} onHide={() => { if (!saving) setMaterialRow(null); }} size="lg" backdrop="static"><Modal.Header closeButton={!saving}><Modal.Title>Actual material usage</Modal.Title></Modal.Header><Modal.Body>
+          <Modal show={!!materialRow} onHide={() => { if (!saving) planGeneration.current++;planIdentity.current=null;setMaterialRow(null); }} size="lg" backdrop="static"><Modal.Header closeButton={!saving}><Modal.Title>Actual material usage</Modal.Title></Modal.Header><Modal.Body>
                <p>{materialRow?.test_name} · {materialRow?.patient_name}</p><p className="small text-muted">Confirm what was actually used. Stock is deducted only when you record usage below. Unexpired batches are used in expiry order.</p>
                {planLoading && <p>Loading materials...</p>}
                {plan && <><label className="form-label">Inventory template</label><select className="form-select mb-3" disabled={saving} value={plan.template_id || ''} onChange={event => loadPlan(materialRow, Number(event.target.value))}><option value="">Select a template</option>{plan.templates.map((template: any) => <option key={template.id} value={template.id}>{template.name}</option>)}</select>

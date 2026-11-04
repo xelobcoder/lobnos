@@ -11,7 +11,7 @@ function handler(body, status = 200) {
     vm.runInNewContext(compiled, {
         exports, URL, Response, console: { error() {} }, process: { env: { DEVELOPMENT_BASEURL: 'http://backend/api/v1/', NODE_ENV: 'development' } },
         require(name) {
-            if (name.endsWith('requestHeaders')) return { getRequestContext: async () => ({ PLS_SESSION: 'synthetic', PLS_PRIME_TENANT_SESSION: 'synthetic-tenant', tenantId: 42 }) };
+            if (name.endsWith('serverRequestContext')) return { getServerRequestContext: async () => ({ PLS_SESSION: 'synthetic', PLS_PRIME_TENANT_SESSION: 'synthetic-tenant', tenantId: 42 }) };
             if (name.endsWith('serverBackendAccess')) return { getBackendAuthorization: () => '' };
             if (name === 'next/server') return { NextResponse: { json(body, options) {
                 const response = Response.json(body, options);
