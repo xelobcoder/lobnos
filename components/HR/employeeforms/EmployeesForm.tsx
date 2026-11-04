@@ -49,17 +49,17 @@ export default function EmployeesForm() {
         }
     }, []);
 
-    const handleChange = (e) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: { preventDefault: () => void; }) => {
         e.preventDefault();
         const result = employeeSchema.safeParse(formData);
         if (!result.success) {
-            const fieldErrors = {};
+            const fieldErrors: EmployeeFormErrors = {};
             result.error.errors.forEach((err) => {
-                if (err.path && err.path[0]) fieldErrors[err.path[0]] = err.message;
+                if (err.path && err.path[0]) fieldErrors[err.path[0] as keyof EmployeeFormData] = err.message;
             });
             setErrors(fieldErrors);
         } else {

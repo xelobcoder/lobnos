@@ -1,4 +1,4 @@
-export default function CompanyFooter({ details }) {
+export default function CompanyFooter({ details }: {details?: {name?: string; address?: string; street?: string; motto?: string}}) {
   return (
     <>
       <div className="company-view-result">

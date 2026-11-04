@@ -1,7 +1,7 @@
 "use client"
 
 import { RiDeleteBin2Fill } from "@remixicon/react";;
-import { useState, useEffect } from "react";
+import { useState, useEffect, SetStateAction } from "react";
 import { toast } from "react-toastify";
 import Loader from "../../../../components/accessories/Loader";
 import { customPost,customFetch } from "../../../../components/Auth/customFetch";
@@ -73,7 +73,7 @@ export default function ExpenseCategoryCreation() {
 
 
 
-     const handleEdit = (item) => {
+     const handleEdit = (item: {id: string | number; category: string; createdon?: string | Date}) => {
           setEditId(item);
           setEditing(true);
           const { category } = item;

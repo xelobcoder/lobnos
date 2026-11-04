@@ -3,7 +3,7 @@ import { plsEncryption } from "../../../lib/encryption";
 import { MultiBillingData } from "../../../lib/Multi/MultiTypes";
 import { customPost } from "../../Auth/customFetch";
 
-export const handleCheckout = async (billingdata: MultiBillingData, specialCode, setBillingData) => {
+export const handleCheckout = async (billingdata: MultiBillingData, specialCode: string, setBillingData: React.Dispatch<React.SetStateAction<MultiBillingData>>) => {
      try {
           const checkoutPayload = {
                patientId: billingdata.patientid,

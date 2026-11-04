@@ -153,7 +153,7 @@ export default function ExpiredProductsPage() {
           {
                Header: 'Item',
                accessor: 'item_name',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: ExpiredBatch; index: number}}) => (
                     <div>
                          <div className="fw-bold">{row.original.item_name}</div>
                          <small className="text-muted">{row.original.item_sku}</small>
@@ -163,35 +163,35 @@ export default function ExpiredProductsPage() {
           {
                Header: 'Batch Number',
                accessor: 'batch_number',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: ExpiredBatch["batch_number"]}) => (
                     <span className="fw-bold">{value}</span>
                )
           },
           {
                Header: 'Unit Price',
                accessor: 'unit_price',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: ExpiredBatch["unit_price"]}) => (
                     <span>{value}</span>
                )
           },
           {
                Header: 'Available Quantity',
                accessor: 'available_quantity',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: ExpiredBatch["available_quantity"]}) => (
                     <span className="fw-bold">{value}</span>
                )
           },
           {
                Header: 'Total Value',
                accessor: 'total_value',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: ExpiredBatch["total_value"]}) => (
                     <span>{value}</span>
                )
           },
           {
                Header: 'Expiry Date',
                accessor: 'expiry_date',
-               Cell: ({ row }) => {
+               Cell: ({ row }: {row: {original: ExpiredBatch; index: number}}) => {
                     const expiryDate = new Date(row.original.expiry_date);
                     const daysToExpiry = row.original.days_to_expiry;
 
@@ -210,7 +210,7 @@ export default function ExpiredProductsPage() {
           {
                Header: 'Actions',
                accessor: 'item_id',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: ExpiredBatch; index: number}}) => (
                     <button
                          className="btn btn-sm btn-outline-info"
                          title="View Details"

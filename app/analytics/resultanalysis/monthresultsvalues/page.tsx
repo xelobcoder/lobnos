@@ -32,7 +32,7 @@ export default function ResultValuesAnalysisTest() {
     const [response, setResponse] = useState<TestResult[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [groupedData, setGroupedData] = useState<GroupedData>({});
-    const [groupingField, setGroupingField] = useState<string>("ascensionid");
+    const [groupingField, setGroupingField] = useState<keyof TestResult>("ascensionid");
     const [selectedField, setSelectedField] = useState<TestResult>({} as TestResult);
     const [showChartModal, setShowChartModal] = useState<boolean>(false);
     const employeeid = useApplication().user.employeeid
@@ -48,11 +48,11 @@ export default function ResultValuesAnalysisTest() {
 
     const monthResultShow = duration && duration === "month" && show === "resultvalues";
 
-    const groupData = (data: TestResult[], field: string) => {
+    const groupData = (data: TestResult[], field: keyof TestResult) => {
         return data.reduce((acc: GroupedData, curr: TestResult) => {
             const key = field === 'created_on' 
                 ? new Date(curr[field]).toLocaleDateString()
-                : curr[field].toString();
+                : String(curr[field] ?? '');
             
             if (!acc[key]) {
                 acc[key] = [];
@@ -85,7 +85,7 @@ export default function ResultValuesAnalysisTest() {
     }, [testid, show, duration, currentMonth, currentYear, monthResultShow]);
 
     const handleGroupingChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const newGroupingField = event.target.value;
+        const newGroupingField = event.target.value as keyof TestResult;
         setGroupingField(newGroupingField);
         const grouped = groupData(response, newGroupingField);
         setGroupedData(grouped);

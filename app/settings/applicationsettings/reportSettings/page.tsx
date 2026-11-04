@@ -65,8 +65,9 @@ const SettingsForm = () => {
 		loadApplicationResultSettings();
 	}, []);
 
-	const handleChange = (e) => {
-		const { name, value, type, checked } = e.target;
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+		const { name, value, type } = e.target;
+        const checked = "checked" in e.target ? e.target.checked : false;
 		if (name.startsWith('companyInfo.')) {
 			const key = name.split('.')[1];
 			setSettings((prev) => ({
@@ -109,7 +110,7 @@ const SettingsForm = () => {
 		}
 	};
 
-	const handleSubmit = async (e) => {
+	const handleSubmit = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
         if(lock.current)return;
         lock.current=true;setError("");setNotice("");

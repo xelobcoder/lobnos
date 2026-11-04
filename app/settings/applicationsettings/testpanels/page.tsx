@@ -16,7 +16,7 @@ export default function TESTPANEL() {
   {
     Header: 'NAME',
     accessor: 'name',
-    Cell: function ({ row }) {
+    Cell: function ({ row }: {row: {original: {id: number; name: string; created_on: string}}}) {
       return <span className='text-success'>
         {row.original.name}
       </span>
@@ -37,7 +37,7 @@ export default function TESTPANEL() {
   {
     Header: 'ADDED ON',
     accessor: 'created_on',
-    Cell: ({ row }) => {
+    Cell: ({ row }: {row: {original: {id: number; name: string; created_on: string}}}) => {
       return <span>{row.original?.created_on.slice(0, 10)}</span>
     }
   },
@@ -59,7 +59,7 @@ export default function TESTPANEL() {
   },
   {
     Header: 'ACTION',
-    Cell: function ({ row }) {
+    Cell: function ({ row }: {row: {original: {id: number; name: string; created_on: string}}}) {
       return (
         <div>
           <button className='btn btn-sm btn-primary'

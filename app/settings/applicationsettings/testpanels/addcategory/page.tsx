@@ -5,7 +5,7 @@ import { RiForward10Fill } from '@remixicon/react';
 export default function Addcategory() {
   const [categoryList, setCategoryList] = useState({});
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setCategoryList({ ...categoryList, [name]: value });
   };

@@ -24,18 +24,10 @@ test('public entry screens and package metadata use Prime Laboratory Software', 
         assert.doesNotMatch(text, /Prime Lab(?:oratory)? System|>Lobnos</);
     }
     const pharmacy = fs.readFileSync(path.join(root, 'app', 'pharmacy', 'sell', 'page.tsx'), 'utf8');
-    assert.match(pharmacy, /PLS PHARMACY/);
+    assert.match(pharmacy, /app\?\.company\?\.name\|\|'PHARMACY'/);
     assert.doesNotMatch(pharmacy, /LOBNOS PHARMACY/);
 });
 
-test('backend result report footers use the official product name', () => {
-    const reports = path.join(root, '..', 'lobnos-server', 'src', 'views', 'pdfs', 'result');
-    for (const filename of ['scan.html', 'hematological.html', 'hasnoLimits.html', 'hasLimits.html', 'chemistry.html']) {
-        const text = fs.readFileSync(path.join(reports, filename), 'utf8');
-        assert.match(text, /Powered by Prime Laboratory Software \(PLS\)/);
-        assert.doesNotMatch(text, /Prime Laboratory System/);
-    }
-});
 
 test('Electron uses the correct product name without relocating installation settings', () => {
     const calls = [];

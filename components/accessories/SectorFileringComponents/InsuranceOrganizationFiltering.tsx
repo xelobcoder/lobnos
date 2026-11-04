@@ -13,7 +13,7 @@ interface InsuranceOrganization {
 }
 
 interface InsuranceOrganizationFilteringProps {
-    onSelect: (value: InsuranceOrganization) => void;
+    onSelect: (value: InsuranceOrganization["content"]) => void;
     isDisabled?: boolean;
 }
 
@@ -40,7 +40,7 @@ export default function InsuranceOrganizationFiltering({ onSelect,isDisabled=fal
         return [];
     };
 
-    const handleSelectChange = (selectedOption: InsuranceOrganization) => {
+    const handleSelectChange = (selectedOption: InsuranceOrganization | null) => {
         onSelect(selectedOption?.content);
     };
 

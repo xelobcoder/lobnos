@@ -1,4 +1,5 @@
 "use client"
+import {errorMessage} from '../../../../lib/errorMessage';
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row, Col, Card, Badge, Button, Modal, ButtonGroup } from 'react-bootstrap';
@@ -15,12 +16,13 @@ import { customFetch } from '../../../../components/Auth/customFetch';
 import { loadTaskDefinition } from '../../../../components/serverActions/ActionFiltering';
 import { motion } from 'motion/react';
 
+interface TaskRecord {id: number; title: string; description: string; status: string; priority: string; dueDate: string; assignee: string}
 const TaskViewer = () => {
-    const [tasks, setTasks] = useState([]);
-    const [selectedTask, setSelectedTask] = useState(null);
+    const [tasks, setTasks] = useState<TaskRecord[]>([]);
+    const [selectedTask, setSelectedTask] = useState<TaskRecord | null>(null);
     const [showTaskDetails, setShowTaskDetails] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
     const urlView = useSearchParams()?.get('taskview');
     const [view, setView] = useState(urlView || 'list');
     const router = useRouter();
@@ -44,7 +46,7 @@ const TaskViewer = () => {
                     setTasks(mappedTasks as any);
                 }
             } catch (err) {
-                setError(err.message);
+                setError(errorMessage(err));
             } finally {
                 setIsLoading(false);
             }
@@ -53,7 +55,7 @@ const TaskViewer = () => {
         fetchTasks();
     }, []);
 
-    const getPriorityBadge = (priority) => {
+    const getPriorityBadge = (priority: string) => {
         switch (priority.toLowerCase()) {
             case 'high': return 'danger';
             case 'medium': return 'warning';
@@ -62,7 +64,7 @@ const TaskViewer = () => {
         }
     };
 
-    const handleTaskClick = (task) => {
+    const handleTaskClick = (task: TaskRecord) => {
         setSelectedTask(task);
         setShowTaskDetails(true);
     };
@@ -75,7 +77,7 @@ const TaskViewer = () => {
         {
             Header: "Title",
             accessor: "title",
-            Cell: ({ row }) => (
+            Cell: ({ row }: {row: {original: TaskRecord}}) => (
                 <span
                     style={{ cursor: "pointer", color: "blue", textDecoration: "underline" }}
                     onClick={() => handleTaskClick(row.original)}
@@ -87,12 +89,12 @@ const TaskViewer = () => {
         {
             Header: "Status",
             accessor: "status",
-            Cell: ({ value }) => <Badge bg="info">{value}</Badge>,
+            Cell: ({ value }: {value: string}) => <Badge bg="info">{value}</Badge>,
         },
         {
             Header: "Priority",
             accessor: "priority",
-            Cell: ({ value }) => <Badge bg={getPriorityBadge(value)}>{value}</Badge>,
+            Cell: ({ value }: {value: string}) => <Badge bg={getPriorityBadge(value)}>{value}</Badge>,
         },
         {
             Header: "Due Date",
@@ -104,7 +106,7 @@ const TaskViewer = () => {
         },
     ];
 
-    const TaskDetailsModal = ({ task, show, onHide }) => {
+    const TaskDetailsModal = ({ task, show, onHide }: {task: TaskRecord | null; show: boolean; onHide: () => void}) => {
         if (!task) return null;
 
         return (
@@ -153,7 +155,7 @@ const TaskViewer = () => {
         );
     };
 
-    const ListView = ({ tasks, onTaskClick }) => {
+    const ListView = ({ tasks, onTaskClick }: {tasks: TaskRecord[]; onTaskClick: (task: TaskRecord) => void}) => {
         return (
             <motion.div
                 initial={{ opacity: 0 }}
@@ -172,7 +174,7 @@ const TaskViewer = () => {
         );
     };
 
-    const KanbanView = ({ tasks, statuses, onTaskClick }) => {
+    const KanbanView = ({ tasks, statuses, onTaskClick }: {tasks: TaskRecord[]; statuses: string[]; onTaskClick: (task: TaskRecord) => void}) => {
         return (
             <Row className="flex-nowrap overflow-auto pb-3">
                 {statuses.map(status => (

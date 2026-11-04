@@ -57,8 +57,8 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLink
     const router = useRouter();
     const modulePath = usePathname();
 
-    const roleViews = {
-        marketer: MarketerLinks,
+    const roleViews: Record<string, {href: string; label: string; icon?: React.ReactNode; text?: string; category?: string; description?: string}[]> = {
+        marketer: MarketerLinks.map(link => ({href: link.link, label: link.title, icon: link.icon})),
         "customer service representative": FrontdeskRoleLinks,
         admin: AdminRoleLinks,
         manager: AdminRoleLinks,
@@ -223,7 +223,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLink
             .replace(/[-_]+/g, ' ')
             .split(' ')
             .filter(Boolean)
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
             .join(' ');
     }, [user?.role]);
 

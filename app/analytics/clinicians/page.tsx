@@ -1,4 +1,5 @@
 'use client'
+import {errorMessage} from '../../../lib/errorMessage';
 
 import { useState, useEffect } from "react";
 import { Modal, Button } from "react-bootstrap";
@@ -38,7 +39,7 @@ type Clinician = {
      _showFinancialModal?: (row: any) => void;
 };
 
-const FinancialInfoModal = ({ show, onHide, data }) => (
+const FinancialInfoModal = ({ show, onHide, data }: {show: boolean; onHide: () => void; data: Clinician | null}) => (
      <Modal show={show} onHide={onHide}>
           <Modal.Header closeButton>
                <Modal.Title>Financial Information</Modal.Title>
@@ -85,7 +86,7 @@ export default function ClinicianList() {
                     });
                }
           } catch (err) {
-               toast.error(err.message || 'Error connecting to server', {
+               toast.error(errorMessage(err) || 'Error connecting to server', {
                     position: 'top-right',
                     autoClose: 2000,
                });
@@ -106,7 +107,7 @@ export default function ClinicianList() {
           {
                Header: 'Commission Rate',
                accessor: 'commission',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: Clinician; index: number}}) => (
                     <div className="d-flex align-items-center gap-2">
                          <span className="badge bg-success-subtle text-success-emphasis px-2 py-1">
                               {row.original?.commission ?? 'N/A'}%
@@ -116,14 +117,14 @@ export default function ClinicianList() {
           },
           { Header: 'Phone', accessor: 'phone' },
           {
-               Header: 'Occupation', accessor: 'occupation', Cell: ({ row }) => (
+               Header: 'Occupation', accessor: 'occupation', Cell: ({ row }: {row: {original: Clinician; index: number}}) => (
                     <span className="text-capitalize">{`${row.original.occupation}/HEALTHCARE PRACTITIONER`}</span>
                )
           },
           { Header: 'Address', accessor: 'address' },
           {
                Header: 'Actions',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: Clinician; index: number}}) => (
                     <button
                          className="btn btn-sm btn-outline-primary"
                          onClick={(ev) => { window.open(`/clinicians-analytics/${row.original.clinician_id}/overall`) }}
@@ -145,7 +146,7 @@ export default function ClinicianList() {
           { Header: 'Location', accessor: 'location' },
           { Header: 'Address', accessor: 'address' },
           {
-               Header: 'Occupation', accessor: 'occupation', Cell: ({ row }) => (
+               Header: 'Occupation', accessor: 'occupation', Cell: ({ row }: {row: {original: Clinician}}) => (
                     <span className="text-capitalize">{`${row.original.occupation}/HEALTHCARE PRACTITIONER`}</span>
                )
           },

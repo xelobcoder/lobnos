@@ -190,6 +190,14 @@ export interface Aging {
 
 export interface OutstandingDocuments {
      rows: Array<{
+          billingId?: number;
+          classification?: "nhis" | "patient" | "mixed";
+          patientName?: string | null;
+          headerOutstanding?: number;
+          nhisSettledAmount?: number;
+          nhisReceivedAmount?: number;
+          payerPaid?: number;
+          payerOutstanding?: number;
           partyType: string;
           partyId: number | null;
           partyName: string | null;
@@ -201,7 +209,7 @@ export interface OutstandingDocuments {
      total: number;
      page: number;
      count: number;
-     totals: { total: number };
+     totals: { total: number; byPayer?: { nhis: number; patient: number; mixed: number } };
 }
 
 
@@ -324,7 +332,7 @@ export const accountingApi = {
      cashForecast(payload: any) { return customPost(`${BASE}/cash-flow-forecast`, "POST", payload); },
      classifyCashFlow(journalEntryId: number, amounts: { operating: number; investing: number; financing: number } | { allocations: CashFlowAllocation[] }) { return customPost(`${BASE}/reports/cash-flow/${journalEntryId}/classification`, 'POST', amounts); },
      controlHistory(filters: { page?: number; count?: number; action?: string; from?: string; to?: string }) { return customFetch(`${BASE}/control-history${query(filters)}`); },
-     outstandingReceivables(filters: { from?: string; to?: string; search?: string; page?: number; count?: number; sortby?: string }): Promise<ApiResponse<OutstandingDocuments>> {
+     outstandingReceivables(filters: { payerType?: "nhis" | "patient" | "mixed"; from?: string; to?: string; search?: string; page?: number; count?: number; sortby?: string }): Promise<ApiResponse<OutstandingDocuments>> {
           return customFetch(`${BASE}/reports/receivables${query(filters)}`);
      },
      trialBalance(from?: string, to?: string, branchId?: number): Promise<ApiResponse<TrialBalance>> {

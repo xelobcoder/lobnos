@@ -72,15 +72,15 @@ export default function LabReportPrintingMultiple() {
 
 						for (const test of data.test) {
 							if (Array.isArray(test.records)) {
-								test.records.sort((a, b) => {
+								test.records.sort((a: {ordering?: string | number | null}, b: {ordering?: string | number | null}) => {
 
-									const isNumeric = (val) => {
+									const isNumeric = (val: string|number|null|undefined) => {
 										if (val === null || val === undefined) return false;
 										if (typeof val === 'number') return val !== 0;
 										const parsed = parseInt(val, 10);
 										return !isNaN(parsed) && parsed !== 0;
 									};
-									const getOrder = (val) => {
+									const getOrder = (val: string|number|null|undefined) => {
 										if (val === null || val === undefined) return 0;
 										if (typeof val === 'number') return Math.floor(val);
 										const parsed = parseInt(val, 10);
@@ -456,7 +456,7 @@ export default function LabReportPrintingMultiple() {
 
 	useEffect(() => {
 		if (resultdata && Array.isArray(resultdata.test)) {
-			setSelectedTests(resultdata.test.map((_, idx) => idx));
+			setSelectedTests(resultdata.test.map((_: unknown, idx: number) => idx));
 		}
 	}, [resultdata]);
 
@@ -659,7 +659,7 @@ export default function LabReportPrintingMultiple() {
 						<aside className="no-print" style={{ width: 240, fontFamily: 'Rajdhani, sans-serif', borderRight: '1px solid #e0e0e0', padding: 16, minHeight: '100vh', position: 'sticky', top: 0 }}>
 							<h4 style={{ marginBottom: 16, fontWeight: 700, fontSize: 18 }}>Select Tests</h4>
 							<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-								{resultdata.test.map((testItem, idx) => (
+								{resultdata.test.map((testItem: {testname: string}, idx: number) => (
 									<label key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500, cursor: 'pointer', background: selectedTests.includes(idx) ? '#e6f0ff' : 'transparent', borderRadius: 4, padding: '4px 8px' }}>
 										<input
 											type="checkbox"
@@ -678,7 +678,7 @@ export default function LabReportPrintingMultiple() {
 							</div>
 							<div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 8 }}>
 								<button
-									onClick={() => setSelectedTests(resultdata.test.map((_, idx) => idx))}
+									onClick={() => setSelectedTests(resultdata.test.map((_: unknown, idx: number) => idx))}
 									style={{ marginRight: 8, padding: '4px 12px', borderRadius: 4, border: '1px solid #4169e1', background: '#4169e1', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
 								>
 									Select All

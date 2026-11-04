@@ -79,7 +79,7 @@ export default function FacilityManagement({ facility, onStatusChange, mode = "f
                     throw new Error("The server returned an invalid subscription response.");
                }
                const catalog = pricingResponse?.status === "success" && Array.isArray(pricingResponse.result)
-                    ? pricingResponse.result.map(parseModulePricingCatalogEntry).filter((entry): entry is ModulePricingCatalogEntry => entry !== null)
+                    ? pricingResponse.result.map(parseModulePricingCatalogEntry).filter((entry: ModulePricingCatalogEntry | null): entry is ModulePricingCatalogEntry => entry !== null)
                     : [];
                setPricingCatalog(catalog);
                const defaults = defaultModuleConfiguration();
@@ -215,30 +215,30 @@ export default function FacilityManagement({ facility, onStatusChange, mode = "f
      const isControl = facility.isControlTenant || data?.isControlTenant;
      const scheduleColumns = [
           { Header: "Start", accessor: "startDate" },
-          { Header: "End", accessor: "endDate", Cell: ({ value }) => value || "Ongoing" },
+          { Header: "End", accessor: "endDate", Cell: ({ value }: {value: Plan & { endDate: string | null; }["endDate"]}) => value || "Ongoing" },
           { Header: "Frequency", accessor: "frequency" },
           {
                Header: "Amount per period",
                accessor: "amount",
-               Cell: ({ row }) => `${row.original.currency} ${row.original.amount}`,
+               Cell: ({ row }: {row: {original: Plan & { endDate: string | null; }; index: number}}) => `${row.original.currency} ${row.original.amount}`,
           },
      ];
      const periodColumns = [
           {
                Header: "Period",
                accessor: "periodStart",
-               Cell: ({ row }) => `${row.original.periodStart} - ${row.original.periodEnd}`,
+               Cell: ({ row }: {row: {original: Period; index: number}}) => `${row.original.periodStart} - ${row.original.periodEnd}`,
           },
           { Header: "Due date", accessor: "dueDate" },
           {
                Header: "Amount",
                accessor: "amount",
-               Cell: ({ row }) => `${row.original.currency} ${row.original.amount}`,
+               Cell: ({ row }: {row: {original: Period; index: number}}) => `${row.original.currency} ${row.original.amount}`,
           },
           {
                Header: "Payment status",
                accessor: "status",
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: Period["status"]}) => (
                     <span className={`fw-semibold text-capitalize ${value === "paid" ? "text-success" : value === "overdue" ? "text-danger" : "text-secondary"}`}>
                          {value}
                     </span>
@@ -247,7 +247,7 @@ export default function FacilityManagement({ facility, onStatusChange, mode = "f
           {
                Header: "Action",
                id: "action",
-               Cell: ({ row }) => row.original.status !== "paid" && (
+               Cell: ({ row }: {row: {original: Period; index: number}}) => row.original.status !== "paid" && (
                     <button
                          type="button"
                          className="btn btn-sm btn-outline-primary"
@@ -268,18 +268,18 @@ export default function FacilityManagement({ facility, onStatusChange, mode = "f
           {
                Header: "Period",
                accessor: "periodStart",
-               Cell: ({ row }) => `${row.original.periodStart} - ${row.original.periodEnd}`,
+               Cell: ({ row }: {row: {original: Payment; index: number}}) => `${row.original.periodStart} - ${row.original.periodEnd}`,
           },
           {
                Header: "Amount",
                accessor: "amount",
-               Cell: ({ row }) => `${row.original.currency} ${row.original.amount}`,
+               Cell: ({ row }: {row: {original: Payment; index: number}}) => `${row.original.currency} ${row.original.amount}`,
           },
           { Header: "Paid on", accessor: "paidAt" },
           {
                Header: "Reference / notes",
                accessor: "reference",
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: Payment; index: number}}) => (
                     <span>
                          {row.original.reference}
                          {row.original.notes && <span className="d-block text-muted">{row.original.notes}</span>}
@@ -289,7 +289,7 @@ export default function FacilityManagement({ facility, onStatusChange, mode = "f
           {
                Header: "Status / correction",
                id: "correction",
-               Cell: ({ row }) => row.original.voidedAt ? (
+               Cell: ({ row }: {row: {original: Payment; index: number}}) => row.original.voidedAt ? (
                     <span>
                          Voided
                          {row.original.voidReason && <span className="d-block text-muted">{row.original.voidReason}</span>}

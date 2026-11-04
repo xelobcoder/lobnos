@@ -40,7 +40,7 @@ export default function AuditLogsPage() {
 
             if (resp && Array.isArray(resp.data)) {
                 // Filter out null entries
-                const validLogs = resp.data.filter(log => log !== null && log !== undefined);
+                const validLogs = resp.data.filter((log: unknown) => log !== null && log !== undefined);
                 setLogs(validLogs);
             } else {
                 setLogs([]);
@@ -60,7 +60,7 @@ export default function AuditLogsPage() {
         }
     };
 
-    const handleKeyPress = (e) => {
+    const handleKeyPress = (e: { key: string; }) => {
         if (e.key === 'Enter') {
             handleSearch();
         }
@@ -295,7 +295,7 @@ export default function AuditLogsPage() {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {entry.changes.map((change, idx) => (
+                                                        {entry.changes.map((change: {field: string; oldValue?: React.ReactNode; newValue?: React.ReactNode}, idx: number) => (
                                                             <tr key={idx}>
                                                                 <td className="fw-semibold" style={{ fontSize: '0.85rem' }}>{change.field}</td>
                                                                 <td style={{ backgroundColor: 'rgba(144, 238, 144, 0.3)', fontSize: '0.85rem' }}>

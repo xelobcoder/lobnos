@@ -30,7 +30,7 @@ export default function RegistrationFieldsSettings() {
 
     
 
-    const handleFieldChange = (section, field, setting) => {
+    const handleFieldChange = (section: string, field: string, setting: "visible" | "compulsory") => {
         setFields(prevFields => ({
             ...prevFields,
             [section]: {
@@ -81,7 +81,7 @@ export default function RegistrationFieldsSettings() {
     }
 
     const filteredFields = searchTerm ? 
-        Object.entries(fields).reduce((acc, [section, sectionFields]) => {
+        Object.entries(fields).reduce<typeof fields>((acc, [section, sectionFields]) => {
             const filtered = Object.entries(sectionFields as Record<string, any>)
                 .filter(([field]) => 
                     field.toLowerCase().includes(searchTerm.toLowerCase()) ||

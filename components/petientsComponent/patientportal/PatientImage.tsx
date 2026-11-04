@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import styles from './PatientImage.module.css';
 
-export default function PatientImage({ patientid = 1 }) {
+export default function PatientImage({ patientid = 1 }: {patientid: string | number}) {
     const [preview, setPreview] = useState<string | null>(null);
     const tenantId = 3;
 

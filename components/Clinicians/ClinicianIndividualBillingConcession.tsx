@@ -272,7 +272,7 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
                                                                     setInputValues(prev => ({ ...prev, [test.id]: '' }));
                                                                 } else if (value === '') {
                                                                     // Remove the test from selectedTests if input is cleared
-                                                                    setSelectedTests(prev => prev.filter(t => t.testid !== test.id));
+                                                                    setSelectedTests((prev: SelectedTest[]) => prev.filter((t) => t.testid !== test.id));
                                                                     setInputValues(prev => ({ ...prev, [test.id]: '' }));
                                                                 }
                                                             }

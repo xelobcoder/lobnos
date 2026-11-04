@@ -39,7 +39,7 @@ export default function Page(props: { params: Promise<{ ascensionid: string }> }
                const response = await customFetch(`result/printingtracking/ascension/${ascensionid}?page=${page}&count=${pageSize}`);
 
                if (response && response.data && Array.isArray(response.data)) {
-                    const validData = response.data.filter(item => item !== null && item !== undefined);
+                    const validData = response.data.filter((item: unknown) => item !== null && item !== undefined);
                     setData(validData);
                     setTotalRecords(response.pagination?.total || 0);
                } else if (Array.isArray(response)) {

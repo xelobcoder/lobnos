@@ -15,7 +15,7 @@ interface EmergencyContact {
     address: string;
 }
 
-const EmergencyContactViewOnly = ({ patientid }) => {
+const EmergencyContactViewOnly = ({ patientid }: {patientid: string | number}) => {
     const [contactInfo, setContactInfo] = useState<EmergencyContact | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

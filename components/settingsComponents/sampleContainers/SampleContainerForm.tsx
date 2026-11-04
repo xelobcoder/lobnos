@@ -176,7 +176,7 @@ const SampleContainerForm: FC = () => {
     {
       Header: 'Volume Capacity',
       accessor: 'volume_capacity',
-      Cell: ({ value }) => `${value} ml`,
+      Cell: ({ value }: {value: SavedContainer["volume_capacity"]}) => `${value} ml`,
     },
     {
       Header: 'Color',
@@ -185,12 +185,12 @@ const SampleContainerForm: FC = () => {
     {
       Header: 'Reusable',
       accessor: 'is_reusable',
-      Cell: ({ value }) => (value ? 'Yes' : 'No'),
+      Cell: ({ value }: {value: SavedContainer["is_reusable"]}) => (value ? 'Yes' : 'No'),
     },
     {
       Header: 'Actions',
       accessor: 'id',
-      Cell: ({ row }) => (
+      Cell: ({ row }: {row: {original: SavedContainer; index: number}}) => (
         <div className="flex gap-2">
           <button
             className="edit-btn btn-outline btn-sm btn btn-primary"

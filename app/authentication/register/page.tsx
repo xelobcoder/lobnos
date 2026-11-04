@@ -263,7 +263,7 @@ export default function AuthenticationIndexPage() {
                          "pin",
                     ],
                     employeeid ? "logins/update?employeeid=" + currentUserEmployeeid : "logins",
-                    (response) => {
+                    (response: {status?: string | boolean; message?: string; statusCode?: number}) => {
                          handleResponse(response, toast);
                          if (response.status === "success" && !employeeid) {
                               setRegister(defaultData);

@@ -16,7 +16,7 @@ interface AddressInformation {
     district: string;
 }
 
-const AddressViewOnly = ({ patientid }) => {
+const AddressViewOnly = ({ patientid }: {patientid: string | number}) => {
     const [addressInfo, setAddressInfo] = useState<AddressInformation | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

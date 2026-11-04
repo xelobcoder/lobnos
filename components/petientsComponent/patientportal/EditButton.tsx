@@ -3,7 +3,7 @@ import { RiEditLine } from '@remixicon/react';
 import { useRouter } from 'next/navigation';
 import styles from './EditButton.module.css';
 
-const EditButton = ({ patientid, section }) => {
+const EditButton = ({ patientid, section }: {patientid: string | number; section: string}) => {
     const router = useRouter();
 
     const sectionMap: Record<string, string> = {

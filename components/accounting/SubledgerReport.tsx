@@ -9,6 +9,7 @@ import DateFilterReusable from "../operations/Laboratory/ResuableFilter/DateFilt
 import { accountingApi, OutstandingDocuments } from "../../lib/accounting/accountingApi";
 import { RiFileList3Line, RiMoneyDollarCircleLine, RiRefreshLine } from "@remixicon/react";
 import AccountingSummary, { AccountingSummaryMetric } from "./AccountingSummary";
+import { payerDisplay } from "../../lib/accounting/nhis";
 
 interface Props {
      ledger: "AR" | "AP";
@@ -28,10 +29,11 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
      const [searchInput, setSearchInput] = useState("");
      const [search, setSearch] = useState("");
      const [dateOrder, setDateOrder] = useState("desc");
+     const [payerType, setPayerType] = useState<"" | "nhis" | "patient" | "mixed">("");
      const [loading, setLoading] = useState(true);
      const [error, setError] = useState<string | null>(null);
      const latestRequest = useRef(0);
-     const context = JSON.stringify([ledger, asOf, documentFrom, documentTo, page, count, search, dateOrder]);
+     const context = JSON.stringify([ledger, asOf, documentFrom, documentTo, page, count, search, dateOrder, payerType]);
      const [loadedContext, setLoadedContext] = useState("");
      const ready = !!report && !loading && !error && loadedContext === context;
 
@@ -41,7 +43,7 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
           setError(null);
           setReport(null);
           try {
-               const filters = { page, count, sortby: `documentDate:${dateOrder}`, search, from: documentFrom, to: documentTo };
+               const filters = { page, count, sortby: `documentDate:${dateOrder}`, search, from: documentFrom, to: documentTo, ...(ledger === "AR" && payerType ? { payerType } : {}) };
                const response = ledger === "AR"
                     ? await accountingApi.outstandingReceivables(filters)
                     : await accountingApi.payableAging(asOf, filters);
@@ -58,7 +60,7 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
           } finally {
                if (requestId === latestRequest.current) setLoading(false);
           }
-     }, [ledger, asOf, documentFrom, documentTo, page, count, search, dateOrder, context]);
+     }, [ledger, asOf, documentFrom, documentTo, page, count, search, dateOrder, payerType, context]);
 
      useEffect(() => {
           void load();
@@ -74,7 +76,7 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
           let totalOutstanding = 0;
           let totalDocuments = 0;
           const { rows, truncated } = await fetchAllPages<OutstandingDocuments["rows"][number]>(async (p, c) => {
-               const filters = { page: p, count: c, sortby: `documentDate:${dateOrder}`, search, from: documentFrom, to: documentTo };
+               const filters = { page: p, count: c, sortby: `documentDate:${dateOrder}`, search, from: documentFrom, to: documentTo, ...(ledger === "AR" && payerType ? { payerType } : {}) };
                const response: any = ledger === "AR"
                     ? await accountingApi.outstandingReceivables(filters)
                     : await accountingApi.payableAging(asOf, filters);
@@ -91,7 +93,7 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
                     {
                          head: [partyLabel, "Identifier", "Reference", "Date", "Outstanding"],
                          body: rows.map((row) => [
-                              row.partyName || `${row.partyType} #${row.partyId ?? "unknown"}`,
+                              ledger === "AR" ? payerDisplay(row) : row.partyName || `${row.partyType} #${row.partyId ?? "unknown"}`,
                               [row.patientIdentifier, row.partyId ? `Record ${row.partyId}` : null].filter(Boolean).join(" · "),
                               row.reference || "",
                               row.documentDate ? dayjs(row.documentDate).format("DD MMM YYYY") : "",
@@ -108,17 +110,21 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
                Header: partyLabel,
                accessor: "partyName",
                Cell: ({ row }: any) => {
-                    const name = row.original.partyName || `${row.original.partyType} #${row.original.partyId ?? "unknown"}`;
+                    const name = ledger === "AR" ? payerDisplay(row.original) : row.original.partyName || `${row.original.partyType} #${row.original.partyId ?? "unknown"}`;
                     const identity = [row.original.patientIdentifier, row.original.partyId ? `Record ${row.original.partyId}` : null]
                          .filter(Boolean)
                          .join(" · ");
                     const content = (
                          <span className="d-flex flex-column">
                               <span className="fw-semibold">{name}</span>
+                              {ledger === "AR" && row.original.patientName && <small className="text-muted">Patient: {row.original.patientName}</small>}
                               {identity && <small className="text-muted">{identity}</small>}
                          </span>
                     );
-                    if (!row.original.partyId) return content;
+                    if (ledger === "AR" && (row.original.partyType === "nhis" || row.original.classification === "nhis")) {
+                         return <Link className="text-decoration-none" href="/accounting/nhis">{content}<small className="d-block">NHIS workspace / remittance</small></Link>;
+                    }
+                    if (!row.original.partyId || row.original.classification === "mixed") return content;
                     return (
                          <Link className="text-decoration-none" href={`/accounting/statements/${ledger}/${row.original.partyType}/${row.original.partyId}`}>
                               {content}
@@ -134,6 +140,9 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
           },
           { Header: "Outstanding", accessor: "total", Cell: ({ value }: any) => <span className="d-block text-end fw-semibold">{money(value)}</span> },
      ];
+     if (ledger === "AR") documentColumns.splice(3, 0,
+          { Header: "Received (cash only)", accessor: "payerPaid", Cell: ({ value }: any) => <span>{value == null ? "—" : money(value)}</span> },
+          { Header: "NHIS settled (cash + noncash)", accessor: "nhisSettledAmount", Cell: ({ value }: any) => <span>{value == null ? "—" : money(value)}</span> });
 
      const tiles: AccountingSummaryMetric[] = [
           { label: "Total Outstanding", value: money(report?.totals.total || 0), Icon: RiMoneyDollarCircleLine, variant: "primary", subtitle: "Matching open balances" },
@@ -150,6 +159,13 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
                actions={<button type="button" className="btn btn-sm btn-outline-secondary" onClick={load} title="Refresh outstanding documents" aria-label="Refresh outstanding documents"><RiRefreshLine size={18} /></button>}
                filters={
                     <>
+                         {ledger === "AR" && <div className="col-12 col-md-6">
+                              <label htmlFor="receivables-payer" className="form-label">Payer classification</label>
+                              <select id="receivables-payer" className="form-select" value={payerType} onChange={event => { setPayerType(event.target.value as typeof payerType); setPage(1); }}>
+                                   <option value="">All payers</option><option value="patient">Patient</option><option value="nhis">NHIS</option><option value="mixed">Mixed (review required)</option>
+                              </select>
+                              <Link href="/accounting/nhis" className="d-inline-block mt-2">NHIS remittances, adjustments and audit history</Link>
+                         </div>}
                          <div className="col-12 col-md-6">
                               <DateFilterReusable
                                    value={dateFilter}
@@ -200,6 +216,10 @@ export default function SubledgerReport({ ledger, title, subtitle, partyLabel }:
                {!ready && !error && <div className="small text-muted mb-2" role="status">Updating outstanding documents...</div>}
                {error && <div className="alert alert-danger" role="alert">{error}</div>}
                {ready && <>
+               {ledger === "AR" && <p className="small text-muted">NHIS is the payer; patient details identify the service recipient. Mixed bills require review. This general report is tenant-scoped; the NHIS workspace rechecks active-branch eligibility. NHIS settled includes noncash adjustments and write-offs, not just receipts.</p>}
+               {ledger === "AR" && report?.totals.byPayer && <div className="d-flex flex-wrap gap-3 mb-3" aria-label="All-result outstanding by payer">
+                    <span>NHIS: {money(report.totals.byPayer.nhis)}</span><span>Patient: {money(report.totals.byPayer.patient)}</span><span>Mixed: {money(report.totals.byPayer.mixed)}</span>
+               </div>}
                <AccountingSummary
                     metrics={tiles}
                     columnClassName="col-12 col-sm-6 col-xl-3"

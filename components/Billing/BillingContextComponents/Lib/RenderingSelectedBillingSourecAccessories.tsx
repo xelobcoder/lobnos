@@ -5,7 +5,13 @@ import OrganizationalBillingSourceSearch from '../BillingSourceComponents/Organi
 import { Form, Card } from 'react-bootstrap';
 import { RiHospitalLine, RiUserHeartLine, RiFileLine } from '@remixicon/react';
 
-const BillingSourceComponent = ({ billingSource, updateValuesToContext, handleInsuranceSelection, handleClinicianSelection, isClient }) => {
+interface SourceCallbacks {
+    updateValuesToContext: (entity: {id: number; name: string}) => void;
+    handleInsuranceSelection: (entity: {id: number; insuranceName: string}) => void;
+    handleClinicianSelection: (entity: {id: number; name: string}) => void;
+    isClient?: boolean;
+}
+const BillingSourceComponent = ({ billingSource, updateValuesToContext, handleInsuranceSelection, handleClinicianSelection, isClient }: SourceCallbacks & {billingSource?: number}) => {
     
     const renderSourceIcon = () => {
         switch (billingSource) {
@@ -79,7 +85,7 @@ const BillingSourceComponent = ({ billingSource, updateValuesToContext, handleIn
     );
 };
 
-const RenderingBillingSourceLayout = ({ billingdata, updateValuesToContext, handleInsuranceSelection, handleClinicianSelection, isClient }) => {
+const RenderingBillingSourceLayout = ({ billingdata, updateValuesToContext, handleInsuranceSelection, handleClinicianSelection, isClient }: SourceCallbacks & {billingdata: {billingSource?: number}}) => {
     return (
         <div >
             <BillingSourceComponent

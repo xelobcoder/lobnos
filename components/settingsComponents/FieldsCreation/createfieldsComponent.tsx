@@ -10,7 +10,7 @@ import ParameterOrderModal from './ParameterOrderModal';
 import {applyTestParameterOrder, orderedTestParameters} from '../../../lib/testParameterOrder';
 import type {CreationRule} from './data/types';
 
-export default function CreateTestFields({ testid, testname, testRules, fieldConstraintsCategorization, testdata, onRefresh }) {
+export default function CreateTestFields({ testid, testname, testRules, fieldConstraintsCategorization, testdata, onRefresh }: {testid: string | number; testname: string; testRules: CreationRule[]; fieldConstraintsCategorization: {categoryid: string | number; categoryname: string}[]; testdata: unknown; onRefresh?: () => void}) {
 	const router = useRouter();
 	const [data, setData] = useState<CreationRule[]>(() => orderedTestParameters(testRules));
 	const [showReorder, setShowReorder] = useState(false);
@@ -206,7 +206,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 					<div className="p-1 border rounded bg-light shadow-sm" style={{ width: '140px', fontSize: '0.65rem', minHeight: '45px' }}>
 						<div className="text-muted fw-bold mb-1 border-bottom pb-1" style={{ fontSize: '0.55rem', letterSpacing: '0.5px' }}>REFERENCE RANGE</div>
 						<div className="text-dark" style={{ whiteSpace: 'pre-line', lineHeight: '1.3' }}>
-							{textReference ? textReference.split(';').map(s => s.trim()).filter(Boolean).join('\n') : "Male: 477-888\nFemale: >83393"}
+							{textReference ? String(textReference).split(';').map((s) => s.trim()).filter(Boolean).join('\n') : "Male: 477-888\nFemale: >83393"}
 						</div>
 					</div>
 				);
@@ -224,7 +224,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 		}
 	};
 
-	const renderConfigInput = (fieldState, setFieldState) => {
+	const renderConfigInput = (fieldState: CreationRule, setFieldState: React.Dispatch<React.SetStateAction<CreationRule>>) => {
 		switch (fieldState.plan) {
 			case 'limits':
 				return (
@@ -389,7 +389,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 		}
 	};
 
-	const removeField = (itemToRemove) => {
+	const removeField = (itemToRemove: CreationRule) => {
 		setData(prevData => applyTestParameterOrder(prevData.filter(item => item.name !== itemToRemove.name)));
 	};
 
@@ -655,7 +655,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 																))}
 															</select>
 														) : (
-															fieldConstraintsCategorization?.find(c => c.categoryid === field.categoryid)?.categoryname || '-'
+															fieldConstraintsCategorization?.find((c) => c.categoryid === field.categoryid)?.categoryname || '-'
 														)}
 													</td>
 													<td>

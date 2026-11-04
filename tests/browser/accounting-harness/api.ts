@@ -136,7 +136,7 @@ export async function customFetch(endpoint: string) {
   else throw new Error(`Missing isolated browser fixture for ${endpoint}`);
   return { success: true, data: structuredClone(data) };
 }
-export async function customFetchMutation(endpoint: string, method: string, body: unknown) {
+export async function customFetchMutation(endpoint: string, method: string, body: unknown): Promise<{success: boolean; data?: any; error?: {code?: string; message: string}}> {
   window.__mutations ||= [];
   window.__mutations.push({ endpoint, method, body });
   if (endpoint.startsWith('pharmacy/purchasing')) {

@@ -88,14 +88,14 @@ export const SettingsIcon = () => (
 );
 
 
-export const UserIcon = ({ className }) => (
+export const UserIcon = ({ className }: {className?: string}) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
         <circle cx="12" cy="7" r="4"></circle>
     </svg>
 );
 
-export const IdCardIcon = ({ className }) => (
+export const IdCardIcon = ({ className }: {className?: string}) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <rect x="2" y="4" width="20" height="16" rx="2"></rect>
         <line x1="8" y1="10" x2="16" y2="10"></line>
@@ -104,14 +104,14 @@ export const IdCardIcon = ({ className }) => (
     </svg>
 );
 
-export const EmailIcon = ({ className }) => (
+export const EmailIcon = ({ className }: {className?: string}) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
         <polyline points="22,6 12,13 2,6"></polyline>
     </svg>
 );
 
-export const HistoryIcon = ({ className }) => (
+export const HistoryIcon = ({ className }: {className?: string}) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <path d="M1 4v6h6"></path>
         <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
@@ -120,7 +120,7 @@ export const HistoryIcon = ({ className }) => (
 
 
 
-export const TestTubeIcon = ({ className }) => (
+export const TestTubeIcon = ({ className }: {className?: string}) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <path d="M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5h0c-1.4 0-2.5-1.1-2.5-2.5V2"></path>
         <path d="M8.5 2h7"></path>
@@ -128,7 +128,7 @@ export const TestTubeIcon = ({ className }) => (
     </svg>
 );
 
-export const TaxIcon = ({ className }) => (
+export const TaxIcon = ({ className }: {className?: string}) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <path d="M12 2l3 3 7-7-7 7 3 3-3-3-3 3 3-3-7 7 7-7-3-3 3 3z"></path>
         <path d="M5 13l-3 3 3-3z"></path>
@@ -136,21 +136,21 @@ export const TaxIcon = ({ className }) => (
     </svg>
 );
 
-export const ServicesIcon = ({ className }) => (
+export const ServicesIcon = ({ className }: {className?: string}) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
         <circle cx="12" cy="7" r="4"></circle>
     </svg>
 );
 
-export const TotalCostIcon = ({ className }) => (
+export const TotalCostIcon = ({ className }: {className?: string}) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <line x1="12" y1="1" x2="12" y2="23"></line>
         <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
     </svg>
 );
 
-export const DiscountIcon = ({ className }) => (
+export const DiscountIcon = ({ className }: {className?: string}) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <circle cx="12" cy="12" r="10"></circle>
         <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -158,7 +158,7 @@ export const DiscountIcon = ({ className }) => (
     </svg>
 );
 
-export const PayableIcon = ({ className }) => (
+export const PayableIcon = ({ className }: {className?: string}) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <path d="M12 1l3 3 7-7-7 7 3 3-3-3-3 3 3-3-7 7 7-7-3-3 3 3z"></path>
         <path d="M5 13l-3 3 3-3z"></path>
@@ -166,14 +166,14 @@ export const PayableIcon = ({ className }) => (
     </svg>
 );
 
-export const PaidIcon = ({ className }) => (
+export const PaidIcon = ({ className }: {className?: string}) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
         <polyline points="22 4 12 14.01 9 11.01"></polyline>
     </svg>
 );
 
-export const OutstandingIcon = ({ className }) => (
+export const OutstandingIcon = ({ className }: {className?: string}) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <circle cx="12" cy="12" r="10"></circle>
         <line x1="12" y1="8" x2="12" y2="12"></line>

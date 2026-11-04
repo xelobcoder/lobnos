@@ -46,7 +46,8 @@ export function DeviceManager() {
         setShowModal(true);
     };
 
-    const handleDelete = async (id: string) => {
+    const handleDelete = async (id?: string) => {
+        if (!id) return toast.error('Reload the device before deleting it.');
         if (!window.confirm('Are you sure you want to delete this device?')) return;
 
         try {
@@ -118,12 +119,12 @@ export function DeviceManager() {
         {
             Header: 'Last Calibration',
             accessor: 'lastCalibrationDate',
-            Cell: ({ row }) => moment(row.original.lastCalibrationDate).format('DD/MM/YYYY'),
+            Cell: ({ row }: {row: {original: { status: "active" | "maintenance" | "inactive"; manufacturer: string; deviceName: string; model: string; serialNumber: string; installationDate: string; lastCalibrationDate: string; calibrationFrequency: number; location: string; id?: string | undefined; notes?: string | undefined; updatedby?: string | undefined; createdby?: string | undefined; }; index: number}}) => moment(row.original.lastCalibrationDate).format('DD/MM/YYYY'),
         },
         {
             Header: 'Next Due',
             accessor: 'calibrationFrequency',
-            Cell: ({ row }) => {
+            Cell: ({ row }: {row: {original: { status: "active" | "maintenance" | "inactive"; manufacturer: string; deviceName: string; model: string; serialNumber: string; installationDate: string; lastCalibrationDate: string; calibrationFrequency: number; location: string; id?: string | undefined; notes?: string | undefined; updatedby?: string | undefined; createdby?: string | undefined; }; index: number}}) => {
                 const lastCalibration = moment(row.original.lastCalibrationDate);
                 return lastCalibration.add(row.original.calibrationFrequency, 'days').format('DD/MM/YYYY');
             },
@@ -131,7 +132,7 @@ export function DeviceManager() {
         {
             Header: 'Status',
             accessor: 'status',
-            Cell: ({ row }) => (
+            Cell: ({ row }: {row: {original: { status: "active" | "maintenance" | "inactive"; manufacturer: string; deviceName: string; model: string; serialNumber: string; installationDate: string; lastCalibrationDate: string; calibrationFrequency: number; location: string; id?: string | undefined; notes?: string | undefined; updatedby?: string | undefined; createdby?: string | undefined; }; index: number}}) => (
                 <Badge bg={
                     row.original.status === 'active' ? 'success' :
                         row.original.status === 'maintenance' ? 'warning' : 'danger'
@@ -143,7 +144,7 @@ export function DeviceManager() {
         {
             Header: 'Actions',
             accessor: 'id',
-            Cell: ({ row }) => (
+            Cell: ({ row }: {row: {original: { status: "active" | "maintenance" | "inactive"; manufacturer: string; deviceName: string; model: string; serialNumber: string; installationDate: string; lastCalibrationDate: string; calibrationFrequency: number; location: string; id?: string | undefined; notes?: string | undefined; updatedby?: string | undefined; createdby?: string | undefined; }; index: number}}) => (
                 <>
                     <Button
                         variant="outline-primary"

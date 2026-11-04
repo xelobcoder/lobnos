@@ -76,7 +76,7 @@ export default function ApplicationCustomizationClientLevel() {
                setIsSaving(true);
                const response = await customPost('applicationsettings', 'POST', updatedSettings);
                if (response?.status !== 'success') throw new Error(response?.message || 'Unable to save customization settings');
-               setApplicationSettings((current) => ({ ...(current || {}), settings: updatedSettings }));
+               setApplicationSettings((current: Record<string, unknown> | null) => ({ ...(current || {}), settings: updatedSettings }));
                applyApplicationSettingsToDocument(updatedSettings);
                toast.success('Customization settings saved.');
           } catch (error: any) {
@@ -119,7 +119,7 @@ export default function ApplicationCustomizationClientLevel() {
                          ].map(([name, label]) => (
                               <Form.Group className="grid-reg mt-2" controlId={name} key={name}>
                                    <Form.Label className="pls-label">{label}:</Form.Label>
-                                   <Form.Control className="custom-input" type="color" name={name} value={customization[name]} onChange={handleInputChange} />
+                                   <Form.Control className="custom-input" type="color" name={name} value={customization[name as keyof typeof customization]} onChange={handleInputChange} />
                               </Form.Group>
                          ))}
                     </Row>

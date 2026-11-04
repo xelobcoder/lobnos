@@ -26,3 +26,27 @@ test('root backend configuration still blocks credential minting', async () => {
     await assert.rejects(() => f.load('lib/serverBackendRequest.ts').serverBackendRequest('prime/switch-role', { method: 'POST' }), /dedicated/);
     assert.equal(f.calls.length, 0);
 });
+
+
+test('encryption-required backend transport rejects remote HTTP before forwarding credentials', async () => {
+    const f = fixture({ env: { PLS_ENCRYPTION_REQUIRED: 'true', PRODUCTION_BASEURL: 'http://backend.example.test/api/v1/' } });
+    await assert.rejects(() => f.load('lib/serverBackendRequest.ts').serverBackendRequest('patients'), /requires HTTPS/);
+    assert.equal(f.calls.length, 0);
+});
+
+test('HTTPS backend transport preserves authenticated tenant scoping', async () => {
+    const f = fixture({ env: { HTTPS_REQUIRED: 'true' } });
+    await f.load('lib/serverBackendRequest.ts').serverBackendRequest('patients?tenantId=99');
+    assert.equal(f.calls[0].url.protocol, 'https:');
+    assert.equal(f.calls[0].url.searchParams.get('tenantId'), '7');
+    assert.equal(f.calls[0].options.headers.get('pls-prime-tenant-session'), 'private-backend');
+});
+
+test('local HTTP backend requires an explicit loopback exception under encryption enforcement', () => {
+    const f = fixture({ env: { HTTPS_REQUIRED: 'true' } });
+    const target = f.load('lib/serverBackendRequest.ts').backendTarget;
+    assert.throws(() => target('patients', 'http://127.0.0.1:5000/api/v1/'), /requires HTTPS/);
+    f.settings.HTTPS_ALLOW_LOOPBACK_HTTP = 'true';
+    assert.equal(target('patients', 'http://127.0.0.1:5000/api/v1/').hostname, '127.0.0.1');
+    assert.throws(() => target('patients', 'http://backend.example.test/api/v1/'), /requires HTTPS/);
+});

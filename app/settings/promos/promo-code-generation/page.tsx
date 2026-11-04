@@ -21,7 +21,7 @@ const promoSchema = z.object({
 });
 
 export default function PromoCodeGenerationForm() {
-	const { register, handleSubmit, setValue, formState: { errors, isSubmitting }, reset } = useForm({
+	const { register, handleSubmit, setValue, formState: { errors, isSubmitting }, reset } = useForm<z.input<typeof promoSchema>>({
 		resolver: zodResolver(promoSchema),
 		defaultValues: {
 			code: "",
@@ -39,7 +39,7 @@ export default function PromoCodeGenerationForm() {
     const [success, setSuccess] = useState("");
 	const [error, setError] = useState("");
 
-	const onSubmit = async (data) => {
+	const onSubmit = async (data: z.infer<typeof promoSchema>) => {
         if(saveLock.current)return;
         if(data.valid_to && data.valid_to < data.valid_from){setError("Valid to must follow valid from.");return;}
         if(data.discount_type==="percentage" && Number(data.discount_value)>100){setError("Percentage discounts cannot exceed 100%.");return;}

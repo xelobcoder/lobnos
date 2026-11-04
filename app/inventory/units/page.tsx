@@ -86,7 +86,7 @@ export default function UnitsPage() {
           {
                Header: 'Unit Name',
                accessor: 'name',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: Unit; index: number}}) => (
                     <div>
                          <span className="fw-bold">{row.original.name}</span>
                          {row.original.is_standard === 1 && (
@@ -98,7 +98,7 @@ export default function UnitsPage() {
           {
                Header: 'Description',
                accessor: 'description',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: Unit["description"]}) => (
                     <div style={{ maxWidth: '400px' }} className="text-truncate" title={value}>
                          {value || 'No description'}
                     </div>
@@ -107,7 +107,7 @@ export default function UnitsPage() {
           {
                Header: 'Type',
                accessor: 'is_standard',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: Unit["is_standard"]}) => (
                     <span className={value === 1 ? 'text-primary' : 'text-success'}>
                          {value === 1 ? 'Standard' : 'Custom'}
                     </span>
@@ -116,7 +116,7 @@ export default function UnitsPage() {
           {
                Header: 'Actions',
                accessor: 'id',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: Unit; index: number}}) => (
                     <div className="d-flex gap-1">
                          {row.original.is_standard !== 1 && (
                               <>

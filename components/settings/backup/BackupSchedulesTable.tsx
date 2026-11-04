@@ -42,12 +42,12 @@ export default function BackupSchedulesTable({
           {
                Header: 'Schedule Name',
                accessor: 'schedule_name',
-               Cell: ({ row }) => <span className="fw-semibold">{row.original.schedule_name}</span>
+               Cell: ({ row }: {row: {original: BackupSchedule; index: number}}) => <span className="fw-semibold">{row.original.schedule_name}</span>
           },
           {
                Header: 'Frequency',
                accessor: 'frequency',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: BackupSchedule; index: number}}) => (
                     <span className="text-capitalize">
                          {row.original.frequency}
                     </span>
@@ -56,12 +56,12 @@ export default function BackupSchedulesTable({
           {
                Header: 'Backup Time',
                accessor: 'backup_time',
-               Cell: ({ row }) => <span>{row.original.backup_time}</span>
+               Cell: ({ row }: {row: {original: BackupSchedule; index: number}}) => <span>{row.original.backup_time}</span>
           },
           {
                Header: 'Type',
                accessor: 'backup_type',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: BackupSchedule; index: number}}) => (
                     <span>
                          {row.original.backup_type.replace('_', ' ')}
                     </span>
@@ -70,7 +70,7 @@ export default function BackupSchedulesTable({
           {
                Header: 'Status',
                accessor: 'is_active',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: BackupSchedule; index: number}}) => (
                     <span>
                          {row.original.is_active ? 'Active' : 'Inactive'}
                     </span>
@@ -79,7 +79,7 @@ export default function BackupSchedulesTable({
           {
                Header: 'Last Run',
                accessor: 'last_run',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: BackupSchedule; index: number}}) => (
                     <small>
                          {row.original.last_run ? new Date(row.original.last_run).toLocaleString() : 'Never'}
                     </small>
@@ -88,7 +88,7 @@ export default function BackupSchedulesTable({
           {
                Header: 'Actions',
                accessor: 'actions',
-               Cell: ({ row }) => {
+               Cell: ({ row }: {row: {original: BackupSchedule; index: number}}) => {
                     const isExecuting = executingSchedules.has(row.original.id);
                     return (
                          <div className="d-flex gap-1">

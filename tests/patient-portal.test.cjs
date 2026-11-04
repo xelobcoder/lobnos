@@ -4,6 +4,7 @@ const path = require("node:path");
 const test = require("node:test");
 const vm = require("node:vm");
 const ts = require("typescript");
+const React = require("react");
 
 const root = path.join(__dirname, "..");
 const read = (...parts) => readFileSync(path.join(root, ...parts), "utf8");
@@ -121,8 +122,8 @@ test("patient navigation links every portal page", () => {
 
 test("middleware keeps staff out of the patient portal and patients inside it", () => {
     const middleware = read("proxy.ts");
-    assert.match(middleware, /currentPath\.startsWith\('\/patientportal'\) && normalizedRole !== 'patient'/);
-    assert.match(middleware, /normalizedRole === "patient"[\s\S]{0,120}redirect\(new URL\('\/patientportal'/);
+    assert.match(middleware, /canAccessRolePage\(role,currentPath,settings\|\|\{\}\)/);
+    assert.match(read('lib', 'roleNavigationPolicy.ts'), /patientportal/);
     assert.doesNotMatch(middleware.slice(middleware.indexOf('matcher:')), /'\/patient-access/, "public activation pages must not require a session");
 });
 
@@ -173,6 +174,8 @@ test("CRM patient menu opens portal controls for authorized staff only", () => {
     for (const role of ["admin", "manager", "scientist", "super admin", "customer service representative", "accountant"]) {
         const destinations = [];
         const { default: Actions } = load(path.join("components", "customer", "CustomersActionDropDown.jsx"), name => {
+            if (name === "react") return {...React, useId: () => "customer-actions"};
+            if (name.endsWith("TableDropdownMenu")) return {__esModule: true, default: ({children}) => children};
             if (name === "react-bootstrap") return { Dropdown: Object.assign(() => null, { Toggle: "Toggle", Menu: "Menu", Item: "Item" }) };
             if (name === "@remixicon/react") return { RiMoreFill: "Icon", RiUserHeartLine: "Icon" };
             if (name === "../../lib/encryption") return { plsEncryption: value => `encrypted-${value}` };

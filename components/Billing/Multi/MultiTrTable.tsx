@@ -38,7 +38,7 @@ export default function MultiTrTable({portalMenu=false,entryDraft,setEntryDraft}
     const allowCrmDiscount = roleAllowed(role, ['manager', 'admin']) ? true :
         applicationsettings?.AllowCrmToGiveDisocunt == 1 ? true : false;
 
-    const options = OutsourcingCompaniesList.map(org => ({
+    const options = OutsourcingCompaniesList.map((org: {outsourceid: number; name: string}) => ({
         value: org.outsourceid,
         label: org.name,
         organization: org

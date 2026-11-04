@@ -1,3 +1,4 @@
+import {errorMessage} from './errorMessage';
 import { customFetch, customPost } from "../components/Auth/customFetch";
 
 
@@ -209,9 +210,9 @@ export const fetchOurSourcingOrganization = async (
     return response;
 }
 
-export const getOustandingBill = async function (patientid) {
+export const getOustandingBill = async function (patientid: string|number) {
     try {
-        if (!patientid || isNaN(patientid)) return;
+        if (!patientid || isNaN(Number(patientid))) return;
         const response = await customFetch(`billing/client/bulk/outstanding?patientid=${patientid}`);
         const { result } = response;
         if (result && Array.isArray(result)) {
@@ -234,7 +235,7 @@ export const canIgnoreDebtPaymentAndTax = async function () {
 }
 
 
-export const LoadOrganizationalTest = async function (organizationid) {
+export const LoadOrganizationalTest = async function (organizationid: string | number) {
     try {
         if (organizationid) {
             const settings = await customFetch(`organization/billing/test?organizationid=${organizationid}`);
@@ -249,7 +250,7 @@ export const LoadOrganizationalTest = async function (organizationid) {
 }
 
 
-export const fetchServices = async (setHolder) => {
+export const fetchServices = async (setHolder: (services: import("./Multi/MultiTypes").ServicesListItem[]) => void) => {
     try {
         const { result } = await customFetch("billing/services");
         return setHolder ? setHolder(result) : result
@@ -461,7 +462,7 @@ export const ValidateAndSubmitBillingInformation = async function (
 
         return response;
     } catch (err) {
-        return { status: "error", message: "Error occurred during transit", details: err.message };
+        return { status: "error", message: "Error occurred during transit", details: errorMessage(err) };
     }
 };
 
@@ -469,7 +470,7 @@ export const ValidateAndSubmitBillingInformation = async function (
 
 
 
-export const fetchPreviousBilledRecords = async function (billingid) {
+export const fetchPreviousBilledRecords = async function (billingid: number) {
     try {
         if (!billingid) return;
         const { result } = await customFetch(`billing/information/single?billingid=${billingid}`);
@@ -490,8 +491,8 @@ export  const getTransactionPreviousBillingRecords = async (billingid: number) =
 
 
 
-export const hasPreviousRecords = function (billingdata, selected) {
-    const previousRecords = billingdata.previousRecords;
+export const hasPreviousRecords = function (billingdata: Pick<import("./Multi/MultiTypes").MultiBillingData, "previousRecords">, selected: {id: string | number}) {
+    const previousRecords = billingdata.previousRecords || [];
     if (previousRecords.length > 0) {
         const hasMatch = previousRecords.filter((prev, index) => prev.trackId == selected.id);
         if (hasMatch.length > 0) return true

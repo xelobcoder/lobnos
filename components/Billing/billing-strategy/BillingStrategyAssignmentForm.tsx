@@ -1,3 +1,4 @@
+import {errorMessage} from "../../../lib/errorMessage";
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -87,7 +88,7 @@ export default function BillingStrategyAssignmentForm({ trackId, entity_type }: 
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-            toast.error(err?.message || err?.error)
+            toast.error(errorMessage(err))
         } finally {
             setLoading(false);
         }
@@ -134,7 +135,7 @@ export default function BillingStrategyAssignmentForm({ trackId, entity_type }: 
             }
         } catch (err) {
             console.log('RRR', err)
-            toast.error(err?.error)
+            toast.error(errorMessage(err))
         } finally {
             setIsSubmitting(false);
         }

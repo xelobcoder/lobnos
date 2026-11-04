@@ -175,12 +175,12 @@ export default function StockWastagePage() {
           {
                Header: 'Date & Time',
                accessor: 'transaction_date',
-               Cell: ({ value }) => new Date(value).toLocaleString()
+               Cell: ({ value }: {value: WastageRecord["transaction_date"]}) => new Date(value).toLocaleString()
           },
           {
                Header: 'Reason',
                accessor: 'wastage_type',
-               Cell: ({ value }) => {
+               Cell: ({ value }: {value: WastageRecord["wastage_type"]}) => {
                     const reasonInfo = WASTAGE_REASONS[value as keyof typeof WASTAGE_REASONS] || WASTAGE_REASONS.other;
                     return (
                          <span>
@@ -192,7 +192,7 @@ export default function StockWastagePage() {
           {
                Header: 'Item',
                accessor: 'item_name',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: WastageRecord; index: number}}) => (
                     <div>
                          <div className="fw-bold">{row.original.item_name}</div>
                          <small className="text-muted">SKU: {row.original.item_sku}</small>
@@ -205,7 +205,7 @@ export default function StockWastagePage() {
           {
                Header: 'Quantity Wasted',
                accessor: 'quantity_wasted',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: WastageRecord["quantity_wasted"]}) => (
                     <span className="text-danger fw-bold">
                          -{value}
                     </span>
@@ -214,12 +214,12 @@ export default function StockWastagePage() {
           {
                Header: 'Performed By',
                accessor: 'performed_by',
-               Cell: ({ value }) => value?.full_name || 'Unknown'
+               Cell: ({ value }: {value: WastageRecord["performed_by"]}) => value?.full_name || 'Unknown'
           },
           {
                Header: 'Actions',
                accessor: 'id',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: WastageRecord; index: number}}) => (
                     <button
                          className="btn btn-sm btn-outline-info"
                          title="View Details"

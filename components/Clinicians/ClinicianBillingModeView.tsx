@@ -13,7 +13,7 @@ import { IBillingStrategy, ApplicableTest, ApplicableEntity, EntityType, Billing
 function formatDateOnly(isoString: string | null) {
 	if (!isoString) return;
 	const date = new Date(isoString);
-	const pad = (num) => String(num).padStart(2, '0');
+	const pad = (num: number) => String(num).padStart(2, '0');
 	const year = date.getFullYear();
 	const month = pad(date.getMonth() + 1);
 	const day = pad(date.getDate());

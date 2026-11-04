@@ -7,8 +7,8 @@ export default function ReceivablesPage() {
           <SubledgerReport
                ledger="AR"
                title="Accounts Receivable"
-               subtitle="Current unpaid patient bills by bill date"
-               partyLabel="Patient"
+               subtitle="Current unpaid balances by bill date and payer; NHIS receipts are separate from noncash settlements"
+               partyLabel="Payer"
           />
      );
 }

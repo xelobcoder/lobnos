@@ -6,7 +6,7 @@ import { useApplicationSettings } from '../Auth/useApplicationContext';
 
 
 
-export default function MAIN_LAYOUT({ children }) {
+export default function MAIN_LAYOUT({ children }: {children?: React.ReactNode}) {
      const { applicationsettings, setApplicationSettings } = useApplicationSettings();
      const [contextError, setContextError] = useState('');
      const [retry, setRetry] = useState(0);

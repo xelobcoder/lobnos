@@ -6,7 +6,8 @@ import { handleLoginHistoryServerProcessing } from '../serverActions/ActionFilte
 import { customFetchMutation } from '../Auth/customFetch';
 import { roleAllowed } from '../Auth/roles';
 
-export default function ApplicationUserLoginHx({ history, employeeid, onChanged }: { history: any[]; employeeid: any; onChanged?: () => void }) {
+interface LoginHistory {keyid: number; username: string; isActive: boolean; loginTime: string; actualLogout: string | number | null; logoutTime: string; forcedLogoutByName?: string; forcedLogoutBy?: number; forcedLogoutAt?: string; forcedLogoutReason?: string; browserInformation?: {userAgent?: string}}
+export default function ApplicationUserLoginHx({ history, employeeid, onChanged }: { history: LoginHistory[]; employeeid: string | number; onChanged?: () => void }) {
     const { applicationsettings } = useApplicationSettings();
     const { role } = applicationsettings.user;
     const formatDate = (value: string) => {
@@ -31,13 +32,13 @@ export default function ApplicationUserLoginHx({ history, employeeid, onChanged 
 
     const columns = [
         { Header: "employee", accessor: 'username' },
-        { Header: "loginTime", accessor: 'loginTime', Cell: ({ value }) => formatDate(value) },
+        { Header: "loginTime", accessor: 'loginTime', Cell: ({ value }: {value: string}) => formatDate(value) },
         {
-            Header: "logged out", accessor: "actualLogout", Cell: ({ value }) => value == 0 || value == null ? '' : formatDate(value)
+            Header: "logged out", accessor: "actualLogout", Cell: ({ value }: {value: string | number | null}) => value == 0 || value == null ? '' : formatDate(String(value))
         },
-        { Header: "system timeout", accessor: 'logoutTime', Cell: ({ value }) => formatDate(value) },
+        { Header: "system timeout", accessor: 'logoutTime', Cell: ({ value }: {value: string}) => formatDate(value) },
         {
-            Header: 'status', accessor: '', Cell: ({ row }) => {
+            Header: 'status', accessor: '', Cell: ({ row }: {row: {original: LoginHistory}}) => {
                 const { isActive, forcedLogoutByName, forcedLogoutBy, forcedLogoutAt, forcedLogoutReason } = row.original;
                 if (isActive) return <span className="bg-success br-5 text-white p-1">loggedIn</span>;
                 if (forcedLogoutAt) return <span className="bg-warning br-5 p-1" title={forcedLogoutReason || ''}>Signed out by {forcedLogoutByName || `#${forcedLogoutBy}`}</span>;
@@ -45,13 +46,13 @@ export default function ApplicationUserLoginHx({ history, employeeid, onChanged 
             }
         },
         {
-            Header: 'Device', accessor: "", Cell: ({ row }) => {
+            Header: 'Device', accessor: "", Cell: ({ row }: {row: {original: LoginHistory}}) => {
                 const { browserInformation } = row.original;
                 return <span>{browserInformation?.userAgent}</span>;
             }
         },
         {
-            Header: 'action', accessor: '', Cell: ({ row }) => {
+            Header: 'action', accessor: '', Cell: ({ row }: {row: {original: LoginHistory}}) => {
                 const { keyid, username, isActive } = row.original;
                 return <button disabled={!isActive || !roleAllowed(role, ["admin", "manager"])} onClick={() => handleSessionLogout(keyid, username)} className="btn btn-danger btn-sm">sign out user</button>;
             }

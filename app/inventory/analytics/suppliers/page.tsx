@@ -103,7 +103,7 @@ export default function SupplierAnalyticsPage() {
           {
                Header: 'Status',
                accessor: 'is_active',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: Supplier["is_active"]}) => (
                     <span className={`badge ${value ? 'bg-success' : 'bg-danger'}`}>
                          {value ? 'Active' : 'Inactive'}
                     </span>
@@ -113,13 +113,13 @@ export default function SupplierAnalyticsPage() {
           {
                Header: 'Created',
                accessor: 'created_at',
-               Cell: ({ value }) => new Date(value).toLocaleDateString(),
+               Cell: ({ value }: {value: Supplier["created_at"]}) => new Date(value).toLocaleDateString(),
                style: { minWidth: '120px' }
           },
           {
                Header: 'Actions',
                accessor: '',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: Supplier; index: number}}) => (
                     <Link
                          href={`/inventory/analytics/suppliers/${row.original.id}`}
                          className="btn btn-primary btn-sm"

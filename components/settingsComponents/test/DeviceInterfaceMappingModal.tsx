@@ -12,7 +12,7 @@ type TestField = {
 	// ...other properties if needed
 };
 
-export default function DeviceInterfaceMappingModal({ show, testid, value = {}, onChange, onClose, onSave }) {
+export default function DeviceInterfaceMappingModal({ show, testid, value = {}, onChange, onClose, onSave }: {show: boolean; testid: string | number; value?: Record<number, string>; onChange: (value: Record<number, string>) => void; onClose: () => void; onSave: (value: string) => void}) {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
 	const [fields, setFields] = useState<TestField[]>([]);
@@ -38,7 +38,7 @@ export default function DeviceInterfaceMappingModal({ show, testid, value = {}, 
 					if (res && Array.isArray(res)) {
 						setFields(res);
 						if (!value || Object.keys(value).length === 0) {
-							const initial = {};
+							const initial: Record<number, string> = {};
 							res.forEach(f => { initial[f.id] = ""; });
 							onChange(initial);
 						}
@@ -52,7 +52,7 @@ export default function DeviceInterfaceMappingModal({ show, testid, value = {}, 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [show, testid]);
 
-	const handleFieldChange = (fieldId, newValue) => {
+	const handleFieldChange = (fieldId: number, newValue: string) => {
 		const updated = { ...value, [fieldId]: newValue };
 		onChange(updated);
 	};

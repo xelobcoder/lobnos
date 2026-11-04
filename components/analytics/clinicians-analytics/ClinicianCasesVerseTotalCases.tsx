@@ -13,7 +13,7 @@ interface ClinicianCasesVerseTotalCasesProps {
     clinicianId: number;
 }
 
-const ClinicianCasesVerseTotalCases: React.FC<ClinicianCasesVerseTotalCasesProps> = ({ clinicianId }) => {
+const ClinicianCasesVerseTotalCases: React.FC<ClinicianCasesVerseTotalCasesProps> = ({ clinicianId }: {clinicianId: string | number}) => {
     const [summaryData, setSummaryData] = useState<CaseSummaryData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

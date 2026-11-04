@@ -36,7 +36,7 @@ export async function customFile(endpoint, formbody) {
  * Sends an HTTP request to the specified endpoint and returns the response as JSON.
  *
  * @param {string} endpoint - The endpoint URL to send the request to.
- * @returns {Promise<object>} - The response from the server as JSON.
+ * @returns {Promise<any>} - The response from the server as JSON.
  */
 /** @param {any} source @returns {Promise<any>} */
 async function checkSessionResponse(source) {
@@ -190,7 +190,7 @@ export const Glucoseoptions = ["mg/dl", "mmol/L"];
  * @param {boolean} [hash=false] - Whether to hash the request body.
  * @param {boolean} [login=false] - Whether this is an unauthenticated login request.
  * @param {number} [requestedTenantId] - Tenant selected for login.
- * @returns {Promise<object>} - The parsed response from the POST request.
+ * @returns {Promise<any>} - The parsed response from the POST request.
  */
 export async function customPost(endpoint, method, data, hash = false, login = false, requestedTenantId = undefined) {
     return checkSessionResponse(await requestBackendJson(endpoint, method, data, login, requestedTenantId));

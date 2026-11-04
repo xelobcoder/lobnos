@@ -1,8 +1,8 @@
 
-export default function GreaterLessViewHtmlGenerator({ fieldItem, statehandler, index }) {
+export default function GreaterLessViewHtmlGenerator({ fieldItem, statehandler, index }: {fieldItem: import("../../settingsComponents/FieldsCreation/data/types").CreationRule & {entrymode?: string}; statehandler: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void; index: number}) {
      const { name, units, value, fieldConstraints, entrymode, textReference } = fieldItem;
 
-     const parseOperatorAndValue = (textRef) => {
+     const parseOperatorAndValue = (textRef: string) => {
           if (!textRef) return { operator: null, value: NaN };
 
           const str = textRef.trim();
@@ -56,11 +56,11 @@ export default function GreaterLessViewHtmlGenerator({ fieldItem, statehandler, 
           return { operator, value: numValue };
      };
 
-     const determineFlag = (val, textRef) => {
+     const determineFlag = (val: string | number, textRef: string) => {
           if (val == null || val === "" || !textRef) return '';
 
           const { operator, value: refValue } = parseOperatorAndValue(textRef);
-          const numValue = parseFloat(val);
+          const numValue = parseFloat(String(val));
 
           if (!operator || isNaN(refValue) || isNaN(numValue)) return '';
 

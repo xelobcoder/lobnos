@@ -62,7 +62,7 @@ export default function ParamCreationGForm({ field, setField, fieldConstraintsCa
                     options={inputTypes}
                     styles={reactSelectCustomStyles}
                     value={inputTypes.find(option => option.value === field?.plan) || null}
-                    onChange={(selectedOption) => handleTypeSelect(selectedOption?.value || null)}
+                    onChange={(selectedOption: {value: string; label: string} | null) => handleTypeSelect(selectedOption?.value || null)}
                     placeholder="Select input type"
                     isClearable
                     classNamePrefix="select"
@@ -120,7 +120,7 @@ export default function ParamCreationGForm({ field, setField, fieldConstraintsCa
                         options={categoryOptions}
                         styles={reactSelectCustomStyles}
                         value={categoryOptions.find(option => option.value === field?.categoryid) || null}
-                        onChange={(selectedOption) => setField({ ...field, categoryid: selectedOption?.value || null })}
+                        onChange={(selectedOption: {value: string | number; label: string} | null) => setField({ ...field, categoryid: selectedOption?.value || null })}
                         placeholder="Select a category"
                         isClearable
                         classNamePrefix="select"

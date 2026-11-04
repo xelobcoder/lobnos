@@ -1,9 +1,10 @@
 'use client'
+import {errorMessage} from '../../lib/errorMessage';
 
 import { RiMoreFill, RiSearchLine, RiFileExcel2Line, RiAddLine } from "@remixicon/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, SetStateAction } from "react";
 import { Dropdown, Modal, Button } from "react-bootstrap";
 import { toast } from "react-toastify";
 import PrimeTable from "../../components/accessories/Datatables/PrimeTable";
@@ -15,7 +16,7 @@ import styles from '../../components/common/DirectoryWorkspace.module.css';
 
 const getClinicianId = (clinician: Clinician) => clinician.id || clinician.clinician_id || 0;
 
-const ActionButtons = ({ original, onEdit, onView, onDelete }) => {
+const ActionButtons = ({ original, onEdit, onView, onDelete }: {original: Clinician; onEdit: (clinician: Clinician) => void; onView: (clinician: Clinician) => void; onDelete: (clinician: Clinician) => void}) => {
     return (
         <Dropdown>
             <Dropdown.Toggle variant="outline-secondary" aria-label={`Actions for ${original.name}`} id={`dropdown-${original.id}`} style={{ height: 'auto' }} size="sm">
@@ -96,7 +97,7 @@ type Clinician = {
     _showFinancialModal?: (row: any) => void;
 };
 
-const FinancialInfoModal = ({ show, onHide, data }) => (
+const FinancialInfoModal = ({ show, onHide, data }: {show: boolean; onHide: () => void; data: Clinician | null}) => (
     <Modal fullscreen="sm-down" scrollable className={styles.dialog} show={show} onHide={onHide}>
         <Modal.Header closeButton>
             <Modal.Title>Financial Information</Modal.Title>
@@ -128,7 +129,7 @@ export default function ClinicianList() {
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState('');
     const [showFinancialModal, setShowFinancialModal] = useState(false);
-    const [financialModalData, setFinancialModalData] = useState(null);
+    const [financialModalData, setFinancialModalData] = useState<Clinician | null>(null);
     const [showExcelModal, setShowExcelModal] = useState(false);
     const [excelFile, setExcelFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
@@ -166,8 +167,8 @@ export default function ClinicianList() {
                 });
             }
         } catch (err) {
-            setLoadError(err?.message || 'Unable to load clinicians. Please try again.');
-            toast.error(err.message || 'Error connecting to server', {
+            setLoadError(errorMessage(err) || 'Unable to load clinicians. Please try again.');
+            toast.error(errorMessage(err) || 'Error connecting to server', {
                 position: 'top-right',
                 autoClose: 2000,
             });
@@ -243,13 +244,13 @@ export default function ClinicianList() {
         setFilterOptions([]);
     };
 
-    const handleEdit = (original) => {
+    const handleEdit = (original: Clinician) => {
         const clinicianId = getClinicianId(original);
         if (!clinicianId) return;
         router.push(`/clinicians/add-new?clinicianid=${clinicianId}`);
     };
 
-    const handleView = (original) => {
+    const handleView = (original: Clinician) => {
         const clinicianId = getClinicianId(original);
         if (!clinicianId) return;
         router.push(`/clinicians/clinicianview?clinicianid=${clinicianId}`);
@@ -274,7 +275,7 @@ export default function ClinicianList() {
                 toast.error(message, { position: 'top-right', autoClose: 2000 });
             }
         } catch (err) {
-            toast.error(err.message || 'Error connecting to server', {
+            toast.error(errorMessage(err) || 'Error connecting to server', {
                 position: 'top-right',
                 autoClose: 2000,
             });
@@ -285,8 +286,8 @@ export default function ClinicianList() {
         setShowExcelModal(true);
     };
 
-    const handleFileSelect = (event) => {
-        const file = event.target.files[0];
+    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
         if (file && (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.type === 'application/vnd.ms-excel')) {
             setExcelFile(file);
         } else {
@@ -363,7 +364,7 @@ export default function ClinicianList() {
                 let msg = `Some records failed. Success: ${saveResponse.successCount ?? 0} / ${saveResponse.total ?? filteredData.length}`;
                 if (errors.length > 0) {
                     msg += '\nExample errors:';
-                    errors.forEach((err, i) => { msg += `\n${i + 1}. ${err}`; });
+                    errors.forEach((err: string, i: number) => { msg += `\n${i + 1}. ${err}`; });
                 }
                 toast.error(msg, {
                     position: 'top-right',
@@ -374,7 +375,7 @@ export default function ClinicianList() {
                 let msg = saveResponse?.message || 'Bulk registration failed.';
                 if (errors.length > 0) {
                     msg += '\nExample errors:';
-                    errors.forEach((err, i) => { msg += `\n${i + 1}. ${err}`; });
+                    errors.forEach((err: string, i: number) => { msg += `\n${i + 1}. ${err}`; });
                 }
                 toast.error(msg, {
                     position: 'top-right',
@@ -391,7 +392,7 @@ export default function ClinicianList() {
         }
     };
 
-    const updatePage = async (pagination) => {
+    const updatePage = async (pagination: {page: number; count: number}) => {
         const { count, page } = pagination;
         if (!count || !page) return;
 
@@ -408,13 +409,13 @@ export default function ClinicianList() {
     };
 
     const columnsMini = [
-        { Header: 'Name', accessor: 'name', Cell: ({ row, value }) => <Link className="fw-semibold text-decoration-none" href={`/clinicians/clinicianview?clinicianid=${getClinicianId(row.original)}`}>{value || 'Unnamed clinician'}</Link> },
+        { Header: 'Name', accessor: 'name', Cell: ({ row, value }: {row: {original: Clinician}; value: string}) => <Link className="fw-semibold text-decoration-none" href={`/clinicians/clinicianview?clinicianid=${getClinicianId(row.original)}`}>{value || 'Unnamed clinician'}</Link> },
         { Header: 'Email', accessor: 'email' },
         { Header: 'Location', accessor: 'location' },
         {
             Header: 'Commission Rate',
             accessor: 'commission',
-            Cell: ({ row }) => (
+            Cell: ({ row }: {row: {original: Clinician}}) => (
                 <div className="d-flex align-items-center gap-2">
                     <span className="badge bg-success-subtle text-success-emphasis px-2 py-1">
                         {row.original?.commission ?? 'N/A'}%
@@ -428,7 +429,7 @@ export default function ClinicianList() {
         {
             Header: 'Actions',
             accessor: '',
-            Cell: ({ row }) => (
+            Cell: ({ row }: {row: {original: Clinician}}) => (
                 <ActionButtons
                     original={row.original}
                     onEdit={handleEdit}
@@ -439,13 +440,13 @@ export default function ClinicianList() {
         },
     ];
 
-    const handleShowFinancialModal = (clinician) => {
+    const handleShowFinancialModal = (clinician: Clinician) => {
         setFinancialModalData(clinician);
         setShowFinancialModal(true);
     };
 
     const extendAdminView = [
-        { Header: 'Name', accessor: 'name', Cell: ({ row, value }) => <Link className="fw-semibold text-decoration-none" href={`/clinicians/clinicianview?clinicianid=${getClinicianId(row.original)}`}>{value || 'Unnamed clinician'}</Link> },
+        { Header: 'Name', accessor: 'name', Cell: ({ row, value }: {row: {original: Clinician}; value: string}) => <Link className="fw-semibold text-decoration-none" href={`/clinicians/clinicianview?clinicianid=${getClinicianId(row.original)}`}>{value || 'Unnamed clinician'}</Link> },
         { Header: 'Email', accessor: 'email' },
         { Header: 'Phone', accessor: 'phone' },
         { Header: 'Location', accessor: 'location' },
@@ -455,7 +456,7 @@ export default function ClinicianList() {
             Header: 'Financial Info',
             accessor: 'financial',
             disableSortBy: true,
-            Cell: ({ row }) => (
+            Cell: ({ row }: {row: {original: Clinician}}) => (
                 <Button
                     size="sm"
                     variant="outline-info"
@@ -470,7 +471,7 @@ export default function ClinicianList() {
             Header: 'Actions',
             accessor: 'actions',
             disableSortBy: true,
-            Cell: ({ row }) => (
+            Cell: ({ row }: {row: {original: Clinician}}) => (
                 <ActionButtons
                     original={row.original}
                     onEdit={handleEdit}

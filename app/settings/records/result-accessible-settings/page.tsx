@@ -19,12 +19,13 @@ interface Employee {
      activation: number;
 }
 
+type AccessDuration = '1h' | '4h' | '8h' | '12h' | '24h' | '1d' | '1w' | '2w' | '1m';
 interface AccessWindow {
      id: number;
      employeeid: number;
      category: string;
-     edit_window: string;
-     access_window: string;
+     edit_window: AccessDuration;
+     access_window: AccessDuration;
      applicable_role: string;
      require_approval: number;
      created_at: string;
@@ -198,7 +199,7 @@ export default function ResultAccessibleSettingsPage() {
           {
                Header: 'Employee',
                accessor: 'username',
-               Cell: ({ value, row }) => row.original.employeeid === 0 ? 'Global Default' : value || 'N/A',
+               Cell: ({ value, row }: {row: {original: AccessWindow; index: number}; value: AccessWindow["username"]}) => row.original.employeeid === 0 ? 'Global Default' : value || 'N/A',
           },
           {
                Header: 'Role',
@@ -215,11 +216,11 @@ export default function ResultAccessibleSettingsPage() {
           {
                Header: 'Require Approval',
                accessor: 'require_approval',
-               Cell: ({ value }) => value ? 'Yes' : 'No',
+               Cell: ({ value }: {value: AccessWindow["require_approval"]}) => value ? 'Yes' : 'No',
           },
           {
                Header: 'Actions',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: AccessWindow; index: number}}) => (
                     <div className="d-flex gap-1">
                          <Button
                               variant="outline-secondary"

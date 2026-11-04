@@ -243,7 +243,7 @@ export default function LaboratorySMSLifecycle() {
         {
             Header: 'Event Code',
             accessor: 'code',
-            Cell: ({ cell: { value } }) => <code className="text-primary">{value}</code>
+            Cell: ({ cell: { value } }: {cell: {value: string}}) => <code className="text-primary">{value}</code>
         },
         {
             Header: 'Description',
@@ -252,7 +252,7 @@ export default function LaboratorySMSLifecycle() {
         {
             Header: 'Category',
             accessor: 'category',
-            Cell: ({ cell: { value } }) => (
+            Cell: ({ cell: { value } }: {cell: {value: string}}) => (
                 <span className={getCategoryBadgeClass(value)}>
                     {value}
                 </span>
@@ -261,7 +261,7 @@ export default function LaboratorySMSLifecycle() {
         {
             Header: 'Content Preview',
             accessor: 'content',
-            Cell: ({ cell: { value } }) => (
+            Cell: ({ cell: { value } }: {cell: {value: string}}) => (
                 <div
                     className="text-truncate"
                     style={{ maxWidth: '250px' }}
@@ -274,7 +274,7 @@ export default function LaboratorySMSLifecycle() {
         {
             Header: 'Created',
             accessor: 'createdat',
-            Cell: ({ cell: { value } }) => (
+            Cell: ({ cell: { value } }: {cell: {value: string}}) => (
                 <span className="text-muted small">
                     {formatDate(value)}
                 </span>
@@ -283,7 +283,7 @@ export default function LaboratorySMSLifecycle() {
         {
             Header: 'Status',
             accessor: 'active',
-            Cell: ({ cell: { value } }) => (
+            Cell: ({ cell: { value } }: {cell: {value: number}}) => (
                 <span className={`badge ${value === 1 ? 'bg-success' : 'bg-secondary'}`}>
                     {value === 1 ? 'Active' : 'Inactive'}
                 </span>
@@ -292,7 +292,7 @@ export default function LaboratorySMSLifecycle() {
         {
             Header: 'Actions',
             accessor: 'actions',
-            Cell: ({ row }) => {
+            Cell: ({ row }: {row: {original: Event}}) => {
                 const event = row.original;
                 return (
                     <div className="d-flex gap-2">

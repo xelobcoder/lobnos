@@ -127,7 +127,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 const CARD_HEIGHT = '400px';
 
-const ClinicianAnalyticsDailyCaseChange: React.FC<ClinicianAnalyticsDailyCaseChangeProps> = ({ clinicianId }) => {
+const ClinicianAnalyticsDailyCaseChange: React.FC<ClinicianAnalyticsDailyCaseChangeProps> = ({ clinicianId }: {clinicianId: string | number}) => {
 	const [caseData, setCaseData] = useState<CaseData[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);

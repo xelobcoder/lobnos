@@ -1,4 +1,5 @@
 "use client";
+import {errorMessage} from '../../lib/errorMessage';
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Dropdown } from "react-bootstrap";
 import { RiEdit2Line, RiFileAddLine, RiDeleteBinLine, RiPrinterLine, RiRefund2Line, RiFileList2Line, RiMore2Line, RiEyeLine, RiMoneyDollarCircleLine } from '@remixicon/react';
@@ -44,7 +45,8 @@ interface DateQuery {
 interface TableColumn {
 	Header: string;
 	accessor: string;
-	Cell?: ({ value, row }: { value: any, row: any }) => React.ReactElement<any> | string;
+    title?: string;
+	Cell?: ({ value, row }: { value: any, row: any }) => React.ReactNode;
 }
 
 interface RowData {
@@ -141,7 +143,7 @@ export default function BilledClientsView({
                 const result = await fetchSaleClosures(closureIds ? closureIds.split(",").map(Number) : []);
                 if (active && request === generation) setClosures(result);
             } catch (error) {
-                if (active && request === generation) setClosureError(error instanceof Error ? error.message : "Sale closure status is unavailable.");
+                if (active && request === generation) setClosureError(error instanceof Error ? errorMessage(error) : "Sale closure status is unavailable.");
             } finally { if (active && request === generation) setClosureLoading(false); }
         };
         void refresh();
@@ -272,7 +274,7 @@ export default function BilledClientsView({
 		router.push(url);
 	}
 
-	const handleVoidTransaction = async (row) => {
+	const handleVoidTransaction = async (row: RowData["original"]) => {
 		const billingid = row?.billingid;
 		if (!billingid) return;
         if (!requireOpenSale(billingid)) return;
@@ -291,7 +293,7 @@ export default function BilledClientsView({
 				alert(message || 'Voiding transaction failed')
 			}
 		} catch (error) {
-			alert(`Failed to void transaction: ${error.message}`);
+			alert(`Failed to void transaction: ${errorMessage(error)}`);
 		}
 	}
 
@@ -300,7 +302,7 @@ export default function BilledClientsView({
         return <span className={tableLayout.money} title={currencyFormatter.format(amount)}>{currencyFormatter.format(amount)}</span>;
     };
 
-	const coreColumns = [
+	const coreColumns: TableColumn[] = [
 		{
 			Header: "Date", accessor: "billedon", title: "Date of Transaction", Cell: ({ value, row }) => {
 				const formatted = value ? dayjs(value).format('MM/DD/YYYY HH:mm:ss') : '';

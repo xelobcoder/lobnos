@@ -29,7 +29,7 @@ const defaultConstraints = {
     suffix: "",
     prefix: ""
 }
-export default function CreateFieldConstraintsModal({ fieldId, show, onHide, isValueTracked = false, testId }) {
+export default function CreateFieldConstraintsModal({ fieldId, show, onHide, isValueTracked = false, testId }: {fieldId: number; show: boolean; onHide: () => void; isValueTracked?: boolean; testId: number}) {
     const [field, setField] = useState<IConstraints>({ ...defaultConstraints, testid: testId });
     const [constraints, setConstraints] = useState<IConstraints[] | []>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -64,7 +64,7 @@ export default function CreateFieldConstraintsModal({ fieldId, show, onHide, isV
         setConstraints(prev => [...prev, field]);
     };
 
-    const handleChangeWithState = (index, target, event) => {
+    const handleChangeWithState = (index: number, target: keyof IConstraints, event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { value } = event.target;
         setConstraints(prev => {
             const updated = [...prev];

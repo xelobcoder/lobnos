@@ -22,7 +22,7 @@ interface TestResult {
 interface Column {
     Header: string;
     accessor: keyof TestResult;
-    Cell?: ({ value }: { value: any }) => React.ReactNode;
+    Cell?: ({ value, row }: { value: any; row: {original: TestResult} }) => React.ReactNode;
     isMenu?: boolean;
 }
 

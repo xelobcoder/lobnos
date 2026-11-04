@@ -16,6 +16,7 @@ type Witness = {
 };
 
 type RefundItem = {
+    billingid?: number;
 	refundid: number;
 	serviceCategory: string;
 	witnesses: Witness[];
@@ -27,7 +28,7 @@ type RefundItem = {
 	serviceid: number;
 };
 
-export default function RefundPageAllView({ initData, employeeid }) {
+export default function RefundPageAllView({ initData, employeeid }: {initData: RefundItem[]; employeeid: number}) {
 	const [search, setSearch] = useState<string>("");
 	const [status, setStatus] = useState<string>("pending");
 	const [data, setData] = useState<RefundItem[] | []>(initData);
@@ -115,7 +116,7 @@ export default function RefundPageAllView({ initData, employeeid }) {
 		{
 			Header: "billingid (Category)",
 			accessor: "serviceCategory",
-			Cell: ({ row, value }) => (
+			Cell: ({ row, value }: {row: {original: RefundItem; index: number}; value: RefundItem["serviceCategory"]}) => (
 				<div>
 					<span>{row.original.billingid}</span>
 					<br />

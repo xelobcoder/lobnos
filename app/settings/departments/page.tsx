@@ -11,8 +11,8 @@ interface DepartmentItem {
 	id: number;
 	department: string;
 	departmentManager: string;
-	date: string;
-	employeeid: number;
+	date?: string;
+	employeeid?: number;
 }
 
 interface DepartmentResponse {

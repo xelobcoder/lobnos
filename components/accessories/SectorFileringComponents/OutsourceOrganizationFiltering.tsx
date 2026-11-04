@@ -40,7 +40,7 @@ export default function OutsourceOrganizationFiltering({ onSelect }: OutsourceOr
           return [];
      };
 
-     const handleSelectChange = (selectedOption: OutsourceOrganizationOption) => {
+     const handleSelectChange = (selectedOption: OutsourceOrganizationOption | null) => {
           onSelect(selectedOption?.content);
      };
 

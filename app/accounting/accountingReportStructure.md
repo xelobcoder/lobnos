@@ -654,3 +654,152 @@ Journal Entry
 That gives you a proper **audit trail from financial statement → ledger → journal → source transaction**.
 
 For the system you're building, I'd consider that drill-down architecture almost as important as the reports themselves.
+
+## Laboratory NHIS accounting frontend
+
+Workspace: `/accounting/nhis`, reached from Accounting workspace navigation,
+Accounting → Ledgers → Laboratory NHIS, payer receivables, and cash collection.
+Patient billing creation and ordinary patient payment workflows remain unchanged.
+Known NHIS/mixed bills are excluded from legacy patient cash-collection staging
+when payer metadata is supplied; unknown legacy metadata is protected by the
+backend. The legacy response alignment limitation is described below.
+
+### Report meaning
+
+- **Service-period receivables**: current balances for the bill-date cohort,
+  never a historical as-of view or an externally approved NHIS claim register.
+  Expected, cash received, revenue adjustments, written off, outstanding,
+  unverified legacy receipts and reconciliation differences are distinct.
+- **Receipt-date cash**: actual signed cash movements during its own date range,
+  including receipt reversals/refunds; noncash adjustments are excluded.
+- **Audit events**: independent event-date range, expandable signed allocations,
+  original references/reasons/creator and reversal links.
+- Each report sends `page` and `count`; page-size selection is stable. Summary
+  money uses server all-result totals, not sums of the visible page.
+- Mixed exclusions and unverified/reconciliation amounts require manual review.
+  A rejected claim does not automatically become bad debt.
+
+Generic `/accounting/receivables` supports all/patient/NHIS/mixed classification,
+correct payer display and separate service-recipient details. `payerPaid` is
+cash-only (including `nhisReceivedAmount`), while `nhisSettledAmount` is all
+signed NHIS allocations, including noncash settlement. NHIS links go to the
+dedicated workspace, not an unsupported patient statement/collection route.
+General reporting is tenant-scoped; dedicated candidates and posting are
+active-branch-scoped. The backend rechecks eligibility and balances.
+
+### Posting and correction
+
+The workspace puts service-period balances first: expected, cash received,
+outstanding and cash recovery. Summary strips reuse the Pharmacy overview and
+analytics styles, including their typography, dividers and responsive grid.
+The NHIS overview uses the larger summary values and includes a cash-recovery
+percentage bar. Tables inherit the selected page/theme font instead of forcing
+the Bootstrap sans-serif font. Narrow mobile screens stack the larger summaries.
+The overview labels its service-date range even
+while another report is open. Receivables, Cash received and Activity are
+separate keyboard-accessible tabs; their independent date filters and pagination
+survive tab changes. Bill details reveal noncash adjustments and reconciliation
+amounts without widening the main receivables table.
+
+Record remittance opens a focused cash/bank dialog. Adjust balance opens a
+separate noncash dialog. Select bills on the report (including across pages), or
+add candidates from the current page inside the dialog. The allocation summary
+shows the exact difference from the entered amount. Neither full-balance nor
+allocated-total shortcuts submit a payment automatically.
+
+Receipt forms require the explicit actual amount, cash/bank account, effective
+date, unique reference, reason and multiple selected bill allocations. Amounts
+are parsed and summed in integer pesewas; only exact decimal strings reach the
+API. Each positive allocation must fit the candidate balance, and allocations
+must sum exactly to the entered amount.
+
+Revenue adjustment and bad-debt write-off require explicit confirmation and
+omit paymentAccountCode. Reversal uses its own dialog with separate reference/reason/date and
+explicit confirmation; it sends only requestKey/reference/reason/date, creating
+one exact signed reversal without deleting history.
+
+Authority comes from `accounting/authority/mine` using the **full application
+session**, with fail-closed controls:
+
+- `accounting.journal.post`: remittances
+- `accounting.journal.approve`: tariff/revenue adjustments and write-offs
+- `accounting.financial_correction.execute`: reversals
+
+Backend authority remains authoritative. Missing permissions, failed authority
+lookup, business errors, malformed responses and network errors are visible,
+never converted to successful empty results.
+
+An unchanged explicit retry retains its request key, including after remount,
+using the existing hashed browser-session submission identity helper. Only a
+hash and request key are stored, scoped to the full application context and
+endpoint; no references, reasons or allocations are stored.
+After an uncertain result, intentional payload edits require audit-review
+acknowledgement and get a new key. Dialog dismissal is also blocked until the
+uncertain outcome is retried or audit review is acknowledged. No automatic retries occur, and stale
+callbacks cannot resubmit a confirmed success. Before leaving/reloading after
+an uncertain result, inspect audit history and reproduce the exact original
+payload for an unchanged retry. Reference uniqueness and backend idempotency
+remain authoritative. Browser-storage failures block posting with actionable
+guidance. Successful posting/reversal refreshes all three reports and clears
+candidate selections, so the next allocation uses fresh outstanding balances.
+
+After navigation, if an uncertain remittance was in fact applied and its original
+allocation no longer fits the current outstanding balance, inspect the audit
+event instead of creating a replacement payment; frontend over-allocation
+validation deliberately remains in place.
+
+### Legacy collection metadata alignment
+
+`requiresNhisWorkspace` recognizes per-record `classification`, `partyType`, or
+`entityType` equal to `nhis` or `mixed` (case-insensitive), or `source`,
+`billingsource`, or `billingSource` equal to numeric/string `4`.
+The preferred contract is canonical `classification: 'nhis' | 'patient' | 'mixed'`
+plus `partyType: 'nhis' | 'patient'`, resolved from the bill's service payer data.
+Canonical classification takes precedence over partyType and legacy flags;
+canonical partyType takes precedence over legacy flags when classification is
+absent. Thus a canonical patient bill is not excluded by stale `source: 4`.
+Patient records must not be marked NHIS merely because the patient has coverage.
+
+The legacy collection endpoints now include canonical payer classification and
+projected balances. NHIS allocations reduce `payerOutstanding` without rewriting
+the billing header; only cash receipts increase `payerPaid`. Fully settled NHIS
+bills are omitted from the pending collection results. The frontend routes
+known NHIS and mixed-payer balances to this workspace rather than staging an
+ordinary patient collection. Backend guarded-bill rejection remains the final
+protection.
+
+### Synthetic verification
+
+See `tests/browser/nhis-harness/README.md` for a production-component browser
+fixture without credentials or real patient data. It includes large-money
+totals, restricted authority, mutation failures, interrupted-response retries,
+noncash settlement and signed reversal interactions. No unprotected Next route
+or new dependency is introduced.
+
+```powershell
+pnpm exec node --test tests/nhis-accounting.test.cjs tests/accounting-api-paths.test.cjs tests/billing-workflow.test.cjs tests/modern-billing.test.cjs tests/billing-submission.test.cjs
+pnpm exec node --test tests/nhis-render-stability.test.cjs
+pnpm exec node tests/browser/nhis-harness/build.cjs
+```
+
+The render-stability regression uses the already-installed optional JSDOM
+utility and the actual bundled production components in a bounded worker. It
+checks idle fetch/DOM counts, real bill selection, page-size changes and
+explicit refresh without starting a server. It skips rather than installing
+anything if JSDOM is unavailable.
+
+Scoped NHIS typecheck (including all task-touched frontend source files):
+
+```powershell
+pnpm exec tsc --noEmit --allowJs --skipLibCheck --strict --types 'node,react' --lib 'dom,dom.iterable,esnext' --module esnext --moduleResolution bundler --target ES2017 --jsx react-jsx --esModuleInterop next-env.d.ts app/accounting/nhis/page.tsx app/accounting/receivables/page.tsx app/billing/cash-collection/page.tsx components/accounting/NhisForms.tsx components/accounting/NhisWorkspace.tsx components/accounting/SubledgerReport.tsx components/accounting/AccountingWorkspaceNav.tsx components/Layout/links/categories/AccountingLinks.tsx lib/accounting/nhis.ts lib/accounting/nhisApi.ts lib/accounting/accountingApi.ts tests/browser/nhis-harness/api.ts tests/browser/nhis-harness/context.tsx tests/browser/nhis-harness/entry.tsx
+```
+
+Scoped NHIS lint:
+
+```powershell
+pnpm exec eslint app/accounting/nhis/page.tsx app/accounting/receivables/page.tsx components/accounting/NhisWorkspace.tsx components/accounting/NhisForms.tsx components/accounting/AccountingWorkspaceNav.tsx components/Layout/links/categories/AccountingLinks.tsx lib/accounting/nhis.ts lib/accounting/nhisApi.ts lib/accounting/accountingApi.ts tests/browser/nhis-harness/api.ts tests/browser/nhis-harness/context.tsx tests/browser/nhis-harness/entry.tsx
+```
+
+The broader lint including `components/accounting/SubledgerReport.tsx` and
+`app/billing/cash-collection/page.tsx` retains existing legacy effect/dependency
+diagnostics; they are not NHIS implementation errors.

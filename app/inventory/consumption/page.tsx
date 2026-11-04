@@ -460,12 +460,12 @@ export default function StockConsumptionPage() {
           {
                Header: 'Date & Time',
                accessor: 'transaction_date',
-               Cell: ({ value }) => new Date(value).toLocaleString()
+               Cell: ({ value }: {value: ConsumptionRecord["transaction_date"]}) => new Date(value).toLocaleString()
           },
           {
                Header: 'Type',
                accessor: 'consumption_type',
-               Cell: ({ value }) => {
+               Cell: ({ value }: {value: ConsumptionRecord["consumption_type"]}) => {
                     const typeInfo = CONSUMPTION_TYPES[value as keyof typeof CONSUMPTION_TYPES] || CONSUMPTION_TYPES.manual;
                     return (
                          <span className={`badge bg-${typeInfo.color}`}>
@@ -477,7 +477,7 @@ export default function StockConsumptionPage() {
           {
                Header: 'Item',
                accessor: 'item_name',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: ConsumptionRecord; index: number}}) => (
                     <div>
                          <div className="fw-bold">{row.original.item_name}</div>
                          <small className="text-muted">{row.original.item_sku}</small>
@@ -487,29 +487,29 @@ export default function StockConsumptionPage() {
           {
                Header: 'Quantity',
                accessor: 'quantity',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: ConsumptionRecord["quantity"]}) => (
                     <span className="text-danger fw-bold">-{value}</span>
                )
           },
           {
                Header: 'Department',
                accessor: 'department',
-               Cell: ({value}) => value || 'Not recorded'
+               Cell: ({value}: {value: ConsumptionRecord["department"]}) => value || 'Not recorded'
           },
           {
                Header: 'Reason',
                accessor: 'reason',
-               Cell: ({ value }) => value || 'N/A'
+               Cell: ({ value }: {value: ConsumptionRecord["reason"]}) => value || 'N/A'
           },
           {
                Header: 'Batch',
                accessor: 'batch_number',
-               Cell: ({ value }) => value || 'N/A'
+               Cell: ({ value }: {value: ConsumptionRecord["batch_number"]}) => value || 'N/A'
           },
           {
                Header: 'Actions',
                accessor: 'id',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: ConsumptionRecord; index: number}}) => (
                     <button
                          className="btn btn-sm btn-outline-info"
                          title="View Details"

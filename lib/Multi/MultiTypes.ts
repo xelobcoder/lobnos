@@ -50,7 +50,7 @@ export interface ServicesListItem {
 	nightAdjustmentValue: number;
 	nightAdjustmentMode: string;
 	nightAdjustmentStartTime: string;
-	billedagaints: Date | null,
+	billedagaints: Date | string | null,
 	nightAdjustmentEndTime: string;
 }
 
@@ -120,8 +120,10 @@ export interface MultiBillingData {
 	adjustmentType?: 'addition' | 'correction' | 'voided' | null;
 	adjustmentReason?: string;
 	relatedBillingId?: number | string;
-	promoCode: number | null;
-	billedagaints: Date | null;
+	promoCode: string | number | null;
+    showPromoCode?: boolean;
+    referalName?: string;
+	billedagaints: Date | string | null;
 	promoDiscount?: number;
 	testList?: TestCartItem[];
 	payments?: Array<{ mode: string | number; amount: number }>;

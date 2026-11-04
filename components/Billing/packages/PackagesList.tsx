@@ -130,7 +130,7 @@ const PackagesTable: React.FC = () => {
     };
 
 
-    const handleServerSideProcessing = async (pagination) => {
+    const handleServerSideProcessing = async (pagination: {page: number; count: number; sortby?: string}) => {
         const { page, count } = pagination;
         try {
             const response = await customFetch(`packages?page=${page}&count=${count}`);

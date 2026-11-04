@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { Button, Card, Form, Row } from "react-bootstrap";
 import Loader from "../accessories/Loader";
 import { customPost, handleChangeCheck, handleChangeWithState, loadAllTest } from "../Auth/customFetch";
@@ -16,7 +16,7 @@ import {
 import { toast } from "react-toastify";
 import { OrganizationPricingSettings, organizationPricingsettingsDefaultData } from "../../lib/testdata/organizationSettings";
 
-export default function OrganizationSetupSettings({ organizationid }) {
+export default function OrganizationSetupSettings({ organizationid }: {organizationid: string | number}) {
     const { user } = useApplication();
     const employeeid = user?.employeeid;
     const [organizationSettings, setOrganizationSettings] = useState<OrganizationPricingSettings>(organizationPricingsettingsDefaultData);
@@ -35,10 +35,10 @@ export default function OrganizationSetupSettings({ organizationid }) {
     }
 
 
-    const organizationSettingsInformationSaved = async (organizationid) => {
+    const organizationSettingsInformationSaved = async (organizationid: string | number) => {
         if (organizationid) {
             try {
-                const data = await LoadOrganizationalTest(organizationid);
+                const data = await LoadOrganizationalTest(String(organizationid));
                 if (!data) {
                     throw new Error("No data received from server");
                 }
@@ -74,18 +74,22 @@ export default function OrganizationSetupSettings({ organizationid }) {
 
 
     useEffect(() => {
-        organizationSettingsInformationSaved(organizationid);
+        organizationSettingsInformationSaved(String(organizationid));
     }, [organizationid])
 
     console.log(organizationSettings)
 
-    const handleTestConcessionChange = (ev, index, field) => {
+    const handleTestConcessionChange = (ev: ChangeEvent<HTMLInputElement,HTMLInputElement>|ChangeEvent<HTMLSelectElement,HTMLSelectElement>, index: number, field: string) => {
         if (typeof index != "number" || organizationSettings.testList.length === 0) return;
 
         const createClonedArray = { ...organizationSettings }
         let discountedValue = 0;
 
-        createClonedArray.testList[index][field] = ev.target.value;
+        if (field === 'concessionMode' && ['none', 'absolute', 'percentage'].includes(ev.target.value)) {
+            createClonedArray.testList[index].concessionMode = ev.target.value as 'none' | 'absolute' | 'percentage';
+        } else if (field === 'concessionValue') {
+            createClonedArray.testList[index].concessionValue = Number(ev.target.value);
+        }
         if (field === "concessionValue") {
             const { concessionMode, concessionValue, price } = createClonedArray.testList[index];
             if (concessionMode === 'absolute' && concessionValue <= price) {
@@ -198,7 +202,7 @@ export default function OrganizationSetupSettings({ organizationid }) {
             const data = {
                 ...organizationSettings,
                 testList: changedTest,
-                organizationid: parseInt(organizationid),
+                organizationid: parseInt(String(organizationid)),
                 employeeid
             };
             const response = await customPost(`organization/billing/test`, 'POST', data);

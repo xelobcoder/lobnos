@@ -47,6 +47,7 @@ function harness(file, api = {}, fetch = async () => ({ success: true, data: { r
           if (name.includes("billingLib")) return { billingSource: [] };
           if (name.endsWith("/roles")) return load("components/Auth/roles.ts", require);
           if (name.includes("accountingApi")) return { accountingApi: api };
+          if (name.endsWith("/accounting/nhis")) return load("lib/accounting/nhis.ts", require);
           if (name.includes("bankStatement")) return load("lib/accounting/bankStatement.ts", require);
           if (name.includes("ReportShell")) return { __esModule: true, default: "ReportShell", formatRange: (from, to) => `${from} to ${to}` };
           if (name.includes("customFetch")) return { currencyFormatter: { format: value => Number(value).toFixed(2), resolvedOptions: () => ({ currency: "GHS" }) }, customFetch, customPost: post, fetchPatientPersonalInfo: async () => ({ result: { patientid: 1 } }) };

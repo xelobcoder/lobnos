@@ -15,6 +15,12 @@ export default function MultiRenderingBillingSourceFields({
     handleSelectedEntityInsurance,
     handleUrgencyChange,
     isClient,
+}: {
+    updateValuesToContext: (entity: {id: number; name: string}) => void;
+    handleSelectedEntityClinician: (entity: {id: number; name: string}) => void;
+    handleSelectedEntityInsurance: (entity: {id: number; insuranceName: string}) => void;
+    handleUrgencyChange: (option: {value: string; label: string}) => void;
+    isClient?: boolean;
 }) {
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
@@ -149,7 +155,7 @@ export default function MultiRenderingBillingSourceFields({
                                                         <Form.Label className="small text-muted">Select Organization</Form.Label>
                                                         {isClient && (
                                                             <div className="position-relative">
-                                                                <OrganizationalBillingSourceSearch updatefunction={(value) => {
+                                                                <OrganizationalBillingSourceSearch updatefunction={(value: string) => {
                                                                     handleNormalRefererWithoutUpdatingBilling(value, "organization");
                                                                 }} />
                                                             </div>
@@ -210,7 +216,7 @@ export default function MultiRenderingBillingSourceFields({
                             </div>
                         ) : (
                             <>
-                                <OrganizationalBillingSourceSearch updatefunction={value => handleNormalRefererWithoutUpdatingBilling(value, "organization")} />
+                                <OrganizationalBillingSourceSearch updatefunction={(value: string) => handleNormalRefererWithoutUpdatingBilling(value, "organization")} />
                                 <QuickAddReferralEntity kind="organization" onCreated={value => handleNormalRefererWithoutUpdatingBilling(value, "organization")} />
                             </>
                         )}

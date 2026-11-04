@@ -35,7 +35,7 @@ test('staff and patient navigation exposes the real queue and specimen history r
     const cases = [['LaboratoryOperationsLinks', '/operations/queue'], ['PhlebotomyLinks', '/operations/queue'], ['crmLinks', '/operations/queue'], ['PatientPortalLinks', '/patientportal/samples']];
     for (const [file, destination] of cases) {
         const exported = load(`components/Layout/links/categories/${file}.tsx`, name => name === '@remixicon/react' ? icons : require(name));
-        const links = Object.values(exported).find(Array.isArray);
+        const links = exported.CrmLinks || Object.values(exported).find(Array.isArray);
         const flatten = values => values.flatMap(value => [value, ...flatten(value.children || [])]);
         assert.ok(flatten(links).some(link => link.link === destination), `${file} missing ${destination}`);
     }
@@ -59,6 +59,7 @@ function patientPage(options = {}) {
         } };
         if (name.endsWith('patientPortal')) return { formatDate: () => 'Recorded time' };
         if (name.endsWith('.css')) return {};
+        if (name.endsWith('roleNavigationPolicy')) return load('lib/roleNavigationPolicy.ts', dependency => dependency.endsWith('/roles') ? load('components/Auth/roles.ts') : require(dependency));
         if (name.startsWith('.')) return load(path.relative(root, path.resolve(path.dirname(path.join(root, 'proxy.ts')), name + '.ts')), require);
         throw new Error(name);
     }).default;
@@ -95,6 +96,7 @@ test('public kiosk routes remain outside staff authentication middleware matchin
     const { config } = load('proxy.ts', name => {
         if (name === 'next/server') return { NextResponse: {} };
         if (name === 'jose') return { jwtVerify() {} };
+        if (name.endsWith('roleNavigationPolicy')) return load('lib/roleNavigationPolicy.ts', dependency => dependency.endsWith('/roles') ? load('components/Auth/roles.ts') : require(dependency));
         if (name.startsWith('.')) return load(path.relative(root, path.resolve(path.dirname(path.join(root, 'proxy.ts')), name + '.ts')), require);
         throw new Error(name);
     });

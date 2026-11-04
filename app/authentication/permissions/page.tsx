@@ -1,5 +1,6 @@
 "use client";
-import { useCallback, useEffect, useState } from 'react'
+import {errorMessage} from '../../../lib/errorMessage';
+import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation';
 import { customFetch, customPost } from '../../../components/Auth/customFetch';
 import { customerRepresentative, scientistPermission, phelobotomy, administrator, managerPermission, sonographerPermission } from '../../../components/Auth/Roles/permissions';
@@ -65,14 +66,15 @@ export default function PermissionsOfUsers() {
 	}, [getUserPermissions])
 
 
-	const handleChange = (ev, target, setTarget) => {
+	const handleChange = (ev: React.ChangeEvent<HTMLInputElement>, target: LabPermissions, setTarget: (value: LabPermissions) => void) => {
 		const { name, checked } = ev.target;
 		if (name.includes('.')) {
 			const [group, permission] = name.split('.');
+            const groupPermissions = target[group as keyof LabPermissions];
 			setTarget({
 				...target,
 				[group]: {
-					...target[group],
+					...(typeof groupPermissions === "object" ? groupPermissions : {}),
 					[permission]: checked
 				}
 			});
@@ -81,8 +83,9 @@ export default function PermissionsOfUsers() {
 		}
 	}
 
-	const handlePageAccess = (ev, target, setTarget) => {
+	const handlePageAccess = (ev: React.ChangeEvent<HTMLInputElement>, target: LabPermissions, setTarget: (value: LabPermissions) => void) => {
 		const { name, checked } = ev.target;
+        if (!target.pageAccess) { toast.error('Reload permissions before editing page access.'); return; }
 		setTarget({
 			...target, pageAccess: {
 				...target.pageAccess,
@@ -92,7 +95,7 @@ export default function PermissionsOfUsers() {
 	}
 
 
-	const handleSubmitPermission = async (ev, target) => {
+	const handleSubmitPermission = async (ev: React.MouseEvent<HTMLButtonElement>, target: object) => {
 		ev.preventDefault();
 		try {
 			if (userid) {
@@ -102,7 +105,7 @@ export default function PermissionsOfUsers() {
 				} else toast.error(response?.message || 'Permissions were not saved');
 			}
 		} catch (err) {
-			alert(err.message)
+			alert(errorMessage(err))
 		}
 	}
 

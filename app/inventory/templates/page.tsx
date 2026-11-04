@@ -159,7 +159,7 @@ export default function TemplatesPage() {
           {
                Header: 'Description',
                accessor: 'description',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: TestTemplate["description"]}) => (
                     <div style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                          {value}
                     </div>
@@ -168,24 +168,24 @@ export default function TemplatesPage() {
           {
                Header: 'Items Count',
                accessor: 'items_count',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: TestTemplate["items_count"]}) => (
                     <span>{value} items</span>
                )
           },
           {
                Header: 'Created Date',
                accessor: 'createdDate',
-               Cell: ({ value }) => new Date(value).toLocaleDateString()
+               Cell: ({ value }: {value: TestTemplate["createdDate"]}) => new Date(value).toLocaleDateString()
           },
           {
                Header: 'Last Modified',
                accessor: 'lastModified',
-               Cell: ({ value }) => new Date(value).toLocaleDateString()
+               Cell: ({ value }: {value: TestTemplate["lastModified"]}) => new Date(value).toLocaleDateString()
           },
           {
                Header: 'Actions',
                accessor: 'id',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: TestTemplate; index: number}}) => (
                     <div className="d-flex gap-1">
                          <button
                               className="btn btn-sm btn-outline-primary"

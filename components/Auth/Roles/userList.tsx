@@ -15,14 +15,15 @@ import {
 } from '@remixicon/react';
 
 
-export default function UserList({ users, handleDelete, activateUser, updateRefresh, filters, setCurrentUsers }) {
+interface StaffUser {employeeid: number; username: string; login_username?: string; activation: number; email?: string; role: string; branchname?: string}
+export default function UserList({ users, handleDelete, activateUser, updateRefresh, filters, setCurrentUsers }: {users: StaffUser[]; handleDelete: (id: number) => void; activateUser: (id: number, activation: number, setUsers: React.Dispatch<React.SetStateAction<StaffUser[]>>) => void; updateRefresh?: () => void; filters: object; setCurrentUsers: React.Dispatch<React.SetStateAction<StaffUser[]>>}) {
 	const navigateTo = useRouter();
 
 	const columns = [
 		{
 			Header: "Icon",
 			accessor: "",
-			Cell: function ({ row }) {
+			Cell: function ({ row }: {row: {original: StaffUser}}) {
 				return (
 					<span className="bg-primary rounded-circle p-2">
 						<RiUser3Line className="text-white fs-5" />
@@ -34,7 +35,7 @@ export default function UserList({ users, handleDelete, activateUser, updateRefr
 		{
 			Header: "Username(Employee ID)",
 			accessor: "username",
-			Cell: function ({ row, value }) {
+			Cell: function ({ row, value }: {row: {original: StaffUser}; value: string}) {
 				return (
 					<div className='grid-100'>
 						<span className='text-capitalize'>{value}</span>
@@ -54,7 +55,7 @@ export default function UserList({ users, handleDelete, activateUser, updateRefr
 		{
 			Header: "Login Username",
 			accessor: "loginUsername",
-			Cell: function ({ row, value }) {
+			Cell: function ({ row, value }: {row: {original: StaffUser}; value: string}) {
 				return <span className="fw-semibold">{value || row.original.login_username || 'Not generated'}</span>;
 			}
 		},
@@ -63,7 +64,7 @@ export default function UserList({ users, handleDelete, activateUser, updateRefr
 		{ Header: 'Assigned Branch', accessor: 'branchname' },
 		{
 			Header: "Action",
-			Cell: function ({ row }) {
+			Cell: function ({ row }: {row: {original: StaffUser}}) {
 				const { original } = row;
 				const { employeeid, username, role, activation } = original;
 				return (

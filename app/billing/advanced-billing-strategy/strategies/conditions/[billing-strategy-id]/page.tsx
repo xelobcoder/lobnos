@@ -1,4 +1,5 @@
 'use client'
+import {errorMessage} from '../../../../../../lib/errorMessage';
 import React, { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'next/navigation';
 import { customFetch } from '../../../../../../components/Auth/customFetch';
@@ -27,7 +28,7 @@ export default function BillingStrategyPage() {
                 setError('No test panels available');
             }
         } catch (err) {
-            setError(err.message || 'Failed to load test panels');
+            setError(errorMessage(err) || 'Failed to load test panels');
         } finally {
             setLoading(false);
         }

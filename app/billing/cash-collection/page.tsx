@@ -11,6 +11,7 @@ import { useSearchParams } from 'next/navigation';
 import { plsDecryption, plsEncryption } from '../../../lib/encryption';
 import { useApplication } from '../../../components/Auth/useApplicationContext';
 import { fetchSaleClosures } from '../../../lib/billing/financialControls';
+import { requiresNhisWorkspace } from '../../../lib/accounting/nhis';
 
 interface ServiceDetail {
      totalpayable: string; totalcost: string; serviceid: number; service_name: string;
@@ -18,6 +19,8 @@ interface ServiceDetail {
      amountIncurredDueTax: string; isRefunded: boolean; amountRefunded: number;
 }
 interface BillingRecord {
+     source?: number | string; billingsource?: number | string; billingSource?: number | string;
+     entityType?: string; partyType?: string; classification?: string;
      closed_status?: "OPEN" | "CLOSED";
      billingid: number; patientid: number; totalTransactionCost: string; totalcost: string;
      paid: string; payable: string; totalrefunded: string; discount: string; outstanding: string;
@@ -56,6 +59,7 @@ export default function CashCollection() {
      const paymentAttempt = useRef<{ fingerprint: string; key: string } | null>(null);
      const searchGeneration = useRef(0);
      const [searchError, setSearchError] = useState('');
+     const [nhisExcluded, setNhisExcluded] = useState(0);
      const [listError, setListError] = useState('');
      const [searchPatientId, setSearchPatientId]       = useState<string>('');
      const [cashierCode, setCashierCode] = useState('');
@@ -126,6 +130,7 @@ export default function CashCollection() {
      const backToList = () => {
           searchGeneration.current++;
           setSearchError('');
+          setNhisExcluded(0);
           setIsLoading(false);
           setPaidBills([]);
           setHasSearched(false);
@@ -198,8 +203,12 @@ export default function CashCollection() {
                if (pId.trim()) url += `&patientid=${pId}`;
                if (bId.trim()) url += `&billingid=${bId}`;
                
-               const r = await customFetch(url) as BulkOutstandingResponse;
+               const response = await customFetch(url) as BulkOutstandingResponse;
                if (generation !== searchGeneration.current) return;
+               const records = response?.data?.records;
+               const nhisCount = Array.isArray(records) ? records.filter(requiresNhisWorkspace).length : 0;
+               setNhisExcluded(nhisCount);
+               const r = response?.data && Array.isArray(records) ? { ...response, data: { ...response.data, records: records.filter(record => !requiresNhisWorkspace(record)) } } : response;
                if (!r?.success || !Array.isArray(r.data?.records)) throw new Error(r?.message || 'Outstanding bills could not be loaded. No balance has been verified.');
                
                if (r?.success && r?.data?.records?.length > 0) {
@@ -459,7 +468,8 @@ export default function CashCollection() {
 
      return (
           <main className={styles.workspace}>
-          <header className={styles.header}><div><span className={styles.eyebrow}>PAYMENTS & RECEIPTS</span><h1>Cash Collection</h1><p>Find a bill, review the balance, then collect payment and print the receipt.</p></div><Link href="/billing/receipts" className="btn btn-outline-secondary">Receipt history</Link></header>
+          <header className={styles.header}><div><span className={styles.eyebrow}>PAYMENTS & RECEIPTS</span><h1>Cash Collection</h1><p>Find a patient bill, review the balance, then collect payment and print the receipt.</p></div><div className="d-flex flex-wrap gap-2"><Link href="/accounting/nhis" className="btn btn-outline-primary">NHIS remittances</Link><Link href="/billing/receipts" className="btn btn-outline-secondary">Receipt history</Link></div></header>
+          {nhisExcluded > 0 && <div className="alert alert-warning" role="alert">{nhisExcluded} NHIS / mixed bill(s) excluded from patient cash collection. <Link href="/accounting/nhis">Use the NHIS workspace for remittances; mixed bills require review.</Link></div>}
           <form className={styles.searchBar} aria-label="Find a bill" onSubmit={event=>{event.preventDefault();void(cashierCode.trim()?doSearch('',cashierCode):doSearch());}}>
                <label htmlFor="lab-cashier-code">Cashier code<input id="lab-cashier-code" className="form-control" value={cashierCode} onChange={event=>{setCashierCode(event.target.value.toUpperCase());setSearchBillingId('');setSearchPatientId('');}} maxLength={4} placeholder="e.g. DC29" autoComplete="off"/></label>
                <label htmlFor="collection-patient">Patient ID<input id="collection-patient" className="form-control" value={searchPatientId} onChange={event=>{setSearchPatientId(event.target.value);setCashierCode('');}} placeholder="Patient ID"/></label>

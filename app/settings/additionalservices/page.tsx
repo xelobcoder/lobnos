@@ -30,9 +30,9 @@ export default function AdditionalServicesPage() {
 	const { employeeid, role } = applicationsettings.user;
 	const [service, setService] = useState(defaultValues);
 	const [isEditing, setIsEditing] = useState(false);
-	const [editServiceId, setEditServiceId] = useState(null);
+	const [editServiceId, setEditServiceId] = useState<number | null>(null);
 
-	const handleInputChange = (e) => {
+	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target;
 		setService({
 			...service,
@@ -40,7 +40,7 @@ export default function AdditionalServicesPage() {
 		});
 	};
 
-	const handleSubmit = async (e) => {
+	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		try {
 			e.preventDefault();
 			setSubmitting(true);
@@ -73,16 +73,16 @@ export default function AdditionalServicesPage() {
 		}
 	};
 
-	const handleEdit = (service) => {
+	const handleEdit = (service: ServiceItem) => {
 		setIsEditing(true);
 		setEditServiceId(service.keyid);
 		setService({
 			name: service.serviceName,
-			price: service.servicePrice
+			price: String(service.servicePrice)
 		});
 	};
 
-	const handleDelete = async (serviceId) => {
+	const handleDelete = async (serviceId: number) => {
 		if (!role || !roleAllowed(role, ["admin"])) {
 			return toast.warning('Authorization to delete Denied!!!!!!');
 		}
@@ -105,13 +105,13 @@ export default function AdditionalServicesPage() {
 		{
 			Header: 'Price',
 			accessor: 'servicePrice',
-			Cell: ({ value }) => <div>{currencyFormatter.format(value)}</div>
+			Cell: ({ value }: {value: ServiceItem["servicePrice"]}) => <div>{currencyFormatter.format(value)}</div>
 		},
 		{ Header: 'Created By', accessor: 'username' },
 		{
 			Header: 'Actions',
 			accessor: '',
-			Cell: (row) => (
+			Cell: (row: {row: {original: ServiceItem}}) => (
 				<div>
 					<button
 						className="btn btn-info btn-sm"

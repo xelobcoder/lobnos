@@ -4,7 +4,7 @@ import { RiUserLine, RiLockLine } from '@remixicon/react';
 import styles from './CredentialsViewOnly.module.css';
 import EditButton from './EditButton';
 
-const CredentialsViewOnly = ({patientid}) => {
+const CredentialsViewOnly = ({patientid}: {patientid: string | number}) => {
     const credentialItems = [
         { icon: <RiUserLine size={16} />, label: 'Username', value: '••••••••' },
         { icon: <RiLockLine size={16} />, label: 'Password', value: '••••••••' }

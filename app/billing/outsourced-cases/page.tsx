@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 interface Column {
      Header: string;
      accessor?: keyof OutsourcedCase;
-     Cell?: ({ value, row }: { value?: any; row?: { original: OutsourcedCase } }) => React.ReactNode;
+     Cell?: ({ value, row }: { value?: any; row: { original: OutsourcedCase } }) => React.ReactNode;
 }
 
 interface OutsourcedCase {

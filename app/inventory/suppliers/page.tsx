@@ -109,7 +109,7 @@ export default function SuppliersPage() {
           {
                Header: 'Email',
                accessor: 'email',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: Supplier["email"]}) => (
                     <a href={`mailto:${value}`} className="text-decoration-none">
                          {value}
                     </a>
@@ -118,7 +118,7 @@ export default function SuppliersPage() {
           {
                Header: 'Phone',
                accessor: 'phone',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: Supplier["phone"]}) => (
                     <a href={`tel:${value}`} className="text-decoration-none">
                          {value}
                     </a>
@@ -127,7 +127,7 @@ export default function SuppliersPage() {
           {
                Header: 'Address',
                accessor: 'address',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: Supplier["address"]}) => (
                     <div style={{ maxWidth: '320px', whiteSpace: 'normal', overflowWrap: 'anywhere' }} title={value}>
                          {value || '-'}
                     </div>
@@ -136,7 +136,7 @@ export default function SuppliersPage() {
           {
                Header: 'Actions',
                accessor: 'id',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: Supplier; index: number}}) => (
                     <div className="d-flex gap-1">
                          <button
                               className="btn btn-sm btn-outline-info"

@@ -16,6 +16,8 @@ import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 
 
 interface Customer {
+    relativecontactname?: string;
+    relativecontactnumber?: string;
     patientid: string | number;
     fullpatientid: string;
     designation: string | null;
@@ -100,7 +102,7 @@ export default function Activator() {
 
 
 
-    const handleBilling = (item) => {
+    const handleBilling = (item: {patientid: number; fullpatientid?: string}) => {
         const { patientid } = item;
         if (patientid) {
             const encryptedPatientId = plsEncryption(patientid.toString());
@@ -186,10 +188,10 @@ export default function Activator() {
 
     const columns = [
         { Header: 'PatientID', accessor: 'fullpatientid' },
-        { Header: 'registered on', accessor: 'date', Cell: ({ value }) => { return <span>{dayjs(value).format('YYYY-MM-DD HH:mm:ss')}</span> } },
+        { Header: 'registered on', accessor: 'date', Cell: ({ value }: {value: Customer["date"]}) => { return <span>{dayjs(value).format('YYYY-MM-DD HH:mm:ss')}</span> } },
         {
             Header: 'fullname', accessor: 'fullname',
-            Cell: ({ value, row }) => <div className='text-uppercase fw-bold bg-success-subtle'>
+            Cell: ({ value, row }: {row: {original: Customer; index: number}; value: Customer["fullname"]}) => <div className='text-uppercase fw-bold bg-success-subtle'>
                 {value ? value : 'N/A'}
                 <br />
                 {row.original.agetype ? row.original.age + ' ' + row.original.agetype : 'N/A'}({row.original.gender === 'male' ? 'M' : row.original.gender === 'female' ? 'F' : 'N/A'})
@@ -197,7 +199,7 @@ export default function Activator() {
             filteringMode: 'text'
         },
         {
-            Header: "relative details", accessor: 'relativecontactname', Cell: ({ row }) => (
+            Header: "relative details", accessor: 'relativecontactname', Cell: ({ row }: {row: {original: Customer; index: number}}) => (
                 <div>{row.original.relativecontactname ?
                     row.original.relativecontactname : 'N/A'
                 } {row.original.relativecontactnumber ? row.original.relativecontactnumber : 'N/A'}</div>
@@ -209,7 +211,7 @@ export default function Activator() {
         },
         { Header: "registered By", accessor: "registeredbyusername" },
         {
-            Header: 'more', accessor: '', Cell: ({ value, row }) => {
+            Header: 'more', accessor: '', Cell: ({ value, row }: {row: {original: Customer; index: number}; value: React.ReactNode}) => {
                 const item = row.original;
                 return (
                     <CustomersActions

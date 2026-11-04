@@ -104,7 +104,7 @@ const CreateShiftPage = () => {
         {
             Header: "Color",
             accessor: "color",
-            Cell: ({ value }) => (
+            Cell: ({ value }: {value: Shift["color"]}) => (
                 <div style={{ backgroundColor: value, width: "30px", height: "20px" }} />
             )
         },
@@ -113,7 +113,7 @@ const CreateShiftPage = () => {
         {
             Header: "Actions",
             accessor: "actions",
-            Cell: ({ row }) => (
+            Cell: ({ row }: {row: {original: Shift; index: number}}) => (
                 <>
                     <Button variant="warning" size="sm" onClick={() => handleEdit(row.original)} className="me-2">
                         Update

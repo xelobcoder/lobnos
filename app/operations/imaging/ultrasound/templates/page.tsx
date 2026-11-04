@@ -98,7 +98,7 @@ export default function CreateUltrasonographyTemplates() {
 			setVisible(visibletoAll);
 			setBodyPart(associatedbodypart);
 
-			const impressionField = fields.find(item => item.field === "impression");
+			const impressionField = fields.find((item: {field: string; value?: string}) => item.field === "impression");
 			setImpression(impressionField?.value || "");
 		} catch (err) {
 			console.error("Failed to fetch template details:", err);

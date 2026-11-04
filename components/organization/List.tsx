@@ -57,7 +57,7 @@ export default function OrganizationList() {
 	];
 
 
-	const handleEditing = async (id: number) => {
+	const handleEditing = async (id: string | number) => {
 		router.push(`/organization/${id}/basicinfo`)
 	}
 
@@ -65,7 +65,7 @@ export default function OrganizationList() {
 		{
 			Header: "organization",
 			accessor: "name",
-			Cell: ({ row, value }) => <Link href={`/organization/${row.original.id}/basicinfo`} className="fw-semibold text-decoration-none">{value || 'Unnamed organization'}</Link>,
+			Cell: ({ row, value }: {row: {original: Organization; index: number}; value: Organization["name"]}) => <Link href={`/organization/${row.original.id}/basicinfo`} className="fw-semibold text-decoration-none">{value || 'Unnamed organization'}</Link>,
 		},
 		{
 			Header: "Location",
@@ -90,8 +90,8 @@ export default function OrganizationList() {
 		{
 			Header: "Actions",
 			accessor: "actions",
-			Cell: ({ row }) => {
-                const handleDelete = async (event) => {
+			Cell: ({ row }: {row: {original: Organization; index: number}}) => {
+                const handleDelete = async (event: React.MouseEvent<HTMLButtonElement>) => {
                     event.preventDefault();
                     if (!window.confirm(`Are you sure you want to delete "${row.original.name}"? This action cannot be undone and may affect financial records.`)) return;
                     try {
@@ -171,7 +171,7 @@ export default function OrganizationList() {
 	}, [])
 
 
-	const updatePageValue = async (value) => {
+	const updatePageValue = async (value: string | number) => {
 		updatePagination(value, setPaginate, paginate)
 	}
 

@@ -11,10 +11,10 @@ interface MultiBillingContextType {
 
 export const MultiBillingContext = createContext<MultiBillingContextType | undefined>(undefined);
 
-export const MultiBillingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const MultiBillingProvider: React.FC<{ children: React.ReactNode }> = ({ children }: {children?: React.ReactNode}) => {
 	const [billingdata, setBillingData] = useState<MultiBillingData>(defaultMultiBillingData);
 	const [pricingRequests,setPricingRequests]=useState(0);
-	const recalculateTotalBill = (billingdata) => {
+	const recalculateTotalBill = (billingdata: MultiBillingData) => {
 		if ((billingdata.cart && billingdata.cart.length > 0 ) || (billingdata.servicesProvided && billingdata.servicesProvided.length > 0)) {
 			setPricingRequests(count=>count+1);
 			return handleCheckout(billingdata, billingdata.specialCode ?? '', setBillingData).finally(()=>setPricingRequests(count=>count-1));

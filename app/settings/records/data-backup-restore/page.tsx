@@ -1,4 +1,5 @@
 'use client';
+import {errorMessage} from '../../../../lib/errorMessage';
 
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Button, Alert, Modal } from 'react-bootstrap';
@@ -44,7 +45,7 @@ interface BackupLog {
      backup_type: string;
      backup_mode: 'automated' | 'manual';
      backup_date: string;
-     backup_path: string;
+     backup_path?: string;
      error_message?: string;
      duration_seconds: number;
      created_by: string;
@@ -407,7 +408,7 @@ export default function DataBackupRestorePage() {
                toast.success(`Download completed for backup: ${backupToDownload.backup_name}`);
           } catch (error) {
                console.error('Download backup error:', error);
-               toast.error(`Failed to download backup file: ${error.message}`);
+               toast.error(`Failed to download backup file: ${errorMessage(error)}`);
           } finally {
                setShowDecryptModal(false);
                setBackupToDownload(null);

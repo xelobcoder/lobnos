@@ -31,7 +31,7 @@ export default function ExecutiveSummary({
     aggregatedSnapshot,
     dailyCeoSnapshot,
     ceoExpenseSummarySnapshot
-}) {
+}: {aggregatedSnapshot: Record<string, number | string | null>; dailyCeoSnapshot: Record<string, number | string | null>[]; ceoExpenseSummarySnapshot: Record<string, number | string | null>[]}) {
 
 
     const Card = ({ title, children, icon }: { title: string, children: React.ReactNode, icon: React.ReactNode }) => (

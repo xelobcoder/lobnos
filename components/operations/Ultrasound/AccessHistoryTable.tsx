@@ -95,37 +95,37 @@ export default function AccessHistoryTable({ employeeid, ascensionid, shouldLoad
           {
                Header: 'Request Type',
                accessor: 'requestType',
-               Cell: ({ value }) => value === 'edit' ? 'Edit Result' : 'Access Result'
+               Cell: ({ value }: {value: AccessRequest["requestType"]}) => value === 'edit' ? 'Edit Result' : 'Access Result'
           },
           {
                Header: 'Urgency',
                accessor: 'urgency',
-               Cell: ({ value }) => value
+               Cell: ({ value }: {value: AccessRequest["urgency"]}) => value
           },
           {
                Header: 'Requested At',
                accessor: 'requestedAt',
-               Cell: ({ value }) => <small>{new Date(value).toLocaleString()}</small>
+               Cell: ({ value }: {value: AccessRequest["requestedAt"]}) => <small>{new Date(value).toLocaleString()}</small>
           },
           {
                Header: 'Granted At',
                accessor: 'grantedAt',
-               Cell: ({ value }) => value ? <small>{new Date(value).toLocaleString()}</small> : '-'
+               Cell: ({ value }: {value: AccessRequest["grantedAt"]}) => value ? <small>{new Date(value).toLocaleString()}</small> : '-'
           },
           {
                Header: 'Revoked At',
                accessor: 'revokedAt',
-               Cell: ({ value }) => value ? <small>{new Date(value).toLocaleString()}</small> : '-'
+               Cell: ({ value }: {value: AccessRequest["revokedAt"]}) => value ? <small>{new Date(value).toLocaleString()}</small> : '-'
           },
           {
                Header: 'Expired At',
                accessor: 'expiredAt',
-               Cell: ({ value }) => value ? <small>{new Date(value).toLocaleString()}</small> : '-'
+               Cell: ({ value }: {value: AccessRequest["expiredAt"]}) => value ? <small>{new Date(value).toLocaleString()}</small> : '-'
           },
           {
                Header: 'Accessed At',
                accessor: 'accessedAt',
-               Cell: ({ value }) => value ? <small>{new Date(value).toLocaleString()}</small> : '-'
+               Cell: ({ value }: {value: AccessRequest["accessedAt"]}) => value ? <small>{new Date(value).toLocaleString()}</small> : '-'
           },
           {
                Header: 'Status',

@@ -41,13 +41,13 @@ export default function ModulePricingCatalogEditor() {
                if (response?.status !== "success" || !Array.isArray(response.result)) {
                     throw new Error(response?.message || response?.error || "Unable to load universal module prices.");
                }
-               const parsedEntries = response.result.map(parseModulePricingCatalogEntry);
-               const catalogEntries = parsedEntries.filter((entry): entry is ModulePricingCatalogEntry => entry !== null);
+               const parsedEntries: (ModulePricingCatalogEntry | null)[] = response.result.map(parseModulePricingCatalogEntry);
+               const catalogEntries = parsedEntries.filter((entry: ModulePricingCatalogEntry | null): entry is ModulePricingCatalogEntry => entry !== null);
                if (catalogEntries.length !== parsedEntries.length) {
                     throw new Error(response?.message || response?.error || "The server returned invalid universal module prices.");
                }
                setCatalog(catalogEntries);
-               const initial = catalogEntries.find(entry => entry.currency === "GHS") || catalogEntries[0];
+               const initial = catalogEntries.find((entry) => entry.currency === "GHS") || catalogEntries[0];
                if (initial) {
                     setCurrency(initial.currency);
                     setDraft({ ...initial.modules });

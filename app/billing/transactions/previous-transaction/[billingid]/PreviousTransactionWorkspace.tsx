@@ -137,7 +137,7 @@ export default function PreviousTransactionWorkspace({billingid: billingidParam,
 
 
 
-	const RequestFunding = async (item) => {
+	const RequestFunding = async (item: Service) => {
         if (!requireOpenSale()) return;
 		try {
 			setRequesting(true);

@@ -125,9 +125,9 @@ const style = {
     },
 };
 
-const parseText = (text) => {
+const parseText = (text: string) => {
     const parts = text.split(/(\*\*.*?\*\*|`.*?`|🟡)/g);
-    return parts.map((part, index) => {
+    return parts.map((part: string, index: React.Key|null|undefined) => {
         if (part.startsWith('**') && part.endsWith('**')) {
             return <strong key={index}>{part.slice(2, -2)}</strong>;
         }

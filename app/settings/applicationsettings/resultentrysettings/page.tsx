@@ -114,8 +114,8 @@ const ResultSettingsForm = () => {
 
             if (staffQualifiedToValidationResult?.length) {
                 const QualifiedRefined = staffQualifiedToValidationResult
-                    .map(item => normalizedUsers.find(s => s.employeeid === Number(item)))
-                    .filter((s): s is ScientistType => s !== undefined);
+                    .map((item: string | number) => normalizedUsers.find(s => s.employeeid === Number(item)))
+                    .filter((s: ScientistType | undefined): s is ScientistType => s !== undefined);
 
                 setSelectedScientists(QualifiedRefined);
             }

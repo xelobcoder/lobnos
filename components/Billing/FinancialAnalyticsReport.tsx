@@ -404,7 +404,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
     } = data;
 
     // Calculate aggregated totals from all daily snapshots
-    const aggregatedSnapshot = dailyCeoSnapshot.reduce((acc, snapshot) => ({
+    const aggregatedSnapshot = dailyCeoSnapshot.reduce((acc: DailyCeoSnapshot, snapshot: DailyCeoSnapshot) => ({
         gross_revenue: (Number(acc.gross_revenue || 0) + Number(snapshot.gross_revenue || 0)).toString(),
         cash_collected: (Number(acc.cash_collected || 0) + Number(snapshot.cash_collected || 0)).toString(),
         earned_revenue: (Number(acc.earned_revenue || 0) + Number(snapshot.earned_revenue || 0)).toString(),

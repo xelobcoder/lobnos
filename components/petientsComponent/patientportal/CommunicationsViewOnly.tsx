@@ -17,7 +17,7 @@ interface NotificationSettings {
     emailAuthenticated: string;
 }
 
-const CommunicationsViewOnly = ({ patientid }) => {
+const CommunicationsViewOnly = ({ patientid }: {patientid: string | number}) => {
     const [settings, setSettings] = useState<NotificationSettings | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

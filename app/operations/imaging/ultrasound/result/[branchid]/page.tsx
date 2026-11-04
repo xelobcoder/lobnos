@@ -346,7 +346,7 @@ export default function EnterResultUltrasound() {
                                              <div className="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
                                                   <div className="flex-grow-1" style={{ minWidth: 280, maxWidth: 620 }}>
                                                        <label className="form-label fw-semibold" htmlFor="ultrasound-profile">Existing report template</label>
-                                                       <Select inputId="ultrasound-profile" options={templateOptions} onChange={handleTemplateChange} styles={reactSelectCustomStyles} placeholder="Select an existing template" value={selectedTemplate || ''} isClearable isDisabled={isTemplateLoading} />
+                                                       <Select inputId="ultrasound-profile" options={templateOptions} onChange={handleTemplateChange} styles={reactSelectCustomStyles} placeholder="Select an existing template" value={selectedTemplate} isClearable isDisabled={isTemplateLoading} />
                                                   </div>
                                                   <div className="d-flex align-items-center gap-3">
                                                        <label className="form-check d-flex align-items-center gap-2 mb-0">
@@ -360,7 +360,7 @@ export default function EnterResultUltrasound() {
                                              {fields.length > 0 ? fields.map((field, index) => (
                                                   <div className="mb-4 w-100" key={`${field.fieldid || field.name}-${index}`}>
                                                        <label className="form-label fw-semibold">{field.name}</label>
-                                                       <div className="w-100"><MARKDOWN_EDITOR updatedata={(_event, value) => handleFieldChange(value, index)} initialData={field.value || ''} /></div>
+                                                       <div className="w-100"><MARKDOWN_EDITOR updatedata={(_event: unknown, value: string) => handleFieldChange(value, index)} initialData={field.value || ''} /></div>
                                                   </div>
                                              )) : (
                                                   <div className="mb-4 w-100">

@@ -19,7 +19,7 @@ interface Witness {
 	message: string;
 }
 
-export default function RefundAdmin({ initData = [], currentStatus }) {
+export default function RefundAdmin({ initData = [], currentStatus }: {initData?: RefundAdminViewType[]; currentStatus?: 'pending' | 'completed'}) {
 	const [status, setStatus] = useState<"pending" | "completed">(currentStatus || "pending");
 	const [data, setData] = useState<RefundAdminViewType[]>(initData);
 	const [search, setSearch] = useState<string>("");
@@ -98,7 +98,7 @@ export default function RefundAdmin({ initData = [], currentStatus }) {
 			Header: "Category",
 			accessor: "serviceCategory",
 			width: 200,
-			Cell: ({ value, row }) => (
+			Cell: ({ value, row }: {row: {original: RefundAdminViewType; index: number}; value: RefundAdminViewType["serviceCategory"]}) => (
 				<div>
 					<span>{row.original.serviceName}</span>
 					<span> ({value})</span>
@@ -110,7 +110,7 @@ export default function RefundAdmin({ initData = [], currentStatus }) {
 			accessor: "witnesses",
 			width: 160,
 			disableSortBy: true,
-			Cell: ({ row }) => (
+			Cell: ({ row }: {row: {original: RefundAdminViewType; index: number}}) => (
 				<button
 					className="btn btn-outline-info btn-sm"
 					onClick={() => handleViewWitnesses(row.original.witnesses)}
@@ -145,7 +145,7 @@ export default function RefundAdmin({ initData = [], currentStatus }) {
 		{
 			Header: "Status",
 			accessor: "isRefundApproved",
-			Cell: ({ value }) => {
+			Cell: ({ value }: {value: RefundAdminViewType["isRefundApproved"]}) => {
 				return (
 					<span className={`${value == 1 ? "text-success" : "text-danger"}`}>
 						{value == 1 ? 'Approved' : "Pending Approval"}

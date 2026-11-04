@@ -6,6 +6,24 @@ import { useRouter } from 'next/navigation';
 import { RiArrowGoBackFill, RiCheckLine, RiCloseCircleFill, RiPauseCircleLine, RiResetLeftFill } from '@remixicon/react';
 import { toast } from 'react-toastify';
 
+import type {MultiBillingData} from '../../../lib/Multi/MultiTypes';
+interface MultiBillingHeaderProps {
+    billingdata: MultiBillingData;
+    setBillingData: React.Dispatch<React.SetStateAction<MultiBillingData>>;
+    useServices: boolean;
+    specialCodeError: string;
+    loadingSpecialCode: boolean;
+    loadingBackendBilling: boolean;
+    canLoadData: boolean;
+    onPackageActivation: (checked: boolean) => void;
+    onUseServicesChange: (checked: boolean) => void;
+    onSpecialCodeChange: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
+    onLoadBackendBilling: () => void;
+    onReset: () => void;
+    onReturnToMulti: () => void;
+    isSaleSaved?: boolean;
+    autoStarted?: boolean;
+}
 // Promo interface and validatePromoCode function
 interface Promo {
     id: number;
@@ -51,7 +69,7 @@ export default function MultiBillingHeader({
     onReturnToMulti,
     isSaleSaved = false,
     autoStarted = false,
-}) {
+}: MultiBillingHeaderProps) {
     const [showSuspendModal, setShowSuspendModal] = useState(false);
     const [suspendNote, setSuspendNote] = useState('');
     const [suspending, setSuspending] = useState(false);
@@ -85,7 +103,7 @@ export default function MultiBillingHeader({
         setBillingData(prev => ({ ...prev, promoVerifyLoading: true, promoVerifyMessage: null, promoVerifySuccess: null }));
         const code = billingdata.promoCode || '';
         const patientid = billingdata.patientid || 0;
-        const result = await validatePromoCode(code, patientid);
+        const result = await validatePromoCode(String(code), patientid);
         setBillingData(prev => ({
             ...prev,
             promoVerifyLoading: false,
@@ -184,7 +202,7 @@ export default function MultiBillingHeader({
                           onChange={(ev) =>  {
                               setBillingData(prev => ({ ...prev, billedagaints : ev.target.value}));
                           }  }
-                        value={billingdata.billedagaints} />
+                        value={billingdata.billedagaints instanceof Date ? billingdata.billedagaints.toISOString().slice(0, 10) : billingdata.billedagaints || ''} />
                     }
                     {/* Promo Code Verified Badge */}
                     {billingdata.showPromoCode && billingdata.promoVerifySuccess === true && (
@@ -224,10 +242,10 @@ export default function MultiBillingHeader({
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
                                 verticalAlign: 'bottom',
-                            }} title={billingdata.entityname}>{billingdata.referalName}</b></span>
+                            }} title={billingdata.entityname || undefined}>{billingdata.referalName}</b></span>
                             <span className="mx-2">|</span>
                             <span>Type: <b className="text-capitalize">{(() => {
-                                const billingSourceMap = {
+                                const billingSourceMap: Record<number, string> = {
                                     1: 'General',
                                     2: 'Organization',
                                     4: 'Insurance',
@@ -376,7 +394,7 @@ export default function MultiBillingHeader({
                                             variant="outline-success"
                                             size="sm"
                                             onClick={handleVerifyPromo}
-                                            disabled={billingdata.promoVerifyLoading || !(billingdata.promoCode && billingdata.promoCode.length > 0)}
+                                            disabled={billingdata.promoVerifyLoading || !(billingdata.promoCode && String(billingdata.promoCode).length > 0)}
                                             aria-label="Verify Promo Code"
                                             style={{ height: 38, display: 'flex', alignItems: 'center' }}
                                         >

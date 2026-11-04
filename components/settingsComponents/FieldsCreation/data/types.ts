@@ -2,7 +2,7 @@ export interface CreationRule {
     name: string;
     field: string;
     value: string;
-    options: string;
+    options: string | string[];
     testid: string;
     category: string;
     undercategory: number;

@@ -52,7 +52,7 @@ const GRADIENT_TOTAL = "url(#gradientTotal)";
 
 const ClinicianAnalyticsCaseSummaryDaily: React.FC<ClinicianAnalyticsCaseSummaryDailyProps> = ({
 	clinicianId,
-}) => {
+}: {clinicianId: string | number}) => {
 	const [dailyData, setDailyData] = useState<DailyCaseSummary[]>([]);
 	const [selectedYear, setSelectedYear] = useState<{ value: number; label: string }>({
 		value: new Date().getFullYear(),
@@ -72,7 +72,7 @@ const ClinicianAnalyticsCaseSummaryDaily: React.FC<ClinicianAnalyticsCaseSummary
 	const fetchData = useCallback(() => {
 		setLoading(true);
 		setError(null);
-		ClinicianAnalyticsCaseSummaryDailyServerSide(clinicianId, selectedYear.value)
+		ClinicianAnalyticsCaseSummaryDailyServerSide(Number(clinicianId), selectedYear.value)
 			.then((response) => {
 				console.log(response)
 				let data: any[] = [];

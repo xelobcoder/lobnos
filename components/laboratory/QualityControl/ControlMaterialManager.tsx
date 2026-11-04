@@ -14,10 +14,12 @@ import { ControlMaterialFormModal } from './ControlManager/ControlMaterialFormMo
 import { DeviceType } from './types';
 import { ControlParametersModal } from './ControlManager/ControlParametersModal';
 
+type ControlMaterialRow = ControlMaterialType & {model?: string; deviceName?: string; currentStatus: string; daysUntilExpiry: number};
+
 export function ControlMaterialManager() {
     const { user } = useApplicationSettings().applicationsettings;
     const employeeid = user.employeeid;
-    const [materials, setMaterials] = useState<ControlMaterialType[]>([]);
+    const [materials, setMaterials] = useState<ControlMaterialRow[]>([]);
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState(true);
     const [selectedMaterial, setSelectedMaterial] = useState<ControlMaterialType | null>(null);
@@ -120,7 +122,8 @@ export function ControlMaterialManager() {
         setShowModal(true);
     };
 
-    const handleDelete = async (id: string) => {
+    const handleDelete = async (id?: string) => {
+        if (!id) return toast.error('Reload the material before deleting it.');
         if (!window.confirm('Are you sure you want to delete this material?')) return;
 
         try {
@@ -158,7 +161,7 @@ export function ControlMaterialManager() {
 
 
 
-    const handleParameterOpening = async (itemdata: { testId: number, id: string }) => {
+    const handleParameterOpening = async (itemdata: { testId: number, id?: string }) => {
         const { testId, id } = itemdata;
         if (!testId) return toast.info("Control not associated with a Test");
         if (!id) return;
@@ -175,7 +178,7 @@ export function ControlMaterialManager() {
         {
             Header: 'DeviceName',
             accessor: 'deviceName',
-            Cell: ({ row }) => {
+            Cell: ({ row }: {row: {original: ControlMaterialRow; index: number}}) => {
                 const model = row.original.model ? ` (${row.original.model})` : '';
                 return <div>{row.original.deviceName}{model}</div>
             },
@@ -191,8 +194,8 @@ export function ControlMaterialManager() {
         {
             Header: 'Source',
             id: 'source',
-            accessor: row => row.sourceType,
-            Cell: ({ row }) => {
+            accessor: (row: ControlMaterialRow) => row.sourceType,
+            Cell: ({ row }: {row: {original: ControlMaterialRow; index: number}}) => {
                 let typeLabel = '';
                 if (row.original.sourceType === 'manufacturer') typeLabel = 'Commercial';
                 else if (row.original.sourceType === 'sister_lab') typeLabel = 'Sister Lab';
@@ -211,7 +214,7 @@ export function ControlMaterialManager() {
         {
             Header: 'Expiry Date',
             accessor: 'expiryDate',
-            Cell: ({ value }) => value ? new Date(value).toLocaleDateString() : '-',
+            Cell: ({ value }: {value: ControlMaterialRow["expiryDate"]}) => value ? new Date(value).toLocaleDateString() : '-',
         },
         {
             Header: 'Storage',
@@ -224,7 +227,7 @@ export function ControlMaterialManager() {
         {
             Header: 'Current Status',
             accessor: 'currentStatus',
-            Cell: ({ value }) => (
+            Cell: ({ value }: {value: ControlMaterialRow["currentStatus"]}) => (
                 <Badge bg={value === 'active' ? 'success' : 'warning'}>
                     {value}
                 </Badge>
@@ -233,7 +236,7 @@ export function ControlMaterialManager() {
         {
             Header: 'Days Until Expiry',
             accessor: 'daysUntilExpiry',
-            Cell: ({ value }) => (
+            Cell: ({ value }: {value: ControlMaterialRow["daysUntilExpiry"]}) => (
                 <span className={value <= 30 ? 'text-danger' : ''}>
                     {value}
                 </span>
@@ -242,7 +245,7 @@ export function ControlMaterialManager() {
         {
             Header: 'Actions',
             id: 'actions',
-            Cell: ({ row }) => (
+            Cell: ({ row }: {row: {original: ControlMaterialRow; index: number}}) => (
                 <div className="d-flex gap-2">
                     <Button
                         variant="outline-secondary"

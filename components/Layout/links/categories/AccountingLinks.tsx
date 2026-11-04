@@ -52,6 +52,7 @@ export const AccountingLinks: Link[] = [
                { title: "Chart of Accounts", link: "/accounting/chart-of-accounts", icon: <RiBookletLine size={18} /> },
                { title: "General Ledger", link: "/accounting/general-ledger", icon: <RiFileList3Line size={18} /> },
                { title: "Accounts Receivable", link: "/accounting/receivables", icon: <RiUserReceived2Line size={18} /> },
+               { title: "Laboratory NHIS", link: "/accounting/nhis", icon: <RiUserReceived2Line size={18} /> },
                { title: "Accounts Payable", link: "/accounting/payables", icon: <RiUserShared2Line size={18} /> }
           ]
      },

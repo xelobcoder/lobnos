@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import styles from './RegistrationSteps.module.css';
 
-export const RegistrationSteps = ({ children }) => {
+export const RegistrationSteps = ({ children }: {children?: React.ReactNode}) => {
     const [currentStep, setCurrentStep] = useState(0);
     const steps = React.Children.toArray(children);
 

@@ -93,7 +93,7 @@ interface PayrollTransaction {
 interface PayrollDetailItem {
      type?: string;
      name?: string;
-     amount?: number | string;
+     amount?: number | string | null;
      relief_name?: string;
      source?: string;
      calculation_method?: string;
@@ -106,7 +106,7 @@ interface PayrollDetailItem {
      priority?: number | string;
      remaining_balance?: number | string;
      requires_disability?: boolean;
-     relief_amount?: number | string;
+     relief_amount?: number | string | null;
 }
 
 const toDetailArray = (value: unknown): PayrollDetailItem[] => {
@@ -697,7 +697,7 @@ export default function PayrollPeriodDetailPage() {
                ]
                : []
      ) as PayrollDetailItem[];
-     const selectedAllowanceRows = selectedAllowanceDetails.length > 0
+     const selectedAllowanceRows: PayrollDetailItem[] = selectedAllowanceDetails.length > 0
           ? selectedAllowanceDetails
           : toNumber(selectedTransaction?.total_allowances) > 0
                ? [{ name: 'Total Allowances', amount: selectedTransaction?.total_allowances }]

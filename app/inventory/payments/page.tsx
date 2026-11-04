@@ -11,6 +11,7 @@ import { useApplicationSettings } from '../../../components/Auth/useApplicationC
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 
 interface Payment {
+    expense_synced?: boolean | number;
      payment_account_id?: number | null;
      payment_account_name?: string | null;
      id: string;
@@ -283,7 +284,7 @@ export default function PaymentsPage() {
           {
                Header: 'Payment ID',
                accessor: 'payment_id',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: Payment["payment_id"]}) => (
                     <Link href={`/inventory/payments/${value}`} className="text-decoration-none fw-bold">
                          {value}
                     </Link>
@@ -296,7 +297,7 @@ export default function PaymentsPage() {
           {
                Header: 'Order #',
                accessor: 'po_order_number',
-               Cell: ({ value, row }) => (
+               Cell: ({ value, row }: {row: {original: Payment; index: number}; value: Payment["po_order_number"]}) => (
                     <Link href={`/inventory/payments/${row.original.id}`} className="text-decoration-none">
                          {value}
                     </Link>
@@ -305,27 +306,27 @@ export default function PaymentsPage() {
           {
                Header: 'Amount',
                accessor: 'payment_amount',
-               Cell: ({ value }) => currencyFormatter.format(value)
+               Cell: ({ value }: {value: Payment["payment_amount"]}) => currencyFormatter.format(value)
           },
           {
                Header: 'Date',
                accessor: 'payment_date',
-               Cell: ({ value }) => formatDate(value)
+               Cell: ({ value }: {value: Payment["payment_date"]}) => formatDate(value)
           },
           {
                Header: 'Paid from',
                accessor: 'payment_account_name',
-               Cell: ({ value }) => value || 'Not recorded'
+               Cell: ({ value }: {value: Payment["payment_account_name"]}) => value || 'Not recorded'
           },
           {
                Header: 'Method',
                accessor: 'payment_method',
-               Cell: ({ value }) => value.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
+               Cell: ({ value }: {value: Payment["payment_method"]}) => value.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
           },
           {
                Header: 'Status',
                accessor: 'payment_status',
-               Cell: ({ value }) => {
+               Cell: ({ value }: {value: Payment["payment_status"]}) => {
                     const badge = STATUS_BADGES[value as keyof typeof STATUS_BADGES] || STATUS_BADGES.pending;
                     return (
                          <span>
@@ -341,11 +342,11 @@ export default function PaymentsPage() {
           {
                Header: 'Allocated',
                accessor: 'total_allocated',
-               Cell: ({ value }) => currencyFormatter.format(value || 0)
+               Cell: ({ value }: {value: Payment["total_allocated"]}) => currencyFormatter.format(value || 0)
           },
           {
                Header: 'Actions',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: Payment; index: number}}) => (
                     <div className="d-flex gap-1 flex-wrap">
                          {row.original.payment_status === 'pending' && (
                               <>
@@ -760,7 +761,7 @@ export default function PaymentsPage() {
                                                                  <td>{selectedPaymentDetails.payment_account_name || 'Not recorded'}</td>
                                                             </tr><tr>
                                                                  <td className="fw-bold">Payment Method:</td>
-                                                                 <td>{selectedPaymentDetails.payment_method?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</td>
+                                                                 <td>{selectedPaymentDetails.payment_method?.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</td>
                                                             </tr>
                                                             <tr>
                                                                  <td className="fw-bold">Status:</td>

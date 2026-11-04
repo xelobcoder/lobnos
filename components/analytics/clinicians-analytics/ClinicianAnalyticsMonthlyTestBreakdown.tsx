@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ClinicianAnalyticsMonthlyTestBreakdown = ({ clinicianId }) => {
+const ClinicianAnalyticsMonthlyTestBreakdown = ({ clinicianId }: {clinicianId: string | number}) => {
     return (
         <div>
             <h1>ClinicianAnalyticsMonthlyTestBreakdown</h1>

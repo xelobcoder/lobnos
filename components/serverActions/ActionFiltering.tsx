@@ -4,7 +4,17 @@ import { customFetch, customPost } from "../Auth/customFetch"
 import { plsEncryption } from "../../lib/encryption";
 import { formatDate } from "../operations/Laboratory/Lib";
 import { CommissionAssignmentParams, getCommissionAssignments } from "../../lib/commission/commissionApi";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
+export interface RequestPagination {
+    page?: number; count?: number; branchid?: string | number; employeeid?: string | number;
+    from?: string; to?: string; startDate?: string; endDate?: string; sortby?: string; sortBy?: string;
+    _dateFrom?: string | null; _dateEnd?: string | null; ascension_stage?: string | number;
+    billingid?: string | number; patientid?: string | number; ascensionid?: string | number;
+    patientname?: string; testid?: string | number; isUltrasound?: boolean | number;
+    searchString?: string; category?: string | number; filter?: string; sorting?: string;
+    status?: string; jobid?: string | number; fullname?: string; isPatientSpecific?: boolean;
+}
 export async function filteringDatabaseTables(target: string, filtering: string, column: string, limit: number) {
 	try {
 		const response = await customFetch(`application/filtering/table/${target}?value=${filtering}&&original=${column}&&limit=${limit}`);
@@ -17,7 +27,7 @@ export async function filteringDatabaseTables(target: string, filtering: string,
 
 
 
-export async function pushDatabaseResponseForSavingScheduleMessage(data) {
+export async function pushDatabaseResponseForSavingScheduleMessage(data: object) {
 	const response = await customPost(`sms/schedule/message`, 'POST', data);
 	return response;
 }
@@ -36,13 +46,13 @@ export async function AsyncPatientFilteringloadOptions
 
 
 
-export const handleDatePicker = async ({ branchid, date, from, to }, router) => {
+export const handleDatePicker = async ({ branchid, date, from, to }: { branchid: string; date: string; from: string; to: string; }, router: AppRouterInstance|string[]) => {
 	router.push(`/billing/sales/branches/${plsEncryption(branchid.toString())}?from=${from}&&to=${to}`)
 }
 
 
 
-export const handleSeverSideProcessing = async (pagination) => {
+export const handleSeverSideProcessing = async (pagination: RequestPagination) => {
 	const { page, count, from, to, branchid } = pagination;
 	try {
 		const data = await customFetch(
@@ -111,7 +121,7 @@ export const handleRefundServerSideProcessing = async (values: { count: number; 
 
 
 
-export const handleServerSideProcessingAscensionData = async (pagination) => {
+export const handleServerSideProcessingAscensionData = async (pagination: RequestPagination) => {
 	try {
 		const { page, count, employeeid, ascension_stage, _dateFrom, billingid, patientid, ascensionid, patientname, testid, _dateEnd, isUltrasound, searchString, category, sortby = 'DESC' } = pagination;
 
@@ -162,7 +172,7 @@ export const getPhelobotomy = async (page: number, count: number) => {
 
 
 
-export const handleSeverSideProcessingPhelobotomy = async (pagination) => {
+export const handleSeverSideProcessingPhelobotomy = async (pagination: RequestPagination) => {
 	try {
 		const { filter, page, count, _dateFrom, _dateEnd, sortby = "DESC" } = pagination;
 		const { result } = await customFetch(`test/ascension/pendingCases?count=${count}&&page=${page}&&filter=${filter}&&start_date=${_dateFrom}&&end_date=${_dateEnd}&&sortby=${sortby}`);
@@ -177,7 +187,7 @@ export const handleSeverSideProcessingPhelobotomy = async (pagination) => {
 
 
 
-export const handleSeverSideProcessingRejectedSample = async (pagination) => {
+export const handleSeverSideProcessingRejectedSample = async (pagination: RequestPagination) => {
 	try {
 		const { page, count } = pagination;
 		const response = await customFetch(`rejected/sample/list?count=${count}&&page=${page}`);
@@ -193,7 +203,7 @@ export const handleSeverSideProcessingRejectedSample = async (pagination) => {
 
 
 
-export const handleServerSideProcessingSampleValidation = async ({ page, count, startDate, endDate, sortBy }) => {
+export const handleServerSideProcessingSampleValidation = async ({ page, count, startDate, endDate, sortBy }: RequestPagination) => {
 	try {
 		const fetchInitialData = await customFetch(`sample/client/list/unvalidated?count=${count}&page=${page}&&startDate=${startDate}&&endDate=${endDate}&&sortby=${sortBy}`);
 		const { result } = fetchInitialData;
@@ -210,7 +220,7 @@ export const handleServerSideProcessingSampleValidation = async ({ page, count, 
 
 
 
-export const handlePaginationServerRejectedHistory = async (pagination) => {
+export const handlePaginationServerRejectedHistory = async (pagination: RequestPagination) => {
 	const { count, page, branchid, ascensionid } = pagination
 	try {
 		const { data } = await customFetch(`sample/disputed/log/single?ascensionid=${ascensionid}&&branch=${branchid}&&page=${page}&&count=${count}`);
@@ -224,7 +234,7 @@ export const handlePaginationServerRejectedHistory = async (pagination) => {
 }
 
 
-export const handleServerTurnAroundTime = async (paginate) => {
+export const handleServerTurnAroundTime = async (paginate: RequestPagination) => {
 	try {
 		const { page, count, sorting, sortby = 'DESC' } = paginate
 		const response = await customFetch(`testascension/tat-data?page=${page}&&count=${count}&&sorting=${sorting}&&sortby=${sortby}`);
@@ -426,7 +436,7 @@ export async function LoadTestConditionsDefinition(testid: number) {
 
 
 
-export async function loadTaskDefinition(pagination) {
+export async function loadTaskDefinition(pagination: RequestPagination) {
 	try {
 		const { page, count, sortby = 'DESC' } = pagination;
 		const data = await customFetch(`primelims/tasks?page=${page}&&count=${count}&&sortby=${sortby}`);
@@ -506,7 +516,7 @@ export const handleServerProcessingSmsTemplates = async (pagination: { page: num
 	try {
 		const response = await customFetch(`prime/sms-templates-paginated?page=${page}&&count=${count}`);
 		if (response && Array.isArray(response.templates)) {
-			const data = response.templates.map((item) => ({
+			const data = response.templates.map((item: {templateid: string | number; name: string; body: string; category: string; createdbyname?: string; createdby: string | number; createdat: string}) => ({
 				id: String(item.templateid),
 				name: item.name,
 				body: item.body,

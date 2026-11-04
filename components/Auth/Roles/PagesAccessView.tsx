@@ -155,7 +155,7 @@ export default function PagesAccessView({ data, changeEvent, target, handler, pa
 									<Form.Switch
 										name={keys}
 										onChange={(ev) => pageAcesshandler(ev, target, changeEvent)}
-										checked={data.pageAccess[keys] || false}
+										checked={data.pageAccess[keys as keyof typeof data.pageAccess] || false}
 										type="switch"
 										style={{ fontSize: "20px" }}
 									/>

@@ -1,6 +1,7 @@
 import { customFetch } from "../../Auth/customFetch"
 
-export const registrationFields = {
+export type RegistrationFieldSettings = Record<string, Record<string, {visible: boolean; compulsory: boolean}>>;
+export const registrationFields: RegistrationFieldSettings = {
    personalInformation: {
       designation: { visible: true, compulsory: true },
       email: { visible: true, compulsory: true },
@@ -250,7 +251,7 @@ export const designation = ['Mr.', 'Mrs.', 'Miss', 'Ms.', 'Dr.', 'Prof.', 'Alhaj
 
 
 
-export const getRegistrationFields = async (setState, toast) => {
+export const getRegistrationFields = async (setState?: (fields: RegistrationFieldSettings) => void, toast?: Pick<typeof import("react-toastify").toast, "error">) => {
    try {
       const data = await customFetch("applicationsettings/registration/fields");
       const len = Object.keys(data).length > 0;

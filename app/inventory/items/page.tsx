@@ -419,7 +419,7 @@ export default function InventoryItemsPage() {
           {
                Header: 'Stock Level',
                accessor: 'currentStock',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: InventoryItem; index: number}}) => (
                     <div>
                          <span className="fw-bold">{row.original.currentStock} {row.original.consumption_unit_name || row.original.consumption_unit}</span><small className="d-block text-muted">Stores: {row.original.available_stores_qty ?? row.original.currentStock} · Department custody: {row.original.department_reserved_qty || 0}</small>
                          <br />
@@ -432,7 +432,7 @@ export default function InventoryItemsPage() {
           {
                Header: 'Status',
                accessor: 'status',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: InventoryItem["status"]}) => (
                     <span>
                          {STATUS_BADGES[value].label}
                     </span>
@@ -441,12 +441,12 @@ export default function InventoryItemsPage() {
           {
                Header: 'Location',
                accessor: 'location_name',
-               Cell: ({ value }) => value || 'Not assigned'
+               Cell: ({ value }: {value: InventoryItem["location_name"]}) => value || 'Not assigned'
           },
           {
                Header: 'Actions',
                accessor: 'id',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: InventoryItem; index: number}}) => (
                     <div className="d-flex gap-1">
                          <button className="btn btn-sm btn-success" title="Stock Up" onClick={() => openStockUp(row.original)}><RiInboxLine size={14} /></button>
                          <button
@@ -532,7 +532,7 @@ export default function InventoryItemsPage() {
                     setError(response.error?.message || 'Failed to add item');
                     toast.error(response.error?.message || 'Failed to add item');
                     if (response.error?.details) {
-                         toast.error(`Validation errors: ${response.error.details.map(d => d.message).join(', ')}`);
+                         toast.error(`Validation errors: ${response.error.details.map((d: {message: string}) => d.message).join(', ')}`);
                     }
                }
           } catch (err) {
@@ -589,7 +589,7 @@ export default function InventoryItemsPage() {
                     setError(response.error?.message || 'Failed to update item');
                     toast.error(response.error?.message || 'Failed to update item');
                     if (response.error?.details) {
-                         toast.error(`Validation errors: ${response.error.details.map(d => d.message).join(', ')}`);
+                         toast.error(`Validation errors: ${response.error.details.map((d: {message: string}) => d.message).join(', ')}`);
                     }
                }
           } catch (err) {

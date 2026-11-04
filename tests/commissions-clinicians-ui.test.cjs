@@ -271,9 +271,10 @@ test("clinician bulk payment retains selection and values on failure and prevent
   const table = nodes(tree, node => node.props?.column && node.props?.data)[0];
   table.props.column[0].Cell({ row: { index: 0, original: record } }).props.onChange();
   tree = h.render();
-  button(tree, "Pay Commission for Selected (1)").props.onClick();
+  await button(tree, "Submit payment request for Selected (1)").props.onClick();
+  await h.flush();
   tree = h.render();
-  nodes(tree, node => node.props?.onChange && node.props?.value === "")[0].props.onChange({ target: { value: "1" } });
+  nodes(tree, node => node.type === Form.Select && node.props?.value === "")[0].props.onChange({ target: { value: "1" } });
   nodes(tree, node => node.props?.type === "number")[0].props.onChange({ target: { value: "11" } });
   named(h.render(), "bulk-commission-form").props.onSubmit({ preventDefault() {} });
   assert.equal(posts.length, 0, "overpayment is blocked");
@@ -290,7 +291,7 @@ test("clinician bulk payment retains selection and values on failure and prevent
   tree = h.render();
   assert.equal(nodes(tree, node => node.props?.type === "number")[0].props.value, "10");
   assert.ok(nodes(tree, node => node.props?.message === "Payment rejected").length);
-  assert.ok(button(tree, "Pay Commission for Selected (1)"));
+  assert.ok(button(tree, "Submit payment request for Selected (1)"));
 });
 
 test("payment filters preserve endpoints, mutually exclusive recipients and applied date context", async () => {

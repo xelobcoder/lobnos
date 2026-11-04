@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function TimeOptionHtmlGenerator({ fieldItem, statehandler, index }) {
+export default function TimeOptionHtmlGenerator({ fieldItem, statehandler, index }: {fieldItem: import("../../settingsComponents/FieldsCreation/data/types").CreationRule & {entrymode?: string}; statehandler: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void; index: number}) {
      const { name, units, value, fieldConstraints, entrymode, textReference } = fieldItem;
 
      const plan = fieldItem?.plan as 'date' | 'time' | 'datetime'

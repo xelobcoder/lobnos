@@ -12,9 +12,9 @@ function load(file, mocks = {}) {
     }).outputText, { exports, require: name => mocks[name] || require(name), URLSearchParams, AbortSignal, Date, Number, Error, JSON, fetch: () => { throw Error('Unexpected network'); } });
     return exports;
 }
-const invitations = load('lib\\portalInvitations.ts');
-const portal = load('lib\\patientPortal.ts');
-const { establishPatientSession } = load('lib\\patientPortalSession.ts');
+const invitations = load("lib/portalInvitations.ts");
+const portal = load("lib/patientPortal.ts");
+const { establishPatientSession } = load("lib/patientPortalSession.ts");
 
 test('patient login verifies same-origin cookies and normalizes backend context before navigation', async () => {
     const calls = [];
@@ -76,7 +76,7 @@ function adminHarness({ failure = false, smsAvailable = true, delivery } = {}) {
     };
     const form = Object.assign(() => null, { Label: 'Label', Control: 'Control', Select: 'Select' });
     const modal = Object.assign(() => null, { Header: 'ModalHeader', Title: 'ModalTitle', Body: 'ModalBody', Footer: 'ModalFooter' });
-    const component = load('app\\patient-portal-admin\\page.tsx', {
+    const component = load("app/patient-portal-admin/page.tsx", {
         react,
         'next/link': { __esModule: true, default: 'Link' },
         'react-bootstrap': { Alert: 'Alert', Button: 'Button', Form: form, Modal: modal, Spinner: 'Spinner', Table: 'Table' },
@@ -182,7 +182,7 @@ function accessHarness({ channel = 'email', available = true, outcome = 'accepte
     };
     const form = Object.assign(() => null, { Label: 'Label', Control: 'Control', Check: 'Check' });
     const modal = Object.assign(() => null, { Header: 'ModalHeader', Title: 'ModalTitle', Body: 'ModalBody', Footer: 'ModalFooter' });
-    const component = load('components\\PatientPortal\\PatientPortalAccessPanel.tsx', {
+    const component = load("components/PatientPortal/PatientPortalAccessPanel.tsx", {
         react,
         'react-bootstrap': { Alert: 'Alert', Button: 'Button', Form: form, Modal: modal, Spinner: 'Spinner', Table: 'Table' },
         '@remixicon/react': { RiFileCopyLine: 'Copy', RiMailSendLine: 'Mail', RiUserHeartLine: 'Heart' },
@@ -256,15 +256,17 @@ test('middleware protects portal administration from every role except admin and
             exports, URL, TextEncoder, process: { env: { JWT_SECRET_KEY: 'synthetic-key' } },
             require(name) {
                 if (name === 'jose') return { jwtVerify: async () => ({ payload: { user: { role }, tenantId: 42, settings: {} } }) };
-                return { NextResponse: { redirect: url => ({ destination: url.pathname, url: url.toString() }), next: () => ({ headers: new Headers() }) } };
+                if (name.endsWith('roleNavigationPolicy')) return load('lib/roleNavigationPolicy.ts', {'../components/Auth/roles': load('components/Auth/roles.ts')});
+                if (name.endsWith('serverBackendAccess')) return {getBackendAuthorization() {}};
+                return { NextResponse: { redirect: url => ({ destination: url.pathname, url: url.toString(), headers: new Headers() }), next: () => ({ headers: new Headers() }) } };
             },
         });
         for (const pathname of ['/patient-portal-admin', '/patient-portal-admin/access', '/patient-portal-admin/settings']) {
             const result = await exports.proxy({ nextUrl: { pathname }, url: `http://portal.test${pathname}`, cookies: { get: () => ({ value: 'synthetic-session' }) } });
-            assert.equal(result.destination, ['admin', 'manager'].includes(role) ? undefined : '/unauthorized', `${role} ${pathname}`);
+            assert.equal(result.destination, ['admin', 'manager', 'super-admin'].includes(role) ? undefined : '/unauthorized', `${role} ${pathname}`);
         }
         const entry = await exports.proxy({ nextUrl: { pathname: '/patientportal' }, url: 'http://portal.test/patientportal', cookies: { get: () => ({ value: 'synthetic-session' }) } });
-        assert.equal(entry.destination, ['admin', 'manager'].includes(role) ? '/patient-portal-admin' : role === 'patient' ? undefined : '/unauthorized', `${role} patient portal entry`);
+        assert.equal(entry.destination, ['admin', 'manager', 'super-admin'].includes(role) ? '/patient-portal-admin' : role === 'patient' ? undefined : '/unauthorized', `${role} patient portal entry`);
         const anonymous = await exports.proxy({ nextUrl: { pathname: '/patient-portal-admin/settings' }, url: 'http://portal.test/patient-portal-admin/settings', cookies: { get: () => undefined } });
         assert.equal(anonymous.destination, '/authentications/login');
         assert.equal(new URL(anonymous.url).searchParams.get('returnTo'), '/patient-portal-admin/settings');

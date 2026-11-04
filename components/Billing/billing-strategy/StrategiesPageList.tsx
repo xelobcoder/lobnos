@@ -1,3 +1,4 @@
+import {errorMessage} from '../../../lib/errorMessage';
 import { useState, useEffect } from 'react';
 import { Dropdown, ButtonGroup } from 'react-bootstrap';
 import { BillingStrategy } from './BillingStrategyTypes';
@@ -23,7 +24,7 @@ export default function StrategiesPage() {
                 setError(response.error || 'Failed to load strategies');
             }
         } catch (err) {
-            setError(err.message || 'Failed to load strategies');
+            setError(errorMessage(err) || 'Failed to load strategies');
         } finally {
             setLoading(false);
         }

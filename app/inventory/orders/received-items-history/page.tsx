@@ -166,7 +166,7 @@ export default function ReceivedItemsHistoryPage() {
           {
                Header: 'Order Date',
                accessor: 'order_date',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: OrderData["order_date"]}) => (
                     <div className="small">
                          <div className="fw-bold">{new Date(value).toLocaleDateString()}</div>
                          <div className="text-muted">{new Date(value).toLocaleTimeString()}</div>
@@ -176,7 +176,7 @@ export default function ReceivedItemsHistoryPage() {
           {
                Header: 'Order Number',
                accessor: 'order_number',
-               Cell: ({ value, row }) => (
+               Cell: ({ value, row }: {row: {original: OrderData; index: number}; value: OrderData["order_number"]}) => (
                     <div className="small">
                          <div className="fw-bold">{value}</div>
                          <div className="text-muted">ID: {row.original.id}</div>
@@ -186,7 +186,7 @@ export default function ReceivedItemsHistoryPage() {
           {
                Header: 'Supplier',
                accessor: 'supplier_name',
-               Cell: ({ value, row }) => (
+               Cell: ({ value, row }: {row: {original: OrderData; index: number}; value: OrderData["supplier_name"]}) => (
                     <div>
                          <div className="fw-bold">{value}</div>
                          <div className="small text-muted">
@@ -198,14 +198,14 @@ export default function ReceivedItemsHistoryPage() {
           {
                Header: 'Items',
                accessor: 'items_count',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: OrderData["items_count"]}) => (
                     <span className="badge bg-primary">{value || 0}</span>
                )
           },
           {
                Header: 'Received',
                accessor: 'received_items_count',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: OrderData["received_items_count"]}) => (
                     <span className={`badge ${value > 0 ? 'bg-success' : 'bg-warning'}`}>
                          {value || 0}
                     </span>
@@ -214,7 +214,7 @@ export default function ReceivedItemsHistoryPage() {
           {
                Header: 'Status',
                accessor: 'status',
-               Cell: ({ value }) => {
+               Cell: ({ value }: {value: OrderData["status"]}) => {
                     const badge = STATUS_BADGES[value as keyof typeof STATUS_BADGES] || STATUS_BADGES[''];
                     return (
                          <span className={`badge bg-${badge.color}`}>
@@ -226,7 +226,7 @@ export default function ReceivedItemsHistoryPage() {
           {
                Header: 'Total Amount',
                accessor: 'total_transaction_cost',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: OrderData["total_transaction_cost"]}) => (
                     <span className="fw-bold">
                          {currencyFormatter.format(value || 0)}
                     </span>
@@ -235,7 +235,7 @@ export default function ReceivedItemsHistoryPage() {
           {
                Header: 'Expected Delivery',
                accessor: 'expected_delivery_date',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: OrderData["expected_delivery_date"]}) => (
                     <span className={`badge ${new Date(value) < new Date() ? 'bg-danger' : 'bg-info'}`}>
                          {value ? new Date(value).toLocaleDateString() : 'Not set'}
                     </span>
@@ -244,7 +244,7 @@ export default function ReceivedItemsHistoryPage() {
           {
                Header: 'Actions',
                accessor: 'id',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: OrderData; index: number}}) => (
                     <button
                          className="btn btn-sm btn-outline-info"
                          onClick={() => handleViewReceipts(row.original)}
@@ -273,7 +273,7 @@ export default function ReceivedItemsHistoryPage() {
           loadOrders();
      };
 
-     const handleServerSideProcessing = async (pagination) => {
+     const handleServerSideProcessing = async (pagination: {page: number; count: number; sortby?: string; start_date?: string; end_date?: string; supplier_name?: string; order_number?: string; item_name?: string}) => {
           try {
 
                const { start_date, end_date, supplier_name, order_number, item_name, page, count, sortby = "DESC" } = pagination

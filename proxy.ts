@@ -104,6 +104,7 @@ async function routeRequest(request: NextRequest) {
             const normalizedRole = role.toString().toLowerCase().trim();
             const activeRole=roleWorkspace(role);
             if(isMasterPlatformPath(currentPath)&&activeRole!=='superadmin')return NextResponse.redirect(new URL('/unauthorized',request.url));
+            if(activeRole==='manager'&&currentPath.startsWith('/patientportal'))return NextResponse.redirect(new URL('/patient-portal-admin',request.url));
             if(['admin','superadmin'].includes(activeRole)){
                 if(currentPath.startsWith('/patientportal'))return NextResponse.redirect(new URL('/patient-portal-admin',request.url));
                 return NextResponse.next();

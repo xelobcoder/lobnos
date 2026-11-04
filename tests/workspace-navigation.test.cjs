@@ -9,7 +9,16 @@ function compile(relativePath, mocks, globals = {}) {
     const exports = {};
     vm.runInNewContext(ts.transpileModule(readFileSync(path.join(__dirname, '..', relativePath), 'utf8'), {
         compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
-    }).outputText, { exports, require: mocks, ...globals });
+    }).outputText, { exports, require: name => {
+        try { return mocks(name); }
+        catch (error) {
+            if (!name.startsWith('.') || !String(error.message).startsWith('Unexpected import:')) throw error;
+            const base = path.resolve(path.dirname(path.join(__dirname, '..', relativePath)), name);
+            const file = ['.ts', '.tsx', '.js', '.jsx'].map(extension => base + extension).find(candidate => require('node:fs').existsSync(candidate));
+            if (!file) throw error;
+            return compile(path.relative(path.join(__dirname, '..'), file), mocks, globals);
+        }
+    }, ...globals });
     return exports;
 }
 
@@ -95,6 +104,7 @@ function renderLayout(preference, actions = [], options = {}) {
             __esModule: true,
             default: ({ prefetch, ...props }) => React.createElement('a', props),
         };
+        if (name.endsWith('/pharmacyAccounting')) return compile('lib/pharmacyAccounting.ts', mocks);
         if (name.endsWith('ribbonNavigation')) return compile(path.join('lib', 'ribbonNavigation.ts'), require);
         if (name.endsWith('RibbonNavigation')) return compile(path.join('components', 'Layout', 'RibbonNavigation.tsx'), mocks).default;
         if (name.endsWith('useApplicationContext')) return { useApplicationSettings: () => ({
@@ -249,7 +259,7 @@ test('facility setting selects the same layout for every signed-in user without 
         ['ribbon', /Workspace ribbon/],
         ['portal', /portalLayout/],
     ]) {
-        const html = renderLayout(selected, [], { workspaceLayout: selected, role: 'scientist' });
+        const html = renderLayout(selected, [], { workspaceLayout: selected, role: 'admin' });
         assert.match(html, expected);
         assert.doesNotMatch(html, /Use the new layout|Use the classic layout|New layout|Classic layout/);
         const headings = selected === 'ribbon'
@@ -300,10 +310,10 @@ test('ribbon stays absent from sidebar-hidden pages and existing content is pres
 test('ribbon groups never reintroduce restricted or disabled descendants', () => {
     const links = [{ title: 'Operations', link: '', children: [
         { title: 'Allowed page', link: '/allowed' },
-        { title: 'Owner only', link: '/owner', roles: ['admin'] },
+        { title: 'Owner only', link: '/owner', roles: ['super-admin'] },
         { title: 'Disabled module', link: '/disabled' },
     ] }];
-    const html = renderLayout('ribbon', [], { links, role: 'scientist', pathname: '/allowed', deniedPaths: ['/disabled'] });
+    const html = renderLayout('ribbon', [], { links, role: 'admin', pathname: '/allowed', deniedPaths: ['/disabled'] });
     assert.match(html, /Allowed page/);
     assert.doesNotMatch(html, /Owner only|Disabled module|href="\/owner"|href="\/disabled"/);
 });
@@ -359,10 +369,10 @@ test('Portal keeps all staff destinations, active groups, collapse, mobile and a
 test('Portal filters nested permissions and disabled modules using the shared staff navigation', () => {
     const links = [{ title: 'Operations', link: '', children: [
         { title: 'Allowed', link: '/allowed' },
-        { title: 'Owner only', link: '/owner', roles: ['admin'] },
+        { title: 'Owner only', link: '/owner', roles: ['super-admin'] },
         { title: 'Disabled', link: '/disabled' },
     ] }];
-    const options = { links, role: 'scientist', pathname: '/allowed', deniedPaths: ['/disabled'] };
+    const options = { links, role: 'admin', pathname: '/allowed', deniedPaths: ['/disabled'] };
     const html = renderLayout('portal', [], options);
     assert.match(html, /aria-label="Allowed" aria-current="page"/);
     assert.doesNotMatch(html, /Owner only|Disabled/);

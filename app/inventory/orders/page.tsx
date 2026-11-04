@@ -161,7 +161,7 @@ const GENERAL_SUPPLIER_ID = 'SUP-GENERAL';
 
 const orderRowStyling = {
      type: 'custom',
-     getRowClassName: (row) => {
+     getRowClassName: (row: PurchaseOrder) => {
           if (row.status === 'cancelled') return 'table-danger';
           return '';
      },
@@ -484,7 +484,7 @@ export default function PurchaseOrdersPage() {
           {
                Header: 'Order Date',
                accessor: 'orderDate',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: PurchaseOrder["orderDate"]}) => (
                     <div>
                          <div>{value ? new Date(value).toLocaleDateString() : '—'}</div>
                     </div>
@@ -493,7 +493,7 @@ export default function PurchaseOrdersPage() {
           {
                Header: 'Expected Delivery',
                accessor: 'expectedDeliveryDate',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: PurchaseOrder["expectedDeliveryDate"]}) => (
                     <div>
                          <div>{value ? new Date(value).toLocaleDateString() : '—'}</div>
                     </div>
@@ -502,7 +502,7 @@ export default function PurchaseOrdersPage() {
           {
                Header: 'Supplier',
                accessor: 'supplierName',
-               Cell: ({ value, row }) => (
+               Cell: ({ value, row }: {row: {original: PurchaseOrder; index: number}; value: PurchaseOrder["supplierName"]}) => (
                     <div>
                          <div className="fw-bold">{value}</div>
                          <small className="text-muted">{row.original.supplierEmail}</small>
@@ -512,7 +512,7 @@ export default function PurchaseOrdersPage() {
           {
                Header: 'Status',
                accessor: 'status',
-               Cell: ({ value }) => {
+               Cell: ({ value }: {value: PurchaseOrder["status"]}) => {
                     const badge = STATUS_BADGES[value as keyof typeof STATUS_BADGES] || STATUS_BADGES[''];
                     return (
                          <span>
@@ -524,7 +524,7 @@ export default function PurchaseOrdersPage() {
           {
                Header: 'Items',
                accessor: 'items',
-               Cell: ({ value, row }) => (
+               Cell: ({ value, row }: {row: {original: PurchaseOrder; index: number}; value: PurchaseOrder["items"]}) => (
                     <div>
                          <div>{row.original.items_count || (value && value.length) || 0} item(s)</div>
                          {value && value.length > 0 && (
@@ -538,7 +538,7 @@ export default function PurchaseOrdersPage() {
           {
                Header: 'Communication',
                accessor: 'communicationMethod',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: PurchaseOrder; index: number}}) => (
                     <div>
                          <div className="fw-bold">
                               {row.original.communicationMethod ?
@@ -558,32 +558,32 @@ export default function PurchaseOrdersPage() {
           {
                Header: 'Total Amount',
                accessor: 'totalAmount',
-               Cell: ({ value, row }) => (
-                    <span> {currencyFormatter.format((value || 0).toFixed(2))}</span>
+               Cell: ({ value, row }: {row: {original: PurchaseOrder; index: number}; value: PurchaseOrder["totalAmount"]}) => (
+                    <span> {currencyFormatter.format(value || 0)}</span>
                )
           },
           {
                Header: 'Remaining Balance',
                accessor: 'remainingBalance',
-               Cell: ({ value, row }) => (
-                    <span className={`fw-bold ${value > 0 ? 'text-danger' : 'text-success'}`}>
-                         {currencyFormatter.format((value || 0).toFixed(2))}
+               Cell: ({ value, row }: {row: {original: PurchaseOrder; index: number}; value: PurchaseOrder["remainingBalance"]}) => (
+                    <span className={`fw-bold ${Number(value) > 0 ? 'text-danger' : 'text-success'}`}>
+                         {currencyFormatter.format(value || 0)}
                     </span>
                )
           },
           {
                Header: 'Pending Approvals',
                accessor: 'totalPending',
-               Cell: ({ value, row }) => (
-                    <span className={`fw-bold ${value > 0 ? 'text-warning' : 'text-muted'}`}>
-                         {currencyFormatter.format((value || 0).toFixed(2))}
+               Cell: ({ value, row }: {row: {original: PurchaseOrder; index: number}; value: PurchaseOrder["totalPending"]}) => (
+                    <span className={`fw-bold ${Number(value) > 0 ? 'text-warning' : 'text-muted'}`}>
+                         {currencyFormatter.format(value || 0)}
                     </span>
                )
           },
           {
                Header: 'Actions',
                accessor: 'id',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: PurchaseOrder; index: number}}) => (
                     <div className="d-flex gap-1">
                          <button
                               className="btn btn-sm btn-outline-info"
@@ -599,7 +599,7 @@ export default function PurchaseOrdersPage() {
                          >
                               <RiDownloadLine size={14} />
                          </button>
-                         {row.original.status !== 'received' ? (
+                         {!['received'].includes(row.original.status) ? (
                               <>
                                    <button
                                         className="btn btn-sm btn-outline-primary"
@@ -978,7 +978,7 @@ export default function PurchaseOrdersPage() {
                     ? [['#', 'Item Description', 'Unit', 'Qty Received', 'Unit Price', 'Total']]
                     : [['#', 'Item Description', 'Unit', 'Qty Ordered', 'Unit Price', 'Total']];
 
-               const itemsBody = itemsToMap.map((item, idx) => {
+               const itemsBody = itemsToMap.map((item: {quantity_received?: number; quantity_ordered: number; unit_price?: number; item_name?: string; unit?: string}, idx: number) => {
                     const qty = isReceived ? (item.quantity_received ?? item.quantity_ordered) : item.quantity_ordered;
                     const price = isReceived ? formatCurrencyForPDF(item.unit_price || 0) : '';
                     const total = isReceived ? formatCurrencyForPDF((item.unit_price || 0) * qty) : '';
@@ -1193,7 +1193,7 @@ export default function PurchaseOrdersPage() {
      };
 
 
-     const handleCancelOrder = async (order: number) => {
+     const handleCancelOrder = async (order: string | number) => {
           const reason = prompt('Please enter the reason for cancelling this order:');
           if (!reason || !reason.trim()) {
                toast.error('Cancellation reason is required');
@@ -1910,7 +1910,7 @@ export default function PurchaseOrdersPage() {
                                                                            <td>{payment.payment_id}</td>
                                                                            <td>{selectedOrder.currency} {currencyFormatter.format(payment.payment_amount)}</td>
                                                                            <td>{new Date(payment.payment_date).toLocaleDateString()}</td>
-                                                                           <td>{payment.payment_method?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'N/A'}</td>
+                                                                           <td>{payment.payment_method?.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || 'N/A'}</td>
                                                                            <td>
                                                                                 <span>
                                                                                      {payment.payment_status}
@@ -2036,7 +2036,7 @@ export default function PurchaseOrdersPage() {
                                                                       <tr key={index}>
                                                                            <td>{new Date(payment.payment_date).toLocaleDateString()}</td>
                                                                            <td className="fw-bold">{selectedOrderForPayment.currency} {payment.payment_amount.toFixed(2)}</td>
-                                                                           <td>{payment.payment_method.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</td>
+                                                                           <td>{payment.payment_method.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</td>
                                                                            <td>
                                                                                 <span>
                                                                                      {payment.payment_status}

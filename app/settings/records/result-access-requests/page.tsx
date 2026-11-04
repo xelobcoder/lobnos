@@ -58,7 +58,7 @@ export default function ResultAccessRequestsPage() {
 
      const filteredRequests = []; // Server-side filtering handled by PrimeTable
 
-     const getStatusBadge = (status) => {
+     const getStatusBadge = (status: string) => {
           switch (status) {
                case 'pending':
                     return <Badge bg="warning" className="px-1">Pending</Badge>;
@@ -92,28 +92,28 @@ export default function ResultAccessRequestsPage() {
           {
                Header: 'Request Type',
                accessor: 'requestType',
-               Cell: ({ value, row }) => value === 'edit' ? 'Edit Result' : `Access Result for test with Ascension ID ${row.original.ascensionid}`
+               Cell: ({ value, row }: {row: {original: AccessRequest; index: number}; value: AccessRequest["requestType"]}) => value === 'edit' ? 'Edit Result' : `Access Result for test with Ascension ID ${row.original.ascensionid}`
           },
 
           {
                Header: 'Urgency',
                accessor: 'urgency',
-               Cell: ({ value }) => value
+               Cell: ({ value }: {value: AccessRequest["urgency"]}) => value
           },
           {
                Header: 'Requested At',
                accessor: 'requestedAt',
-               Cell: ({ value }) => <small>{new Date(value).toLocaleString()}</small>
+               Cell: ({ value }: {value: AccessRequest["requestedAt"]}) => <small>{new Date(value).toLocaleString()}</small>
           },
           {
                Header: 'Status',
                accessor: 'status',
-               Cell: ({ value }) => getStatusBadge(value)
+               Cell: ({ value }: {value: AccessRequest["status"]}) => getStatusBadge(value)
           },
           {
                Header: 'Actions',
                accessor: 'actions',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: AccessRequest; index: number}}) => (
                     <div className="d-flex gap-1">
                          <Button
                               variant="outline-info"
@@ -238,7 +238,7 @@ export default function ResultAccessRequestsPage() {
           }
      };
 
-     const handleViewDetails = (request) => {
+     const handleViewDetails = (request: AccessRequest) => {
           setSelectedRequest(request);
           setShowModal(true);
      };

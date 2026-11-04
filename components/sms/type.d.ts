@@ -15,6 +15,7 @@ export interface SmsTemplateFormState {
 }
 
 export interface RefundAdminViewType {
+    serviceName?: string;
      refundid: number;
      serviceid: number;
      refundedBy: number;

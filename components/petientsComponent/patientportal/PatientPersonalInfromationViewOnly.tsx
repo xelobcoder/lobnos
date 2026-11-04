@@ -22,7 +22,7 @@ interface PersonalInformation {
     patientOrganization: string;
 }
 
-const PatientPersonalInformationViewOnly = ({ patientid }) => {
+const PatientPersonalInformationViewOnly = ({ patientid }: {patientid: string | number}) => {
     const [personalInfo, setPersonalInfo] = useState<PersonalInformation | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

@@ -23,7 +23,7 @@ type MetricOption = {
     isCurrency: boolean;
 };
 
-const ClinicianAnalyticsYearlyComparison: React.FC<ClinicianAnalyticsYearlyComparisonProps> = ({ clinicianId }) => {
+const ClinicianAnalyticsYearlyComparison: React.FC<ClinicianAnalyticsYearlyComparisonProps> = ({ clinicianId }: {clinicianId: string | number}) => {
     const router = useRouter();
     const [yearlyData, setYearlyData] = useState<YearlyData[]>([]);
     const [loading, setLoading] = useState(true);

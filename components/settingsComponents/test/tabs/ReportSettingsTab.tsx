@@ -55,7 +55,7 @@ export default function ReportSettingsTab({ testid, testname }: { testid: number
           if (testid) loadSettings();
      }, [testid]);
 
-     const handleChange = (e) => {
+     const handleChange = (e: {target: {name: string; value: string; type: string; checked?: boolean}}) => {
           const { name, value, type, checked } = e.target;
           if (name.startsWith('companyInfo.')) {
                const key = name.split('.')[1];

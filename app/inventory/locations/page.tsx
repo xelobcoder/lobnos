@@ -120,27 +120,27 @@ export default function StorageLocationsPage() {
           {
                Header: 'Type',
                accessor: 'temperature_controlled',
-               Cell: ({ value }) => value ? '❄️ Temperature Controlled' : '🏢 Standard Storage'
+               Cell: ({ value }: {value: StorageLocation["temperature_controlled"]}) => value ? '❄️ Temperature Controlled' : '🏢 Standard Storage'
           },
           {
                Header: 'Capacity',
                accessor: 'capacity',
-               Cell: ({ value }) => value ? `${value} items` : 'Unlimited'
+               Cell: ({ value }: {value: StorageLocation["capacity"]}) => value ? `${value} items` : 'Unlimited'
           },
           {
                Header: 'Current Items',
                accessor: 'current_items',
-               Cell: ({ value }) => `${value} items`
+               Cell: ({ value }: {value: StorageLocation["current_items"]}) => `${value} items`
           },
           {
                Header: 'Status',
                accessor: 'is_active',
-               Cell: ({ value }) => value ? <span className="badge bg-success">Active</span> : <span className="badge bg-secondary">Inactive</span>
+               Cell: ({ value }: {value: StorageLocation["is_active"]}) => value ? <span className="badge bg-success">Active</span> : <span className="badge bg-secondary">Inactive</span>
           },
           {
                Header: 'Description',
                accessor: 'description',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: StorageLocation["description"]}) => (
                     <div style={{ maxWidth: '320px', whiteSpace: 'normal', overflowWrap: 'anywhere' }}>
                          {value}
                     </div>
@@ -149,7 +149,7 @@ export default function StorageLocationsPage() {
           {
                Header: 'Actions',
                accessor: 'id',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: StorageLocation; index: number}}) => (
                     <div className="d-flex gap-1">
                          <button
                               className="btn btn-sm btn-outline-info"

@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from "react";
+import { MouseEvent, useEffect, useState } from "react";
 import dynamic from 'next/dynamic';
 import { toast } from "react-toastify";
 import { customFetch, customPost } from "../../../Auth/customFetch";
@@ -13,7 +13,7 @@ export default function ProcedureManualTab({ testid }: { testid: number | string
      const [data, setData] = useState<any>(defaultdata);
      const [isloading, setLoading] = useState(true);
 
-     const updatedata = (event, newValue) => {
+     const updatedata = (event: unknown, newValue: string) => {
           setData({ ...data, proceduremanual: newValue });
      }
 
@@ -31,7 +31,7 @@ export default function ProcedureManualTab({ testid }: { testid: number | string
           }
      }, [testid])
 
-     const updateResult = async (ev) => {
+     const updateResult = async (ev: React.MouseEvent<HTMLButtonElement>) => {
           ev.preventDefault();
 
           if (data.title != "" && data.proceduremanual != "" && employeeid) {

@@ -217,7 +217,7 @@ export default function UserProfilePage() {
                     false,
                     ["email", "mobile", "branch"],
                     'logins/update/user-updates?isUser=1',
-                    (response) => {
+                    (response: {status?: string | boolean; message?: string; statusCode?: number}) => {
                          handleResponse(response, toast);
                          if (response.status === "success") {
                               setUser(editData);

@@ -63,7 +63,7 @@ const monthNames = [
 	"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 ];
 
-const ClinicianAnalyticsCaseSummaryMonthly: React.FC<ClinicianAnalyticsCaseSummaryMonthlyProps> = ({ clinicianId }) => {
+const ClinicianAnalyticsCaseSummaryMonthly: React.FC<ClinicianAnalyticsCaseSummaryMonthlyProps> = ({ clinicianId }: {clinicianId: string | number}) => {
 	const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
 	const [clinicianDetails, setClinicianDetails] = useState<any>(null);
 	const [selectedYear, setSelectedYear] = useState({ value: new Date().getFullYear(), label: new Date().getFullYear().toString() });

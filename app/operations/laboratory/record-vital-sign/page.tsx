@@ -20,7 +20,7 @@ export default function RecordVitalSigns() {
     const urlParams = useSearchParams();
 
     useEffect(() => {
-        let paramObject = {};
+        let paramObject: QueryParams = {};
         if (urlParams?.entries()) {
             Array.from(urlParams.entries()).forEach(([item, value]) => {
                 paramObject[item] = value;

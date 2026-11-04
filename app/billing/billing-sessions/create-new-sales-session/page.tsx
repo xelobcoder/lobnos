@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import ttable from '../../../../styles/SmsTemplateList.module.css'
-const createDefaultSessionRow = (now) => ({
+const createDefaultSessionRow = (now: string) => ({
     branch: '',
     employee: '',
     dateTime: now,
@@ -155,7 +155,7 @@ export default function BillingSessions() {
 
                 // Initialize time range sessions if multiple sessions are allowed and time ranges exist
                 if (response.config.allow_multiple_sessions && response.config.time_ranges && response.config.time_ranges.length > 0) {
-                    const initialTimeRangeSessions = response.config.time_ranges.map(timeRange => ({
+                    const initialTimeRangeSessions = response.config.time_ranges.map((timeRange: {id: number; start_time: string; end_time: string; name?: string}) => ({
                         timeRange,
                         employee: '',
                         openingAmount: ''
@@ -229,7 +229,7 @@ export default function BillingSessions() {
         }
     };
 
-    const handleSessionRowChange = (idx: number, field: string, value: string) => {
+    const handleSessionRowChange = (idx: number, field: keyof (typeof sessionRows)[number], value: string) => {
         const updated = [...sessionRows];
         updated[idx][field] = value;
         setSessionRows(updated);

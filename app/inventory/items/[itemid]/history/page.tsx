@@ -149,12 +149,12 @@ export default function ItemHistoryPage() {
           {
                Header: 'Date',
                accessor: 'transaction_date',
-               Cell: ({ value }) => new Date(value).toLocaleDateString()
+               Cell: ({ value }: {value: Transaction["transaction_date"]}) => new Date(value).toLocaleDateString()
           },
           {
                Header: 'Type',
                accessor: 'transaction_type',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: Transaction["transaction_type"]}) => (
                     <span className={value === 'addition' ? 'text-success fw-medium' : 'text-danger fw-medium'}>
                          {value === 'addition' ? 'Addition' : 'Consumption'}
                     </span>
@@ -163,7 +163,7 @@ export default function ItemHistoryPage() {
           {
                Header: 'Quantity',
                accessor: 'quantity',
-               Cell: ({ row }) => {
+               Cell: ({ row }: {row: {original: Transaction; index: number}}) => {
                     const { quantity, unit_type, purchase_unit, units_per_purchase_unit } = row.original;
                     if (unit_type === 'purchase' && purchase_unit) {
                          return `${quantity} ${purchase_unit} (${quantity * (units_per_purchase_unit || 1)} ${item?.consumption_unit})`;
@@ -174,7 +174,7 @@ export default function ItemHistoryPage() {
           {
                Header: 'Stock Change',
                accessor: 'previous_stock',
-               Cell: ({ row }) => {
+               Cell: ({ row }: {row: {original: Transaction; index: number}}) => {
                     const { previous_stock, new_stock } = row.original;
                     const change = new_stock - previous_stock;
                     return (
@@ -191,12 +191,12 @@ export default function ItemHistoryPage() {
           {
                Header: 'Batch',
                accessor: 'batch_number',
-               Cell: ({ value }) => value || 'N/A'
+               Cell: ({ value }: {value: Transaction["batch_number"]}) => value || 'N/A'
           },
           {
                Header: 'Performed By',
                accessor: 'employee_username',
-               Cell: ({ value, row }) => {
+               Cell: ({ value, row }: {row: {original: Transaction; index: number}; value: Transaction["employee_username"]}) => {
                     if (value) return value.trim();
                     if (row.original.employee_name) return row.original.employee_name;
                     if (row.original.performed_by === null) return 'System';
@@ -206,12 +206,12 @@ export default function ItemHistoryPage() {
           {
                Header: 'Role',
                accessor: 'employee_role',
-               Cell: ({ value }) => value ? value.charAt(0).toUpperCase() + value.slice(1) : '-'
+               Cell: ({ value }: {value: Transaction["employee_role"]}) => value ? value.charAt(0).toUpperCase() + value.slice(1) : '-'
           },
           {
                Header: 'Reason',
                accessor: 'reason',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: Transaction["reason"]}) => (
                     <div style={{ maxWidth: '150px' }} className="text-truncate" title={value}>
                          {value || '-'}
                     </div>
@@ -220,7 +220,7 @@ export default function ItemHistoryPage() {
           {
                Header: 'Notes',
                accessor: 'notes',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: Transaction["notes"]}) => (
                     <div style={{ maxWidth: '200px' }} className="text-truncate" title={value}>
                          {value || '-'}
                     </div>

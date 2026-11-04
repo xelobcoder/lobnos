@@ -44,7 +44,7 @@ export default function OrganizationFiltering({ onSelect, showbulk = true }: Org
           return [];
      };
 
-     const handleSelectChange = (selectedOption: OrganizationOption) => {
+     const handleSelectChange = (selectedOption: OrganizationOption | null) => {
           onSelect(selectedOption?.content);
      };
 

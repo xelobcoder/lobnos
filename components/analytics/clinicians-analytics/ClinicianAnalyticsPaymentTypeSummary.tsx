@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ClinicianAnalyticsPaymentTypeSummary = ({ clinicianId }) => {
+const ClinicianAnalyticsPaymentTypeSummary = ({ clinicianId }: {clinicianId: string | number}) => {
     return (
         <div>
             <h1>ClinicianAnalyticsPaymentTypeSummary</h1>

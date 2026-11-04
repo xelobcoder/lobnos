@@ -167,10 +167,10 @@ export default function FacilityOnboardingPage() {
                setOptions(locations.result);
                setFacilities(organizations.result);
                setHasLoadedFacilities(true);
-               const parsedCatalog = pricing?.status === "success" && Array.isArray(pricing.result)
+               const parsedCatalog: (ModulePricingCatalogEntry | null)[] = pricing?.status === "success" && Array.isArray(pricing.result)
                     ? pricing.result.map(parseModulePricingCatalogEntry)
                     : [];
-               const catalog = parsedCatalog.every((entry): entry is ModulePricingCatalogEntry => entry !== null)
+               const catalog = parsedCatalog.every((entry: ModulePricingCatalogEntry | null): entry is ModulePricingCatalogEntry => entry !== null)
                     ? parsedCatalog
                     : [];
                if (catalog.length) {
@@ -456,7 +456,7 @@ export default function FacilityOnboardingPage() {
           {
                Header: "Retry",
                id: "retry",
-               Cell: ({ row }) => row.original.status.toLowerCase() === "failed" ? (
+               Cell: ({ row }: {row: {original: Facility; index: number}}) => row.original.status.toLowerCase() === "failed" ? (
                     <button type="button" className="btn btn-sm btn-outline-warning" disabled={busy || deleteBusy}
                          onClick={() => openRetry(row.original)}>Retry provisioning</button>
                ) : row.original.status.toLowerCase() === "provisioning" && !row.original.isControlTenant ? (
@@ -474,7 +474,7 @@ export default function FacilityOnboardingPage() {
           {
                Header: "Delete",
                id: "delete",
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: Facility; index: number}}) => (
                     <button type="button" className="btn btn-sm btn-outline-danger"
                          disabled={busy || deleteBusy || row.original.isControlTenant || row.original.status === "provisioning"}
                          title={row.original.isControlTenant ? "Platform home cannot be deleted" : row.original.status === "provisioning" ? "Use Recover interrupted setup first; running setup is protected" : row.original.status === "failed" ? "Permanently delete the partial database and registry record" : "Remove registry record; preserve database"}
@@ -495,7 +495,7 @@ export default function FacilityOnboardingPage() {
           {
                Header: "Organization identifier",
                accessor: "platformId",
-               Cell: ({ value }) => <code>{value}</code>,
+               Cell: ({ value }: {value: Facility["platformId"]}) => <code>{value}</code>,
           },
           {
                Header: "Tenant ID",
@@ -504,7 +504,7 @@ export default function FacilityOnboardingPage() {
           {
                Header: "Status",
                accessor: "status",
-               Cell: ({ value, row }) => (
+               Cell: ({ value, row }: {row: {original: Facility; index: number}; value: Facility["status"]}) => (
                     <span>
                          <span className={`fw-semibold text-capitalize ${value.toLowerCase() === "active" ? "text-success" : "text-secondary"}`}>{value}</span>
                          {row.original.isControlTenant && <span className="small text-muted ms-2" title="Backend-configured home facility for platform super administrators; protected from self-deactivation.">Platform home (protected)</span>}
@@ -514,7 +514,7 @@ export default function FacilityOnboardingPage() {
           {
                Header: "Management",
                id: "management",
-               Cell: ({ row }) => {
+               Cell: ({ row }: {row: {original: Facility; index: number}}) => {
                     const isSelected = row.original.tenantId === selectedTenantId;
                     return (
                          <button

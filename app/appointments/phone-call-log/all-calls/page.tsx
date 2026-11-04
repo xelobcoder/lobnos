@@ -7,11 +7,12 @@ import PrimeTable from "../../../../components/accessories/Datatables/PrimeTable
 import { customFetch } from "../../../../components/Auth/customFetch";
 import { toast } from "react-toastify";
 
+interface PhoneCallRecord {id: number; patientid?: string; appointment_refid?: string; scheduled_at?: string; started_at?: string; ended_at?: string; creator_name?: string; appointment_date?: string; appointment_time?: string; appointment_purpose?: string}
 const columns = [
      {
           Header: "Patient ID (Ref ID)",
           accessor: "identifiers",
-          Cell: ({ row }) => {
+          Cell: ({ row }: {row: {original: PhoneCallRecord}}) => {
                const id = row.original.id;
                const patientid = row.original.patientid;
                const appointment_refid = row.original.appointment_refid;
@@ -29,12 +30,12 @@ const columns = [
      {
           Header: "Purpose",
           accessor: "purpose",
-          Cell: ({ value }) => <span title={value}>{value?.slice(0, 40)}{value?.length > 40 ? "..." : ""}</span>,
+          Cell: ({ value }: {value: string}) => <span title={value}>{value?.slice(0, 40)}{value?.length > 40 ? "..." : ""}</span>,
      },
      {
           Header: "Call Times",
           accessor: "call_times",
-          Cell: ({ row }) => {
+          Cell: ({ row }: {row: {original: PhoneCallRecord}}) => {
                const scheduled = row.original.scheduled_at ? new Date(row.original.scheduled_at).toLocaleString() : "-";
                const started = row.original.started_at ? new Date(row.original.started_at).toLocaleString() : "-";
                const ended = row.original.ended_at ? new Date(row.original.ended_at).toLocaleString() : "-";
@@ -58,7 +59,7 @@ const columns = [
      {
           Header: "Duration",
           accessor: "duration_seconds",
-          Cell: ({ value }) => {
+          Cell: ({ value }: {value: number}) => {
                if (!value || isNaN(value)) return "-";
                if (value < 60) return `${value}s`;
                if (value < 3600) return `${Math.floor(value / 60)}m ${value % 60}s`;
@@ -71,7 +72,7 @@ const columns = [
      {
           Header: "Next Follow-up",
           accessor: "next_followup_at",
-          Cell: ({ value }) => value ? new Date(value).toLocaleDateString() : "-",
+          Cell: ({ value }: {value: string}) => value ? new Date(value).toLocaleDateString() : "-",
      },
      {
           Header: "Created By",
@@ -80,12 +81,12 @@ const columns = [
      {
           Header: "Created At",
           accessor: "created_at",
-          Cell: ({ value }) => value ? new Date(value).toLocaleString() : "-",
+          Cell: ({ value }: {value: string}) => value ? new Date(value).toLocaleString() : "-",
      },
      {
           Header: "Add Call",
           id: "add_call",
-          Cell: ({ row }) => {
+          Cell: ({ row }: {row: {original: PhoneCallRecord}}) => {
                const appointment_refid = row.original.appointment_refid;
                const patientid = row.original.patientid;
                const patientName = row.original.creator_name || '';
@@ -148,7 +149,7 @@ export default function AllPhoneCallsPage() {
      }, []);
 
 
-     const handleSearch = (e) => {
+     const handleSearch = (e: { preventDefault: () => void; }) => {
           e.preventDefault();
           setShowPhoneCallLogs(false);
           fetchData(1, pagination.count, appointmentId);

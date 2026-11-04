@@ -31,7 +31,7 @@ interface ClinicianAnalyticsMonthlyTotalsProps {
     clinicianId: number;
 }
 
-const ClinicianAnalyticsMonthlyTotals: React.FC<ClinicianAnalyticsMonthlyTotalsProps> = ({ clinicianId }) => {
+const ClinicianAnalyticsMonthlyTotals: React.FC<ClinicianAnalyticsMonthlyTotalsProps> = ({ clinicianId }: {clinicianId: string | number}) => {
     const router = useRouter();
     const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
     const [selectedYear, setSelectedYear] = useState({ value: new Date().getFullYear(), label: new Date().getFullYear().toString() });

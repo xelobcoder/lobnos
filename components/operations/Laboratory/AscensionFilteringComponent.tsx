@@ -27,7 +27,7 @@ const getTodayDateRange = () => {
 }
 
 
-export const handleDateRangeSelection = (value, setQueryParams) => {
+export const handleDateRangeSelection = <T extends {_dateFrom?: string | null; _dateEnd?: string | null}>(value: string, setQueryParams: React.Dispatch<React.SetStateAction<T>>) => {
      if (value === 'This Year') {
           const { startdate, enddate } = getCurrentYear();
           setQueryParams((prev) => ({ ...prev, _dateFrom: startdate, _dateEnd: enddate }));

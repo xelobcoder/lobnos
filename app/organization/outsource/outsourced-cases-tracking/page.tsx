@@ -8,6 +8,8 @@ import { customPost,customFetch } from "../../../../components/Auth/customFetch"
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
 
 type OutsourcedCase = {
+    approved?: number | boolean;
+    expense_id?: number;
      tracking_id: number;
      serviceid: number;
      testid: number;
@@ -95,12 +97,12 @@ export default function OutsourcedCasesTrackingPage() {
           {
                Header: "Created On",
                accessor: "createdOn",
-               Cell: ({ value }) => dayjs(value).format("YYYY-MM-DD HH:mm:ss")
+               Cell: ({ value }: {value: OutsourcedCase["createdOn"]}) => dayjs(value).format("YYYY-MM-DD HH:mm:ss")
           },
           {
                Header: "Actions",
                accessor: "actions",
-               Cell: ({ row }) => {
+               Cell: ({ row }: {row: {original: OutsourcedCase; index: number}}) => {
                     const { approved, completedconfirmedby, expense_id } = row.original;
                     const isConfirmed = completedconfirmedby != null;
                     const isMarkedExpense = expense_id != null;

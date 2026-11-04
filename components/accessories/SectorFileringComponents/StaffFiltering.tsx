@@ -12,7 +12,7 @@ interface EmployeeOption {
 }
 
 interface EmployeeFilteringProps {
-     onSelect: (value: EmployeeOption) => void;
+     onSelect: (value: EmployeeOption["data"]) => void;
 }
 
 export default function EmployeeFiltering({ onSelect }: EmployeeFilteringProps) {
@@ -42,7 +42,7 @@ export default function EmployeeFiltering({ onSelect }: EmployeeFilteringProps) 
           return [];
      };
 
-     const handleSelectChange = (selectedOption: EmployeeOption) => {
+     const handleSelectChange = (selectedOption: EmployeeOption | null) => {
           onSelect(selectedOption?.data);
      };
 

@@ -23,7 +23,7 @@ function load(filename) {
         require(name) {
             if (name.endsWith('.css')) return new Proxy({}, { get: (_target, key) => key === '__esModule' ? false : String(key) });
             if (name.endsWith('/companyImage')) return { scopedCompanyImageUrl: value => value || '' };
-            if (name.endsWith('/usePortalResource')) return { usePortalResource: endpoint => endpoint?.endsWith('/summary') ? {...portalResource, data: {payable: 12.30, paid: 10.20, outstanding: 2.10, bills: 2, unpaidBills: 2}} : portalResource };
+            if (name.endsWith('/usePortalResource')) return { usePortalResource: endpoint => endpoint?.endsWith('/summary') ? {...portalResource, data: portalResource.data ? {payable: portalResource.data.length ? 12.30 : 0, paid: portalResource.data.length ? 10.20 : 0, outstanding: portalResource.data.length ? 2.10 : 0, bills: portalResource.data.length, unpaidBills: portalResource.data.length} : null} : portalResource };
             if (name === 'jspdf' || name === 'html2canvas') return {};
             if (name.startsWith('.')) return load(path.resolve(path.dirname(resolved), name));
             return require(name);
@@ -31,8 +31,8 @@ function load(filename) {
     });
     return output;
 }
-const { default: Report, resolveReportSettings } = load('components\\ResultView\\LaboratoryReport.tsx');
-const { reportPageCuts, laboratoryReportFilename } = load('lib\\laboratoryReportPdf.ts');
+const { default: Report, resolveReportSettings } = load("components/ResultView/LaboratoryReport.tsx");
+const { reportPageCuts, laboratoryReportFilename } = load("lib/laboratoryReportPdf.ts");
 const fixture = {
     ascensionid: 108, billingid: 31, patientid: 21,
     companyInfo: { name: 'Example Laboratory', address: 'Facility address', email: 'lab@example.test', phonenumber: '123' },
@@ -55,12 +55,12 @@ const fixture = {
 const render = data => renderToStaticMarkup(React.createElement(Report, { data }));
 
 test('staff and patient report pages use one canonical renderer and A4 PDF exporter', () => {
-    for (const file of ['app\\result\\labreport\\4\\page.tsx', 'app\\patientportal\\results\\[billingid]\\page.tsx']) {
+    for (const file of ["app/result/labreport/4/page.tsx", "app/patientportal/results/[billingid]/page.tsx"]) {
         const source = fs.readFileSync(path.join(root, file), 'utf8');
         assert.match(source, /<LaboratoryReport/);
         assert.match(source, /createLaboratoryReportPdf/);
     }
-    const source = fs.readFileSync(path.join(root, 'app\\patientportal\\results\\[billingid]\\page.tsx'), 'utf8');
+    const source = fs.readFileSync(path.join(root, "app/patientportal/results/[billingid]/page.tsx"), 'utf8');
     assert.doesNotMatch(source, /result\/printout\/ascension\/getResult/);
     assert.match(source, /patient-portal\/results\/\$\{billingid\}\/report/);
 });
@@ -112,24 +112,24 @@ test('A4 pagination covers the complete document without gaps or overlap and cho
     assert.equal(resolveReportSettings({ testBody: { fontSize: 18 } }).testBody.trFirstColumnName, 'Investigation');
 });
 test('patient and Daily Sales summaries share the same analytic card renderer', () => {
-    const { default: Summary } = load('components\\PatientPortal\\PortalSummary.tsx');
+    const { default: Summary } = load("components/PatientPortal/PortalSummary.tsx");
     const html = renderToStaticMarkup(React.createElement(Summary, { items: [{ label: 'Paid', value: 'GHS 20.00' }, { label: 'Outstanding', value: 'GHS 10.00' }] }));
     assert.match(html, /summaryGrid/);
     assert.match(html, /summaryCard/);
     assert.match(html, /GHS 20.00/);
-    const css = fs.readFileSync(path.join(root, 'components\\PatientPortal\\PortalShell.module.css'), 'utf8');
+    const css = fs.readFileSync(path.join(root, "components/PatientPortal/PortalShell.module.css"), 'utf8');
     assert.match(css, /\.patientContent \{ font-family: inherit; font-size: inherit;/);
     assert.match(css, /\.loginLayout \{[^}]*font-family: var\(--theme-font-family, var\(--font-open-sans\)\)/);
     assert.doesNotMatch(css, /font-inter|Candara/);
-    const cardCss = fs.readFileSync(path.join(root, 'components\\Billing\\AnalyticSummaryCard.module.css'), 'utf8');
+    const cardCss = fs.readFileSync(path.join(root, "components/Billing/AnalyticSummaryCard.module.css"), 'utf8');
     assert.match(cardCss, /tabular-nums/);
     assert.match(html, /bg-primary bg-gradient text-white/);
-    for (const file of ['components\\PatientPortal\\PortalSummary.tsx', 'components\\Billing\\BillingSumamry\\BilledSummary.tsx']) {
+    for (const file of ["components/PatientPortal/PortalSummary.tsx", "components/Billing/BillingSumamry/BilledSummary.tsx"]) {
         assert.match(fs.readFileSync(path.join(root, file), 'utf8'), /<AnalyticSummaryCard/);
     }
 });
 test('portal typography follows the configured software workspace, including Slack Aspire', () => {
-    const { workspaceFontFamily, DEFAULT_FONT_FAMILY } = load('lib\\themes.ts');
+    const { workspaceFontFamily, DEFAULT_FONT_FAMILY } = load("lib/themes.ts");
     assert.match(workspaceFontFamily({ workspaceLayout: 'slack', fontFamily: 'var(--font-raleway)' }), /^var\(--font-raleway\)/);
     assert.match(workspaceFontFamily({ workspaceLayout: 'ribbon' }), /^"Segoe UI"/);
     for (const workspaceLayout of ['zoho', 'claude', 'portal']) {
@@ -137,10 +137,10 @@ test('portal typography follows the configured software workspace, including Sla
     }
     assert.equal(workspaceFontFamily({ workspaceLayout: 'classic', fontFamily: 'Open Sans' }), 'var(--font-open-sans)');
     assert.equal(workspaceFontFamily(), DEFAULT_FONT_FAMILY);
-    const shell = fs.readFileSync(path.join(root, 'components\\PatientPortal\\PortalShell.tsx'), 'utf8');
+    const shell = fs.readFileSync(path.join(root, "components/PatientPortal/PortalShell.tsx"), 'utf8');
     assert.match(shell, /'--theme-font-family': workspaceFontFamily\(context.settings\)/);
-    const css = fs.readFileSync(path.join(root, 'components\\PatientPortal\\PortalShell.module.css'), 'utf8');
-    const workspaceCss = fs.readFileSync(path.join(root, 'components\\Layout\\WorkspaceLayout.module.css'), 'utf8');
+    const css = fs.readFileSync(path.join(root, "components/PatientPortal/PortalShell.module.css"), 'utf8');
+    const workspaceCss = fs.readFileSync(path.join(root, "components/Layout/WorkspaceLayout.module.css"), 'utf8');
     assert.match(css, /\.shell \{[^}]*grid-template-columns: 272px minmax\(0, 1fr\)/);
     assert.match(workspaceCss, /\.slackLayout \.sidebar \{\s*width: 272px/);
     assert.doesNotMatch(css, /grid-template-columns: (250|210)px/);
@@ -151,9 +151,9 @@ test('patient billing summary renders accurate totals using the Daily Sales card
         { billingid: 1, billedon: '2026-10-01', payable: '12.10', paid: '10.10', outstanding: '2.00' },
         { billingid: 2, billedon: '2026-10-02', payable: '0.20', paid: '0.10', outstanding: '0.10' },
     ], loading: false, error: '', code: '', reload() {} };
-    const { default: Billing } = load('app\\patientportal\\billing\\page.tsx');
+    const { default: Billing } = load("app/patientportal/billing/page.tsx");
     const html = renderToStaticMarkup(React.createElement(Billing));
-    const { formatMoney } = load('lib\\patientPortal.ts');
+    const { formatMoney } = load("lib/patientPortal.ts");
     for (const amount of [12.30, 10.20, 2.10]) assert.ok(html.includes(formatMoney(amount)), `Missing total ${amount}`);
     assert.match(html, /Financial Summary/);
     assert.match(html, /bg-success bg-gradient/);

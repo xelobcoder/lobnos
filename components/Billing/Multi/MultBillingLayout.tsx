@@ -123,7 +123,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
         }
     };
 
-    const handleSpecialCodeChange = (e) => {
+    const handleSpecialCodeChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const value = e.target.value;
         setBillingData({ ...billingdata, specialCode: value });
         if (value.length > 0 && value.length <= 3) {
@@ -250,7 +250,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
     };
 
 
-    const handleUrgencyChange = (selectedOption) => {
+    const handleUrgencyChange = (selectedOption: {value: string; label: string}) => {
         setBillingData(prev => ({
             ...prev,
             status: selectedOption.value,
@@ -336,7 +336,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
             }
 
             if (backendData.entityType && backendData.entityType !== data.entitytype) {
-                const entityTypeToBillingSource = {
+                const entityTypeToBillingSource: Record<string, number> = {
                     general: 1,
                     organization: 2,
                     insurance: 3,
@@ -383,7 +383,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
 
 
 
-    const handlePackageActivation = (checked) => {
+    const handlePackageActivation = (checked: boolean) => {
         setBillingData(prev => ({
             ...prev,
             isPackageUsed: checked,
@@ -985,7 +985,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
                     loadingBackendBilling={loadingBackendBilling}
                     canLoadData={canLoadData}
                     onPackageActivation={handlePackageActivation}
-                    onUseServicesChange={checked => {
+                    onUseServicesChange={(checked) => {
                         setUseServices(checked);
                         setBillingData(prev => ({ ...prev, includeServices: checked }));
                     }}

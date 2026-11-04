@@ -11,3 +11,25 @@ test('referral network failure releases submission lock and retains a recoverabl
 function hookHarness() { const values = [], refs = [], effects = []; let stateIndex = 0, refIndex = 0, fetcher = async () => ({ success: true, data: { day: { status: 'open' }, shift: { id: 'shift' }, routes: [{ method: 'cash' }] } }), posts = 0; const storage = new Map(), exports = {}; const hooks = { useRef(value) { const index = refIndex++; return refs[index] || (refs[index] = { current: value }); }, useState(initial) { const index = stateIndex++; if (!(index in values))
         values[index] = initial; return [values[index], value => { values[index] = typeof value === 'function' ? value(values[index]) : value; }]; }, useCallback: fn => fn, useEffect: fn => effects.push(fn) }; vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(root, 'app/pharmacy/components/PharmacyPaymentFields.tsx'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX } }).outputText, { exports, require: name => name === 'react' ? hooks : name.includes('customFetch') ? { customFetch: (...args) => fetcher(...args), customFetchMutation: async () => { posts++; return { success: false, error: { code: 'NETWORK_UNCERTAIN' } }; } } : name.includes('useApplicationContext') ? { useApplication: () => ({ user: { employeeid: 7, branch: 1, tenantId: 2 } }) } : {}, sessionStorage: { getItem: key => storage.get(key) || null, setItem: (key, value) => storage.set(key, value), removeItem: key => storage.delete(key) }, crypto: { randomUUID: () => 'stable-key' }, window: { addEventListener() { }, removeEventListener() { } } }); return { render() { stateIndex = 0; refIndex = 0; return exports.usePharmacyPayment('test'); }, effects, setFetch(fn) { fetcher = fn; }, get posts() { return posts; } }; }
 test('failed checkout refresh blocks a new operation while an uncertain existing operation retains retry identity', async () => { const h = hookHarness(); let payment = h.render(); h.effects[0](); await payment.refresh(); payment = h.render(); h.setFetch(async () => { throw Error('Offline'); }); await payment.refresh(); payment = h.render(); await assert.rejects(() => payment.execute('pharmacy/sales', {}), /financial day/); assert.equal(h.posts, 0); h.setFetch(async () => ({ success: true, data: { day: { status: 'open' } } })); await payment.refresh(); payment = h.render(); await payment.execute('pharmacy/sales', { lines: [] }); assert.equal(h.posts, 1); h.setFetch(async () => { throw Error('Offline'); }); await payment.refresh(); payment = h.render(); await payment.execute('pharmacy/sales', { lines: ['replacement'] }); assert.equal(h.posts, 2); });
+
+
+test('payment totals include each service amount once alongside tests', () => {
+    const file = 'components/Billing/Multi/PaymentModal.tsx';
+    const text = fs.readFileSync(path.join(root, file), 'utf8');
+    const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+    let expression;
+    function visit(node) {
+        if (ts.isVariableDeclaration(node) && node.name.getText(source) === 'actualTotalPayable') expression = node.initializer.getText(source);
+        ts.forEachChild(node, visit);
+    }
+    visit(source);
+    assert.ok(expression);
+    const context = {
+        hasFreePayment: false,
+        updatedCart: [{totalpayable: 25.5}, {totalpayable: 40}],
+        updatedServices: [{totalpayable: 12}, {totalpayable: 9.5}, {}],
+    };
+    assert.equal(vm.runInNewContext(expression, context), 87);
+    assert.equal(vm.runInNewContext(expression, {...context, hasFreePayment: true}), 0);
+    assert.equal(vm.runInNewContext(expression, {...context, updatedCart: [], updatedServices: []}), 0);
+});

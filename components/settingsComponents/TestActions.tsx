@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { testPanelBasePath } from "../../lib/testPanelNavigation";
 
 
-const TestActions = ({ id, row, deleteCustomTest }) => {
+const TestActions = <T extends {name: string},>({ id, row, deleteCustomTest }: {id: string | number; row: {original: T}; deleteCustomTest: (test: T) => void}) => {
     const { services } = useApplicationSettings().applicationsettings;
     const { name } = row.original;
     const basePath = testPanelBasePath(usePathname());

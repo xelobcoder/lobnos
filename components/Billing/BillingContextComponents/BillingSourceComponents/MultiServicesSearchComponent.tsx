@@ -5,7 +5,7 @@ import { MultiBillingContext } from '../../Multi/MultiBillingContext';
 import { useApplication } from '../../../Auth/useApplicationContext';
 import { roleAllowed } from '../../../Auth/roles';
 
-export default function MultiServicesSearchComponent({ updatefunction }) {
+export default function MultiServicesSearchComponent({ updatefunction }: {updatefunction: (service: import("../../../../lib/Multi/MultiTypes").ServicesListItem) => void}) {
     const context = useContext(MultiBillingContext);
     const billingdata = context?.billingdata;
     const applicatonsettings = useApplication();

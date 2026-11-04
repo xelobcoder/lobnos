@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react";
+import { SetStateAction, useEffect, useState } from "react";
 import AsyncSelect from "react-select/async";
 import { customFetch, reactSelectCustomStyles } from "../../Auth/customFetch";
 import { AsyncPatientFilteringloadOptions } from "../../serverActions/ActionFiltering";
@@ -11,7 +11,7 @@ export default function AsyncPatientFiltering({ getSelectedPatient, isDisabled =
     placeholder?: string;
 }) {
     const [isLoading, setLoading] = useState(false);
-    const [selectedOption, setSelectedOption] = useState(null);
+    const [selectedOption, setSelectedOption] = useState<{export?: unknown; label?: string; value?: string | number} | null>(null);
     const [isClient, setIsClient] = useState(false);
 
 
@@ -46,12 +46,12 @@ export default function AsyncPatientFiltering({ getSelectedPatient, isDisabled =
         }
     };
 
-    const handleSelectChange = (selectedOption) => {
+    const handleSelectChange = (selectedOption: {export?: unknown; label?: string; value?: string | number} | null) => {
         setSelectedOption(selectedOption);
         getSelectedPatient(selectedOption?.export);
     };
 
-    const formatOptionLabel = ({ label, fullname }) => {
+    const formatOptionLabel = ({ label, fullname }: {label?: React.ReactNode; fullname?: string}) => {
         return !selectedOption ? (
             <div style={{ whiteSpace: "pre-wrap", margin: "0" }}>
                 <div style={{ fontWeight: 500 }} className="text-uppercase">
@@ -70,7 +70,7 @@ export default function AsyncPatientFiltering({ getSelectedPatient, isDisabled =
     return (
         <div style={{ width: '100%' }}>
             {
-                isClient && <AsyncSelect
+                isClient && <AsyncSelect<{export?: unknown; label?: string; value?: string | number}>
                     inputId={inputId}
                     instanceId={inputId}
                     noOptionsMessage={({ inputValue }) => inputValue.length < 3 ? 'Type at least 3 characters to search' : 'No matching patients found'}

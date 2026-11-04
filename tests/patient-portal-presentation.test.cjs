@@ -30,8 +30,8 @@ function load(file, mocks = {}) {
     });
     return exports;
 }
-const portal = load('lib\\patientPortal.ts');
-const trends = load('lib\\patientPortalTrends.ts');
+const portal = load("lib/patientPortal.ts");
+const trends = load("lib/patientPortalTrends.ts");
 const Link = ({ href, children, ...props }) => React.createElement('a', { href, ...props }, children);
 const row = (overrides = {}) => ({
     ascensionid: 1, billingid: 31, fieldid: 2, field: 'Haemoglobin', value: '10', numericValue: 10,
@@ -71,10 +71,10 @@ function nodes(tree) {
 }
 function trendHarness(view = 'chart') {
     const hooks = stateHooks({ 0: '7' });
-    const chart = load('components\\PatientPortal\\TrendChart.tsx', {
+    const chart = load("components/PatientPortal/TrendChart.tsx", {
         '../../lib/patientPortalTrends': trends, '../../lib/patientPortal': portal,
     }).default;
-    const component = load('components\\PatientPortal\\PatientTestTrends.tsx', {
+    const component = load("components/PatientPortal/PatientTestTrends.tsx", {
         react: hooks.react, 'next/link': { __esModule: true, default: Link },
         './usePortalResource': { usePortalResource: endpoint => ({
             data: endpoint.endsWith('/tests') ? [{ testid: 7, testname: 'Blood count', resultCount: 3 }] : history,
@@ -97,8 +97,8 @@ function trendHarness(view = 'chart') {
 function resultsHarness() {
     const hooks = stateHooks();
     const endpoints = [];
-    const dates = load('components\\operations\\Laboratory\\ResuableFilter\\DateFilterReusable.tsx').default;
-    const component = load('app\\patientportal\\results\\page.tsx', {
+    const dates = load("components/operations/Laboratory/ResuableFilter/DateFilterReusable.tsx").default;
+    const component = load("app/patientportal/results/page.tsx", {
         react: hooks.react, 'next/link': { __esModule: true, default: Link },
         '../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable': { __esModule: true, default: dates },
         '../../../lib/patientPortal': portal,
@@ -198,8 +198,8 @@ function renderFixture(kind = 'values') {
                     { status: 'Collected', label: 'Sample collected', done: false, current: false, at: null },
                 ] }],
         };
-        const card = load('components\\Billing\\AnalyticSummaryCard.tsx').default;
-        const summary = load('components\\PatientPortal\\PortalSummary.tsx', {
+        const card = load("components/Billing/AnalyticSummaryCard.tsx").default;
+        const summary = load("components/PatientPortal/PortalSummary.tsx", {
             '../Billing/AnalyticSummaryCard': { __esModule: true, default: card },
         }).default;
         const resolve = name => {
@@ -215,16 +215,16 @@ function renderFixture(kind = 'values') {
             const local = /(?:^\.\/|\/components\/PatientPortal\/)(FacilityContactCard|PaymentInstructions|SlotPicker|ResultQuickView)$/.exec(name);
             if (local) return load(`components\\PatientPortal\\${local[1]}.tsx`, { resolve });
         };
-        const pageFile = kind === 'home' ? 'app\\patientportal\\page.tsx'
-            : kind === 'bill-detail' ? 'app\\patientportal\\billing\\[billingid]\\page.tsx' : `app\\patientportal\\${kind}\\page.tsx`;
+        const pageFile = kind === 'home' ? "app/patientportal/page.tsx"
+            : kind === 'bill-detail' ? "app/patientportal/billing/[billingid]/page.tsx" : `app\\patientportal\\${kind}\\page.tsx`;
         content = React.createElement(load(pageFile, { resolve }).default);
     }
     const cssFiles = [
-        'node_modules\\bootstrap\\dist\\css\\bootstrap.min.css',
-        'components\\PatientPortal\\PortalShell.module.css',
-        'components\\PatientPortal\\portal.module.css',
-        'components\\PatientPortal\\trends.module.css',
-        'components\\Billing\\AnalyticSummaryCard.module.css',
+        "node_modules/bootstrap/dist/css/bootstrap.min.css",
+        "components/PatientPortal/PortalShell.module.css",
+        "components/PatientPortal/portal.module.css",
+        "components/PatientPortal/trends.module.css",
+        "components/Billing/AnalyticSummaryCard.module.css",
     ];
     const css = cssFiles.map(file => {
         let text = readFileSync(path.join(root, file), 'utf8');

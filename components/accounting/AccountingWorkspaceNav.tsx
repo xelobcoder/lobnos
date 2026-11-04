@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import styles from "./AccountingWorkspaceNav.module.css";
 const destinations = [
  ["Overview", "/accounting"], ["Chart of accounts", "/accounting/chart-of-accounts"], ["General ledger", "/accounting/general-ledger"], ["Journals", "/accounting/manual-journals"],
- ["Financial reports", "/accounting/reports"], ["Planning", "/accounting/budgets"], ["Bills", "/accounting/bills"], ["Bank reconciliation", "/accounting/bank-reconciliation"], ["Close & review", "/accounting/daily-close"],
+ ["Financial reports", "/accounting/reports"], ["NHIS", "/accounting/nhis"], ["Planning", "/accounting/budgets"], ["Bills", "/accounting/bills"], ["Bank reconciliation", "/accounting/bank-reconciliation"], ["Close & review", "/accounting/daily-close"],
 ];
 export default function AccountingWorkspaceNav() {
  const path = usePathname();

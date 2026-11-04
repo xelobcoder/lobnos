@@ -279,7 +279,7 @@ test("commission updates prevent duplicate submission and close only after confi
   table(app.render()).props.column.find(column => column.id === "actions").Cell({ row: { original: record } }).props.onClick();
   const submitting = named(app.render(), "organization-commission-update").props.onSubmit(submitted);
   await named(app.render(), "organization-commission-update").props.onSubmit(submitted);
-  assert.equal(posts.length, 1);
+  assert.equal(posts.length, 1, text(app.render()));
   nodes(app.render(), node => node.type === Modal)[0].props.onHide();
   assert.equal(nodes(app.render(), node => node.type === Modal)[0].props.show, true);
   finish({ status: true });
@@ -301,17 +301,17 @@ test("bulk payment preserves employee/branch/services/type and prevents duplicat
   const selection = table(app.render()).props.column.find(column => column.id === "selection");
   selection.Cell({ row: { original: record } }).props.onChange();
   button(app.render(), "Pay selected commissions").props.onClick();
-  nodes(app.render(), node => node.type === Form.Select)[0].props.onChange({ target: { value: "2" } });
+  nodes(app.render(), node => node.type === Form.Select && node.props.value === "")[0].props.onChange({ target: { value: "2" } });
   nodes(app.render(), node => node.props?.type === "number")[0].props.onChange({ target: { value: "21" } });
   await named(app.render(), "organization-commission-payment").props.onSubmit(submitted);
   assert.equal(posts.length, 0);
   nodes(app.render(), node => node.props?.type === "number")[0].props.onChange({ target: { value: "10" } });
   const submitting = named(app.render(), "organization-commission-payment").props.onSubmit(submitted);
   await named(app.render(), "organization-commission-payment").props.onSubmit(submitted);
-  assert.equal(posts.length, 1);
+  assert.equal(posts.length, 1, text(app.render()));
   assert.match(posts[0][0], /batch\/process-services\?employeeid=8&branchid=3/);
   assert.equal(posts[0][2].recipient_type, "organization");
-  assert.equal(posts[0][2].recipientid, "17");
+  assert.equal(posts[0][2].recipientid, 17);
   assert.equal(posts[0][2].commissionType, "paid");
   assert.equal(posts[0][2].commissionDue, 20);
   assert.equal(posts[0][2].paymentMethod, 2);
@@ -369,7 +369,7 @@ test("untracked services preserve inferred/explicit recipient scope and guard du
     const action = () => table(app.render()).props.column.find(column => column.id === "actions").Cell({ row: { original: record } });
     const submitting = action().props.onClick();
     action().props.onClick();
-    assert.equal(posts.length, 1);
+    assert.equal(posts.length, 1, text(app.render()));
     assert.equal(posts[0][0], "commission-payments/untracked/services");
     assert.equal(posts[0][2].serviceid, 12);
     assert.equal(posts[0][2].recipient_type, props.recipientType || "organization");

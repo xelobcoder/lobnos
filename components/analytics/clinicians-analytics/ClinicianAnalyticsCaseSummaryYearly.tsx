@@ -15,7 +15,7 @@ interface ClinicianAnalyticsCaseSummaryYearlyProps {
     clinicianId: number;
 }
 
-const ClinicianAnalyticsCaseSummaryYearly: React.FC<ClinicianAnalyticsCaseSummaryYearlyProps> = ({ clinicianId }) => {
+const ClinicianAnalyticsCaseSummaryYearly: React.FC<ClinicianAnalyticsCaseSummaryYearlyProps> = ({ clinicianId }: {clinicianId: string | number}) => {
     const [yearlyData, setYearlyData] = useState<YearlyCaseSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

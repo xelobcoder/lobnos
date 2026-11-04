@@ -25,12 +25,12 @@ export default function CampaignCreationPage() {
 	const [error, setError] = useState("");
 	const [success, setSuccess] = useState("");
 
-	const handleChange = (e) => {
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 		const { name, value } = e.target;
 		setForm((prev) => ({ ...prev, [name]: value }));
 	};
 
-	const handleSubmit = async (e) => {
+	const handleSubmit = async (e: { preventDefault: () => void; }) => {
 		e.preventDefault();
         if(lock.current)return;
         if(!form.name.trim()){setError("Enter a campaign name.");return;}

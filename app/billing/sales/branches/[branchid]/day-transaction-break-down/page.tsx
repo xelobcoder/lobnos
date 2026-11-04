@@ -528,7 +528,7 @@ export default function FinancialSummaryPage(
     };
 
     // Aggregate test transactions by test name and category
-    const aggregatedTestTransactions = dailyTestTransactionSnapshot.reduce((acc, test) => {
+    const aggregatedTestTransactions = dailyTestTransactionSnapshot.reduce((acc: Record<string, {test_panel_name: string; serviceCategory: string; total_cost: number; test_count: number; earned_revenue: number; cash_collected: number; total_discount: number; total_outstanding: number; total_refunded: number}>, test: DailyTestTransaction) => {
         const key = test.test_panel_name || 'N/A';
         if (!acc[key]) {
             acc[key] = {
@@ -581,7 +581,7 @@ export default function FinancialSummaryPage(
     const { ultrasoundTests, labTests } = organizeTestData(aggregatedTestData);
 
     const departmentSegregationData = Object.values(
-        dailyTestTransactionSnapshot.reduce((acc: Record<string, DepartmentSegregation>, test) => {
+        dailyTestTransactionSnapshot.reduce((acc: Record<string, DepartmentSegregation>, test: DailyTestTransaction) => {
             const department = test.department?.trim() || test.serviceCategory?.trim() || 'Unknown';
             const testName = test.test_panel_name?.trim() || 'Unknown Service';
 

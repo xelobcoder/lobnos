@@ -89,19 +89,19 @@ export default function UltrasoundTemplatesList() {
 		{
 			Header: 'Created On',
 			accessor: 'createdOn',
-			Cell: ({ value }) => new Date(value).toLocaleString(),
+			Cell: ({ value }: {value: TemplateItem["createdOn"]}) => new Date(value).toLocaleString(),
 		},
 		{
 			Header: 'Visibility',
 			accessor: 'visibletoAll',
-			Cell: ({ value }) => (
+			Cell: ({ value }: {value: TemplateItem["visibletoAll"]}) => (
 				<span className="fw-semibold">{value ? "Visible to all" : "Restricted"}</span>
 			),
 		},
 		{
 			Header: 'Actions',
 			accessor: 'keyid',
-			Cell: ({ value, row }) => (
+			Cell: ({ value, row }: {row: {original: TemplateItem; index: number}; value: TemplateItem["keyid"]}) => (
 				<div className="d-flex align-items-center gap-2">
 					<Link href={`/operations/imaging/ultrasound/templates?isEdit=true&templateid=${value}`} className="underline">
 						Edit

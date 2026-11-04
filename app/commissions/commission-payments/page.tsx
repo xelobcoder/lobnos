@@ -112,7 +112,7 @@ export default function CommissionPaymentsPage() {
           setRecipientType('all');
      };
 
-     const handleSeverSideProcessing = async (pagination: { page: number; count: number, sortby: "ASC" | "DESC" }) => {
+     const handleSeverSideProcessing = async (pagination: { page: number; count: number, sortby?: string }) => {
           try {
                const url = buildCommissionUrl(`&page=${pagination.page}&count=${pagination.count}${pagination.sortby ? `&sortby=${pagination.sortby || 'DESC'}` : ''}`);
                const response = await customFetch(url);

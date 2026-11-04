@@ -293,7 +293,7 @@ export function ControlMaterialFormModal({
                                     styles={reactSelectCustomStyles}
                                     placeholder="Select a test..."
                                     className={errors.testId ? 'is-invalid' : ''}
-                                    value={tests.find(option => option.value === field.value)}
+                                    value={tests.find((option: {value: string | number; label: string}) => option.value === field.value)}
                                     onChange={(option) => field.onChange(option?.value)}
                                 />
                             )}

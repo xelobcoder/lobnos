@@ -336,7 +336,7 @@ export default function SampleStoragePage() {
           {
                Header: 'Type',
                accessor: 'storageType',
-               Cell: ({ value }) => {
+               Cell: ({ value }: {value: SampleStorage["storageType"]}) => {
                     const typeInfo = getAllStorageTypes()[value];
                     return (
                          <span className={`badge bg-${typeInfo?.color || 'secondary'}`}>
@@ -348,7 +348,7 @@ export default function SampleStoragePage() {
           {
                Header: 'Status',
                accessor: 'status',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: SampleStorage["status"]}) => (
                     <span className={`badge bg-${STATUS_BADGES[value].color}`}>
                          {STATUS_BADGES[value].label}
                     </span>
@@ -357,7 +357,7 @@ export default function SampleStoragePage() {
           {
                Header: 'Condition',
                accessor: 'condition',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: SampleStorage["condition"]}) => (
                     <span className={`badge bg-${CONDITION_BADGES[value].color}`}>
                          {CONDITION_BADGES[value].label}
                     </span>
@@ -366,12 +366,12 @@ export default function SampleStoragePage() {
           {
                Header: 'Expiry Date',
                accessor: 'expiryDate',
-               Cell: ({ value }) => new Date(value).toLocaleDateString()
+               Cell: ({ value }: {value: SampleStorage["expiryDate"]}) => new Date(value).toLocaleDateString()
           },
           {
                Header: 'Actions',
                accessor: 'id',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: SampleStorage; index: number}}) => (
                     <div className="d-flex gap-1">
                          <button
                               className="btn btn-sm btn-outline-info"

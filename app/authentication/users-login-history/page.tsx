@@ -9,7 +9,7 @@ import { toast } from 'react-toastify';
 export default function UserPage() {
      const [employeesList, setusers] = useState<any[]>([]);
      const [history, sethistory] = useState<any[]>([]);
-     const [selectedEmployee, setSelectedEmployee] = useState(null);
+     const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
      const [loading, setLoading] = useState(false);
      const { user } = useApplication();
      const employeeid = user?.employeeid;
@@ -68,7 +68,7 @@ export default function UserPage() {
           }
      }, [selectedEmployee])
 
-     const handleEmployeeChange = (e) => {
+     const handleEmployeeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
           setSelectedEmployee(e.target.value);
      }
 

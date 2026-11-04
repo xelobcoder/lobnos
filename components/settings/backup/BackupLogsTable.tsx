@@ -32,12 +32,12 @@ export default function BackupLogsTable({ backupLogs, onDownloadBackup, onDelete
           {
                Header: 'Backup Name',
                accessor: 'backup_name',
-               Cell: ({ row }) => <span className="fw-semibold">{row.original.backup_name}</span>
+               Cell: ({ row }: {row: {original: BackupLog; index: number}}) => <span className="fw-semibold">{row.original.backup_name}</span>
           },
           {
                Header: 'Status',
                accessor: 'is_successful',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: BackupLog; index: number}}) => (
                     <span>
                          {row.original.is_successful ? 'Success' : 'Failed'}
                     </span>
@@ -46,12 +46,12 @@ export default function BackupLogsTable({ backupLogs, onDownloadBackup, onDelete
           {
                Header: 'Type',
                accessor: 'backup_type',
-               Cell: ({ row }) => <span className="text-capitalize">{row.original.backup_type}</span>
+               Cell: ({ row }: {row: {original: BackupLog; index: number}}) => <span className="text-capitalize">{row.original.backup_type}</span>
           },
           {
                Header: 'Mode',
                accessor: 'backup_mode',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: BackupLog; index: number}}) => (
                     <span>
                          {row.original.backup_mode}
                     </span>
@@ -60,24 +60,24 @@ export default function BackupLogsTable({ backupLogs, onDownloadBackup, onDelete
           {
                Header: 'Size',
                accessor: 'backup_size_bytes',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: BackupLog; index: number}}) => (
                     <span>{(row.original.backup_size_bytes / (1024 * 1024)).toFixed(2)} MB</span>
                )
           },
           {
                Header: 'Duration',
                accessor: 'duration_seconds',
-               Cell: ({ row }) => <span>{row.original.duration_seconds}s</span>
+               Cell: ({ row }: {row: {original: BackupLog; index: number}}) => <span>{row.original.duration_seconds}s</span>
           },
           {
                Header: 'Date',
                accessor: 'backup_date',
-               Cell: ({ row }) => <small>{new Date(row.original.backup_date).toLocaleString()}</small>
+               Cell: ({ row }: {row: {original: BackupLog; index: number}}) => <small>{new Date(row.original.backup_date).toLocaleString()}</small>
           },
           {
                Header: 'Actions',
                accessor: 'actions',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: BackupLog; index: number}}) => (
                     <div className="d-flex gap-1">
                          <Button
                               variant="outline-info"

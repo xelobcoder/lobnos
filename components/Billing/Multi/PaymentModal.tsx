@@ -1,8 +1,12 @@
 import React from "react";
 import { Modal, Button } from "react-bootstrap";
-import { MultiBillingData } from "../../../lib/Multi/MultiTypes";
+import { MultiBillingData, TestCartItem, ServicesListItem } from "../../../lib/Multi/MultiTypes";
 import { customPost, customFetch } from '../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
+
+type AllocationState = {paidamount?: number; amountPaid?: number; paymentstatus?: string; status?: string};
+type CheckoutTest = TestCartItem & AllocationState;
+type CheckoutService = ServicesListItem & AllocationState;
 
 interface PaymentModeOption {
      value: string | number;
@@ -96,8 +100,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
      const { applicationsettings } = useApplicationSettings();
      const employeeid = applicationsettings?.user?.employeeid;
 
-     const tests = isValueSynchronized ? (billingdata?.finalCart || []) : (billingdata?.cart || []);
-     const services = isValueSynchronized ? (billingdata?.finalServicesList || []) : (billingdata?.servicesProvided || []);
+     const tests: CheckoutTest[] = isValueSynchronized ? (billingdata?.finalCart || []) : (billingdata?.cart || []);
+     const services: CheckoutService[] = isValueSynchronized ? (billingdata?.finalServicesList || []) : (billingdata?.servicesProvided || []);
 
      const items = [
           ...tests.map(test => ({
@@ -186,13 +190,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           setPayAllError('');
           setIsValueSynchronized(false);
 
-          const resetCart = (billingdata?.finalCart || []).map(item => ({
+          const resetCart = ((billingdata?.finalCart || []) as CheckoutTest[]).map(item => ({
                ...item,
                paidamount: 0,
                paymentstatus: 'pending',
           }));
 
-          const resetServices = (billingdata?.finalServicesList || []).map(item => ({
+          const resetServices = ((billingdata?.finalServicesList || []) as CheckoutService[]).map(item => ({
                ...item,
                paidamount: 0,
                paymentstatus: 'pending',
@@ -280,7 +284,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
      }, [paymentMode, payable, billingdata?.paid]);
 
 
-     const handleBulkPaymentMode = (mode) => {
+     const handleBulkPaymentMode = (mode: string) => {
           setSelectedPayments(payments => payments.map((p, i) => selectedItems[i] ? { ...p, mode } : p));
      };
 
@@ -391,7 +395,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                     };
                });
 
-               const updatedServices = services.map((service) => {
+               const updatedServices = services.map((service: { servicePrice: number; }) => {
                     const originalPrice = service.servicePrice || 0;
                     return {
                          ...service,
@@ -584,7 +588,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
                const actualTotalPayable = hasFreePayment ? 0 :
                     (updatedCart.reduce((sum, test) => sum + (test.totalpayable || 0), 0) +
-                         updatedServices.reduce((sum, service) => service + (service.totalpayable || 0), 0));
+                         updatedServices.reduce((sum, service) => sum + (service.totalpayable || 0), 0));
 
                const newCurrentData = {
                     ...billingdata,
@@ -1193,7 +1197,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                                                                  else if (paid >= item.maxAmount && item.maxAmount > 0) status = 'paid';
                                                                  else if (paid > 0) status = 'partial';
                                                                  return (
-                                                                      <tr key={item.itemType + '-' + item.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                                                      <tr key={item.type + '-' + item.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
                                                                            <td style={{ textAlign: 'center' }}>
                                                                                 <input
                                                                                      type="checkbox"

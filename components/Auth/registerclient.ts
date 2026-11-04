@@ -3,21 +3,21 @@ import { customFetch, customPost } from "./customFetch";
 import moment from 'moment';
 
 // handle mobile number validation
-export const handleMobile = (e, toast) => {
+export const handleMobile = (e: React.ChangeEvent<HTMLInputElement>, toast: Pick<typeof import("react-toastify").toast, "warning" | "error">) => {
 	let value = e.target.value;
 	let length = value.length;
 	if (length > 10) {
 		toast.warning("Maximum of 10 numbers required", { autoClose: 1000 })
 	} else if (length < 10) {
 		toast.warning("Minimum of 10 numbers required", { autoClose: 1000 });
-	} else if (!value.startsWith(0)) {
+	} else if (!value.startsWith("0")) {
 		toast.error("Number must start with 0", { autoClose: 1000 });
 	} else {
 		return;
 	}
 };
 
-export const handleEmail = (e, setValue, data, toast) => {
+export const handleEmail = (e: React.ChangeEvent<HTMLInputElement>, setValue: unknown, data: unknown, toast: Pick<typeof import("react-toastify").toast, "error">) => {
 	let value = e.target.value;
 	const pattern =
 		/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -35,9 +35,9 @@ export const handleEmail = (e, setValue, data, toast) => {
 // if years is 0 and months is 0, then calculate age from days
 
 
-export const handleAge = (y, m, d) => {
+export const handleAge = (y: string, m: string|number, d: string) => {
 	if (y !== "" && m !== "" && d !== "") {
-		const birthDate = moment({ year: y, month: m - 1, day: d });
+		const birthDate = moment({ year: Number(y), month: Number(m) - 1, day: Number(d) });
 		const today = moment();
 		const years = today.diff(birthDate, 'years');
 		const months = today.diff(birthDate, 'months') % 12;
@@ -63,7 +63,7 @@ export const handleAge = (y, m, d) => {
 
 
 
-export const handleAgeCalculations = async (data, setValue) => {
+export const handleAgeCalculations = async (data: {years: string; months: string | number; days: string}, setValue: (field: string, value: string | number) => void) => {
 	const personalParams = { ...data };
 	const { years, months, days } = personalParams;
 	let ageCalculation = handleAge(years, months, days);
@@ -91,17 +91,17 @@ export const handleAgeCalculations = async (data, setValue) => {
 	}
 };
 
-export const fieldValidator = (fieldName, data, fields, value) => {
+export const fieldValidator = (fieldName: string, data: Record<string, unknown>, fields: Record<string, {compulsory?: boolean | number}>, value: unknown) => {
 	const visbiiltyObject = fields[fieldName];
 	if (!visbiiltyObject || typeof visbiiltyObject != "object") return;
 	const { compulsory } = visbiiltyObject;
 	const hasFieldName = data[fieldName];
-	if ((compulsory && !hasFieldName) || (compulsory && !value) || (compulsory && value.toString().length < 1)) return false;
+	if ((compulsory && !hasFieldName) || (compulsory && !value) || (compulsory && String(value).length < 1)) return false;
 	return true;
 }
 
 
-export async function handleActivation(status, patientid, toast, callbackfunction) {
+export async function handleActivation(status: string, patientid: string|number, toast: { success: (arg0: string) => void; error: (arg0: string) => void; }, callbackfunction: () => void) {
 	let confirmation = confirm(`Do you want to ${status == 'FALSE' ? 'Activate' : 'deactivate'} client ?`);
 	if (confirmation) {
 		let action = status == "TRUE" ? "FALSE" : "TRUE";
@@ -126,7 +126,7 @@ export async function handleActivation(status, patientid, toast, callbackfunctio
 
 
 
-export async function ActivationBulk(e, action, callbackfunction) {
+export async function ActivationBulk(e: React.SyntheticEvent, action: string, callbackfunction: () => void) {
 	const status = action == 'TRUE' ? 'activate' : ' deactivate';
 	const confirmation = confirm(`Do you want to ${status} all clients?`);
 	if (confirmation) {

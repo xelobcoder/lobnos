@@ -146,7 +146,7 @@ interface ImageUploadTabProps {
           }
      };
 
-     const handleDeleteImage = async (imageId) => {
+     const handleDeleteImage = async (imageId: number) => {
           try {
                await customPost(`ultrasound/images/${imageId}`, 'DELETE', { employeeid });
                setUploadedImages(prev => prev.filter(img => img.id !== imageId));

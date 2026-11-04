@@ -1,3 +1,4 @@
+import {errorMessage} from '../../../lib/errorMessage';
 import React, { useEffect, useState } from 'react';
 import ClinicianFiltering from '../../accessories/SectorFileringComponents/ClinicianFiltering';
 import { Button } from 'react-bootstrap';
@@ -55,7 +56,7 @@ export default function ApplicableClinicians({ packageid }: ApplicableClinicians
                 toast.error(message || 'Something went wrong, please try again');
             }
         } catch (error) {
-            toast.error(`Error: ${error.message || 'An unexpected error occurred'}`);
+            toast.error(`Error: ${errorMessage(error) || 'An unexpected error occurred'}`);
         } finally {
             setLoading(false);
         }
@@ -71,7 +72,7 @@ export default function ApplicableClinicians({ packageid }: ApplicableClinicians
                     }
                 })
                 .catch((err) => {
-                    toast.error(`Error: ${err.message || 'An unexpected error occurred'}`);
+                    toast.error(`Error: ${errorMessage(err) || 'An unexpected error occurred'}`);
                 })
                 .finally(() => {
                     setLoading(false);

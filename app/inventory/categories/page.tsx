@@ -97,7 +97,7 @@ export default function InventoryCategoriesPage() {
           {
                Header: 'Description',
                accessor: 'description',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: InventoryCategory["description"]}) => (
                     <div style={{ maxWidth: '360px', whiteSpace: 'normal', overflowWrap: 'anywhere' }}>
                          {value}
                     </div>
@@ -106,14 +106,14 @@ export default function InventoryCategoriesPage() {
           {
                Header: 'Items Count',
                accessor: 'itemCount',
-               Cell: ({ value }) => (
+               Cell: ({ value }: {value: InventoryCategory["itemCount"]}) => (
                     <span className="badge bg-primary">{value} items</span>
                )
           },
           {
                Header: 'Actions',
                accessor: 'id',
-               Cell: ({ row }) => (
+               Cell: ({ row }: {row: {original: InventoryCategory; index: number}}) => (
                     <div className="d-flex gap-1">
                          <button
                               className="btn btn-sm btn-outline-info"
