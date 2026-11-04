@@ -437,39 +437,226 @@
     margin: .5rem 0 0;
     overflow-wrap: anywhere;
 }
-.eventDetails {
+.activityTable>thead th:first-child {
+    width: 40%;
+}
+.eventToggle {
+    display: flex;
+    align-items: flex-start;
+    gap: .55rem;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: .15rem 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: start;
     white-space: normal;
-    min-width: 160px;
-}
-.eventDetails summary {
     cursor: pointer;
-    font-weight: 550;
 }
-.eventDetails summary small {
+.eventToggle:focus-visible {
+    outline: 2px solid var(--nhis-accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+.eventToggle svg {
+    flex-shrink: 0;
+    color: var(--nhis-accent);
+    transform: rotate(-90deg);
+}
+.eventToggle[aria-expanded="true"] svg {
+    transform: rotate(0);
+}
+.eventToggle>span {
+    min-width: 0;
+}
+.eventToggle strong {
     display: block;
-    font-size: .68rem;
-    font-weight: 400;
-    color: var(--bs-secondary-color);
-    margin: .25rem 0 0 1rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
 }
-.eventDetails>div {
-    padding: .6rem 0;
-    max-width: 420px;
+.eventToggle small {
+    display: block;
+    margin-top: .2rem;
+    color: var(--bs-secondary-color);
     font-size: .75rem;
 }
-.eventDetails p {
-    margin-bottom: .4rem;
+.mobileLabel {
+    display: none;
+}
+.table tbody .eventDetailRow>td {
+    padding: .1rem 1.1rem 1.1rem;
+}
+.eventPanel {
+    display: grid;
+    gap: 1.1rem;
+    min-width: 0;
+    padding: clamp(1rem,2vw,1.4rem);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 10px;
+    background: var(--accounting-paper);
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+.eventLabel {
+    display: block;
+    margin-bottom: .35rem;
+    color: var(--bs-secondary-color);
+    font-size: .75rem;
+    font-weight: 600;
+}
+.eventReason {
+    margin: 0 0 .45rem;
+    font-size: .95rem;
+    font-weight: 550;
+    white-space: pre-wrap;
+}
+.eventMetadata {
+    margin: 0;
+    color: var(--bs-secondary-color);
+    font-size: .8rem;
+}
+.periodAudit {
+    padding: 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 8px;
+    background: transparent;
+}
+.periodAuditHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.periodAuditHeader h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 650;
+}
+.periodAuditHeader p {
+    margin: .35rem 0 0;
+    color: var(--bs-secondary-color);
+    font-size: .8rem;
+}
+.settlementState {
+    flex-shrink: 0;
+}
+.stateBadge {
+    display: inline-flex;
+    padding: .3rem .6rem;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 600;
+}
+.stateApplied {
+    color: var(--bs-success-text-emphasis,#146c43);
+    background: var(--bs-success-bg-subtle,#d1e7dd);
+}
+.statePartial {
+    color: var(--bs-warning-text-emphasis,#664d03);
+    background: var(--bs-warning-bg-subtle,#fff3cd);
+}
+.stateReversed {
+    color: var(--bs-danger-text-emphasis,#842029);
+    background: var(--bs-danger-bg-subtle,#f8d7da);
+}
+.auditMetrics {
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: .7rem;
+    margin: 1rem 0;
+}
+.auditMetrics>div {
+    min-width: 0;
+    padding: .8rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 7px;
+    background: var(--accounting-paper);
+}
+.auditMetrics dt {
+    color: var(--bs-secondary-color);
+    font-size: .75rem;
+    font-weight: 500;
+}
+.auditMetrics dd {
+    margin: .3rem 0 0;
+    font-size: 1.05rem;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+}
+.auditDecision {
+    display: flex;
+    align-items: baseline;
+    gap: .5rem 1rem;
+    flex-wrap: wrap;
+    font-size: .8rem;
+}
+.auditDecision span {
+    color: var(--bs-secondary-color);
+}
+.auditReason {
+    margin-top: .8rem;
+}
+.auditReason p {
+    margin: 0;
+    font-size: .85rem;
+    white-space: pre-wrap;
+}
+.auditNote {
+    margin: .9rem 0 0;
+    padding-top: .75rem;
+    border-top: 1px solid var(--bs-border-color);
+    color: var(--bs-secondary-color);
+    font-size: .8rem;
+}
+.eventAllocations {
+    min-width: 0;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+.eventSectionHeading {
+    padding: .9rem 1rem;
+}
+.eventSectionHeading h3 {
+    margin: 0;
+    font-size: .95rem;
+    font-weight: 600;
+}
+.eventSectionHeading p {
+    margin: .25rem 0 0;
+    color: var(--bs-secondary-color);
+    font-size: .8rem;
 }
 .allocationDetails {
     width: 100%;
+    table-layout: fixed;
     font-family: inherit;
-    font-size: 1rem;
-    margin-top: .6rem;
+    font-size: .85rem;
     border-collapse: collapse;
 }
-.allocationDetails th,.allocationDetails td {
-    padding: .4rem!important;
-    text-align: left;
+.table .allocationDetails th,.table .allocationDetails td {
+    padding: .7rem 1rem;
+    text-align: start;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+.table .allocationDetails td {
+    font-variant-numeric: tabular-nums;
+}
+.table .allocationDetails tbody tr:last-child td {
+    border-bottom: 0;
+}
+.allocationEmpty {
+    margin: 0;
+    padding: .8rem 1rem;
+    color: var(--bs-secondary-color);
+    font-size: .85rem;
+}
+.eventAllocations .pagination {
+    border-top: 1px solid var(--bs-border-color);
 }
 .loading {
     min-height: 190px;
@@ -641,11 +828,6 @@
     color: var(--nhis-accent);
     cursor: pointer;
     padding: .5rem 0;
-}
-.periodAudit {
-    padding: .6rem 0;
-    border-top: 1px solid var(--bs-border-color);
-    margin-top: .6rem;
 }
 .allocationHeading {
     display: flex;
@@ -819,6 +1001,53 @@
     .periodControls input {
         width: 135px!important;
     }
+    .activityTable,.activityTable>tbody {
+        display: block;
+        width: 100%;
+    }
+    .activityTable>thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0,0,0,0);
+    }
+    .activityTable>tbody>.activityRow {
+        display: grid;
+        grid-template-columns: repeat(2,minmax(0,1fr));
+        gap: .75rem 1rem;
+        padding: .9rem;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+    .activityTable>tbody>.activityRow>td {
+        display: block;
+        min-width: 0;
+        padding: 0;
+        border: 0;
+        white-space: normal;
+    }
+    .activityTable>tbody>.activityRow>td:first-child {
+        grid-column: 1/-1;
+    }
+    .activityTable>tbody>.activityRow>.numeric {
+        text-align: start;
+    }
+    .activityTable>tbody>.eventDetailRow:not([hidden]),.activityTable>tbody>.eventDetailRow>td {
+        display: block;
+    }
+    .table.activityTable>tbody>.eventDetailRow>td {
+        padding: .1rem .8rem 1rem;
+    }
+    .mobileLabel {
+        display: block;
+        margin-bottom: .3rem;
+        color: var(--bs-secondary-color);
+        font-size: .72rem;
+        font-weight: 500;
+    }
+    .auditMetrics {
+        grid-template-columns: repeat(2,minmax(0,1fr));
+    }
     .pagination {
         padding: .8rem .9rem;
     }
@@ -857,10 +1086,16 @@
     .page .summary>div {
         border-inline-end: 0;
     }
+    .auditMetrics {
+        grid-template-columns: minmax(0,1fr);
+    }
 }
 @media(prefers-reduced-motion:no-preference) {
-    .headerActions button,.tabs>button {
+    .headerActions button,.tabs>button,.eventToggle svg {
         transition: background-color .15s,color .15s;
+    }
+    .eventToggle svg {
+        transition: transform .15s;
     }
 }
 @media print {

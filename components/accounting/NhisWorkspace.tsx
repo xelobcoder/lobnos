@@ -2,7 +2,7 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Modal from "react-bootstrap/Modal";
-import { RiAddLine, RiArrowRightLine, RiRefreshLine, RiShieldCheckLine } from "@remixicon/react";
+import { RiAddLine, RiArrowDownSLine, RiArrowRightLine, RiRefreshLine, RiShieldCheckLine } from "@remixicon/react";
 import { useApplication } from "../Auth/useApplicationContext";
 import { currencyFormatter } from "../Auth/customFetch";
 import Loader from "../isLoading";
@@ -146,14 +146,59 @@ function CashReceipts({ report }: { report: ReportState<CashResult> }) {
 function EventAllocations({ event }: { event: NhisEvent }) {
     const fetchAllocations = useCallback((filters: PeriodQuery) => nhisApi.allocations(event.id, filters), [event.id]);
     const report = useReport(fetchAllocations, 0, `event-${event.id}`);
-    return <div>
+    return <section className={styles.eventAllocations} aria-labelledby={`nhis-allocations-${event.id}`}>
+        <div className={styles.eventSectionHeading}>
+            <h3 id={`nhis-allocations-${event.id}`}>Bill allocations</h3>
+            <p>Signed amounts for this event.</p>
+        </div>
         <ReportStatus error={report.error} ready={!!report.data} />
-        {report.data && <div className={styles.tableScroll}><table className={styles.allocationDetails}>
-            <caption className="visually-hidden">Signed allocations for {event.reference}</caption><thead><tr><th>Bill</th><th>Amount</th><th>Tax</th></tr></thead>
-            <tbody>{report.data.rows.map(a => <tr key={a.id}><td>BILL-{a.billingid}</td><td>{money(a.amount)}</td><td>{money(a.tax_amount)}</td></tr>)}</tbody>
-        </table></div>}
-        <Pagination report={report} prefix={`nhis-allocation-${event.id}`} />
-    </div>;
+        {report.data && <>
+            {report.data.rows.length > 0 ? <div className={styles.tableScroll}><table className={styles.allocationDetails}>
+                <caption className="visually-hidden">Signed allocations for {event.reference}</caption>
+                <thead><tr><th scope="col">Bill</th><th scope="col">Amount</th><th scope="col">Tax</th></tr></thead>
+                <tbody>{report.data.rows.map(a => <tr key={a.id}><td>BILL-{a.billingid}</td><td>{money(a.amount)}</td><td>{money(a.tax_amount)}</td></tr>)}</tbody>
+            </table></div> : <p className={styles.allocationEmpty}>No bill allocations found for this event.</p>}
+            <Pagination report={report} prefix={`nhis-allocation-${event.id}`} />
+        </>}
+    </section>;
+}
+function PeriodAudit({ settlement }: { settlement: NonNullable<NhisEvent["periodSettlement"]> }) {
+    const stateLabels = { applied: "Applied", partially_reversed: "Partially reversed", reversed: "Reversed" };
+    const stateStyles = { applied: styles.stateApplied, partially_reversed: styles.statePartial, reversed: styles.stateReversed };
+    const decisions = { pending: "Expected later", appeal: "Under appeal", disputed: "Disputed / awaiting reconciliation", final: "Final unpaid balance" };
+    return <section className={styles.periodAudit} aria-label="Settlement at posting">
+        <div className={styles.periodAuditHeader}>
+            <div>
+                <span className={styles.eventLabel}>Service period</span>
+                <h3>{dateLabel(settlement.from)} – {dateLabel(settlement.to)}</h3>
+                <p>{settlement.billCount.toLocaleString()} eligible {settlement.billCount === 1 ? "bill" : "bills"} · Proportional allocation</p>
+            </div>
+            <div className={styles.settlementState}>
+                <span className={styles.eventLabel}>Settlement status</span>
+                <strong className={`${styles.stateBadge} ${stateStyles[settlement.state]}`}>{stateLabels[settlement.state]}</strong>
+            </div>
+        </div>
+        <dl className={styles.auditMetrics}>
+            <div><dt>Cash received</dt><dd>{money(settlement.received)}</dd></div>
+            <div><dt>Noncash adjustment</dt><dd>{money(settlement.adjusted)}</dd></div>
+            <div><dt>Outstanding after posting</dt><dd>{money(settlement.outstandingAfter)}</dd></div>
+        </dl>
+        <div className={styles.auditDecision}><span>Unpaid decision when recorded</span><strong>{decisions[settlement.remainingDisposition]}</strong></div>
+        {settlement.remainingReason && <div className={styles.auditReason}><span className={styles.eventLabel}>Unpaid balance notes</span><p>{settlement.remainingReason}</p></div>}
+        <p className={styles.auditNote}>These totals describe the original posting, not today&apos;s receivable balance.</p>
+    </section>;
+}
+function EventDetails({ event }: { event: NhisEvent }) {
+    return <>
+        <div className={styles.eventIntro}>
+            <span className={styles.eventLabel}>Recorded reason</span>
+            <p className={styles.eventReason}>{event.reason}</p>
+            <p className={styles.eventMetadata}>Recorded by employee #{event.created_by} · Event #{event.id}
+                {event.reversal_of_event_id && <> · Reverses {eventLabels[event.reverses_kind ?? "receipt"].toLowerCase()} #{event.reversal_of_event_id}</>}</p>
+        </div>
+        {event.periodSettlement && <PeriodAudit settlement={event.periodSettlement} />}
+        <EventAllocations event={event} />
+    </>;
 }
 function Events({ report, authority, onReverse, busy }: { report: ReportState<PageResult<NhisEvent>>; authority: Authority | null; onReverse: (event: NhisEvent) => void; busy: boolean }) {
     const data = report.data;
@@ -163,28 +208,35 @@ function Events({ report, authority, onReverse, busy }: { report: ReportState<Pa
         <div className={styles.reportHeading}><div><h2>Activity</h2><p>Remittances, adjustments and corrections with their bill allocations.</p></div><span className={styles.basis}>Event-date basis</span></div>
         <PeriodControls report={report} prefix="nhis-events" label="Activity period" />
         <ReportStatus error={report.error} ready={!!data} />
-        {data && (data.rows.length > 0 ? <div className={styles.tableScroll}><table className={styles.table}><caption className="visually-hidden">NHIS accounting activity</caption>
+        {data && (data.rows.length > 0 ? <div className={styles.tableScroll}><table className={`${styles.table} ${styles.activityTable}`}><caption className="visually-hidden">NHIS accounting activity</caption>
             <thead><tr><th>Reference / allocations</th><th>Type</th><th>Date</th><th className={styles.numeric}>Amount</th><th><span className="visually-hidden">Correction</span></th></tr></thead>
-            <tbody>{data.rows.map(event => <tr key={event.id}><td><details className={styles.eventDetails} open={expanded.has(event.id)} onToggle={e => {
-                const open = e.currentTarget.open;
-                setExpanded(previous => {
-                    if (previous.has(event.id) === open) return previous;
-                    const next = new Set(previous); if (open) next.add(event.id); else next.delete(event.id); return next;
-                });
-            }}><summary>{event.reference}<small>{event.allocationCount ?? event.allocations.length} bill allocation{(event.allocationCount ?? event.allocations.length) === 1 ? "" : "s"}</small></summary>
-                <div><p>{event.reason}</p><small>Recorded by employee #{event.created_by} · Event #{event.id}</small>
-                    {event.reversal_of_event_id && <p>Reverses {eventLabels[event.reverses_kind ?? "receipt"].toLowerCase()} #{event.reversal_of_event_id}</p>}
-                    {event.periodSettlement && <div className={styles.periodAudit}>
-                        <strong>Service period: {dateLabel(event.periodSettlement.from)} – {dateLabel(event.periodSettlement.to)}</strong>
-                        <p>{event.periodSettlement.billCount.toLocaleString()} eligible bills · Proportional allocation</p>
-                        <p>Cash received: {money(event.periodSettlement.received)} · Noncash adjustment: {money(event.periodSettlement.adjusted)}</p>
-                        <p>Unpaid decision when recorded: {event.periodSettlement.remainingDisposition}. Outstanding after posting: {money(event.periodSettlement.outstandingAfter)}.</p>
-                        {event.periodSettlement.remainingReason && <p>{event.periodSettlement.remainingReason}</p>}
-                    </div>}
-                    {expanded.has(event.id) && <EventAllocations event={event} />}
-                </div></details></td><td><span className={event.kind === "receipt" ? styles.receiptBadge : styles.basis}>{eventLabels[event.kind]}</span></td>
-                <td className={styles.dateCell}>{dateLabel(event.event_date)}</td><td className={styles.numeric}>{money(event.kind === "reversal" ? -Math.abs(Number(event.amount)) : event.amount)}</td>
-                <td>{reversedIds.has(event.id) ? <span className={styles.basis}>Reversed</span> : canAct(authority, "reversal") && event.kind !== "reversal" && <button type="button" className={styles.dangerButton} disabled={busy} onClick={() => onReverse(event)} aria-label={`Reverse ${event.reference}`}>Reverse</button>}</td></tr>)}</tbody>
+            <tbody>{data.rows.map(event => {
+                const isExpanded = expanded.has(event.id);
+                const isReversed = reversedIds.has(event.id) || event.periodSettlement?.state === "reversed";
+                const canReverse = canAct(authority, "reversal") && event.kind !== "reversal";
+                const allocationCount = event.allocationCount ?? event.allocations.length;
+                return <Fragment key={event.id}>
+                    <tr className={styles.activityRow}>
+                        <td><button id={`nhis-event-${event.id}-toggle`} type="button" className={styles.eventToggle}
+                            aria-expanded={isExpanded} aria-controls={`nhis-event-${event.id}-details`} onClick={() => setExpanded(previous => {
+                                const next = new Set(previous); if (next.has(event.id)) next.delete(event.id); else next.add(event.id); return next;
+                            })}>
+                            <RiArrowDownSLine size={19} aria-hidden="true" />
+                            <span><strong>{event.reference}</strong><small>{allocationCount.toLocaleString()} bill allocation{allocationCount === 1 ? "" : "s"}</small></span>
+                        </button></td>
+                        <td><span className={styles.mobileLabel}>Type</span><span className={event.kind === "receipt" ? styles.receiptBadge : styles.basis}>{eventLabels[event.kind]}</span></td>
+                        <td className={styles.dateCell}><span className={styles.mobileLabel}>Date</span>{dateLabel(event.event_date)}</td>
+                        <td className={styles.numeric}><span className={styles.mobileLabel}>Amount</span>{money(event.kind === "reversal" ? -Math.abs(Number(event.amount)) : event.amount)}</td>
+                        <td>{(isReversed || canReverse) && <span className={styles.mobileLabel}>Correction</span>}
+                            {isReversed ? <span className={styles.basis}>Reversed</span> : canReverse && <button type="button" className={styles.dangerButton} disabled={busy} onClick={() => onReverse(event)} aria-label={`Reverse ${event.reference}`}>{event.periodSettlement ? "Reverse period" : "Reverse"}</button>}</td>
+                    </tr>
+                    <tr className={`${styles.detailRow} ${styles.eventDetailRow}`} hidden={!isExpanded}>
+                        <td colSpan={5}><div id={`nhis-event-${event.id}-details`} className={styles.eventPanel} role="region" aria-labelledby={`nhis-event-${event.id}-toggle`}>
+                            {isExpanded && <EventDetails event={event} />}
+                        </div></td>
+                    </tr>
+                </Fragment>;
+            })}</tbody>
         </table></div> : <EmptyState title="No activity in this period" text="Recorded remittances and adjustments will appear here." />)}
         <Pagination report={report} prefix="nhis-events" />
     </>;
@@ -245,7 +297,8 @@ export default function NhisWorkspace() {
         if (result) {
             const balance = result.settlement.outstandingAfter;
             const disposition = { pending: "expected later", appeal: "under appeal", disputed: "disputed", final: "final adjustment" }[result.settlement.remainingDisposition];
-            setNotice(`${entry === "receipt" ? "Period remittance" : "Period adjustment"} recorded for ${result.settlement.billCount.toLocaleString()} NHIS bills. ${cents(balance) > 0 ? `${money(balance)} remains receivable (${disposition}).` : "The service-period receivable balance is settled."}`);
+            setNotice(result.settlement.state !== "applied" ? `Previously recorded settlement confirmed; it has since been ${result.settlement.state.replaceAll("_", " ")}. Review the refreshed current receivable balances.` :
+                `${entry === "receipt" ? "Period remittance" : "Period adjustment"} recorded for ${result.settlement.billCount.toLocaleString()} NHIS bills. ${cents(balance) > 0 ? `${money(balance)} remains receivable (${disposition}).` : "The service-period receivable balance is settled."}`);
         } else setNotice(entry === "receipt" ? "Remittance recorded. Balances and activity have been updated." : "Balance adjustment recorded. No cash receipt was created.");
         setEntry(null); refreshReports();
     };

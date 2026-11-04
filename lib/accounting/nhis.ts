@@ -27,7 +27,7 @@ export interface NhisEvent {
     reference: string; reason: string; event_date: string; amount: Money; created_by: number | string;
     allocations: Array<{ id: number; event_id: number; billingid: number; amount: Money; tax_amount: Money }>;
     allocationCount?: number;
-    periodSettlement?: PeriodSettlementRecord;
+    periodSettlement?: PeriodSettlementRecord | null;
 }
 export interface PeriodQuery { from: string; to: string; page: number; count: number }
 export function periodQuery(filters: PeriodQuery): string {
@@ -91,7 +91,7 @@ export interface PeriodPreviewInput {
 export interface PeriodSettlementPreview {
     from: string; to: string; billCount: number; eligibleOutstanding: Money; received: Money;
     remaining: Money; adjusted: Money; outstandingAfter: Money; allocationMethod: "proportional";
-    snapshotToken: string; excludedMixedBillCount: number;
+    snapshotToken: string; excludedMixedBillCount: number; excludedMissingAccrualBillCount?: number;
     allocationSample: Array<{ billingId: number; reference: string; outstanding: Money; received: Money; remaining: Money }>;
 }
 export interface PeriodSettlementPayload extends PeriodPreviewInput {
@@ -100,9 +100,11 @@ export interface PeriodSettlementPayload extends PeriodPreviewInput {
     adjustmentReference?: string; adjustmentReason?: string;
 }
 export interface PeriodSettlementRecord {
-    id: string | number; from: string; to: string; billCount: number; remainingDisposition: RemainingDisposition;
+    id: number; from: string; to: string; billCount: number; remainingDisposition: RemainingDisposition;
     received: Money; remaining: Money; adjusted: Money; outstandingAfter: Money;
     remainingReason?: string; adjustmentKind?: "revenue_adjustment" | "write_off";
+    state: "applied" | "partially_reversed" | "reversed";
+    reversalEventIds?: number[]; totalsBasis?: "at_posting_not_current_balance";
 }
 export interface PeriodSettlementResult {
     receiptEvent: NhisEvent | null; adjustmentEvent?: NhisEvent | null;

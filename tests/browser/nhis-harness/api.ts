@@ -21,6 +21,32 @@ if (query.has("bulk")) {
     })));
     events = [];
 }
+if (query.has("audit")) {
+    const many = query.has("many");
+    const state = query.get("auditState");
+    const received = many ? "27.00" : "60.00";
+    events.push({
+        id: 2, kind: "receipt", reference: "SYNTH-PERIOD-8477", reason: `Synthetic audit note: ${"J".repeat(180)}`,
+        event_date: "2026-02-10", amount: received, created_by: 1,
+        periodSettlement: {
+            id: 2, from: "2026-01-01", to: "2026-01-31", billCount: many ? 27 : 2, remainingDisposition: "final",
+            received, remaining: "24.90", adjusted: "24.90", outstandingAfter: "0.00", remainingReason: "Synthetic approved adjustment",
+            state: state === "reversed" || state === "partially_reversed" ? state : "applied", totalsBasis: "at_posting_not_current_balance",
+        },
+        allocations: Array.from({ length: many ? 27 : 2 }, (_, index) => ({
+            id: 200 + index, event_id: 2, billingid: 65 + index, amount: many ? "1.00" : "30.00", tax_amount: "0.00",
+        })),
+    }, {
+        id: 3, kind: "reversal", reverses_kind: "receipt", reversal_of_event_id: 1, reference: "SYNTH-REVERSAL",
+        reason: "Synthetic correction", event_date: "2026-02-10", amount: "-500000.00", created_by: 9,
+        allocations: [{ id: 301, event_id: 3, billingid: 101, amount: "-300000.00", tax_amount: "0.00" },
+            { id: 302, event_id: 3, billingid: 102, amount: "-200000.00", tax_amount: "0.00" }],
+    });
+    if (query.has("empty")) events.push({
+        id: 4, kind: "receipt", reference: "SYNTH-EMPTY", reason: "Synthetic empty history", event_date: "2026-02-10",
+        amount: "0.00", created_by: 9, allocations: [],
+    });
+}
 const controls = { calls, failNext: false, loseNextResponse: false, reportError: query.has("reportError"), authorityError: query.has("authorityError") };
 declare global { interface Window { nhisFixture: typeof controls } }
 window.nhisFixture = controls;
@@ -47,7 +73,7 @@ function bills() {
     });
 }
 async function preview(input: PeriodPreviewInput) {
-    periodPreviewPayload({ ...input, reference: "", reason: "", remainingReason: "", adjustmentReference: "", adjustmentReason: "", adjustmentKind: input.adjustmentKind || "", paymentAccountCode: "acc-1001" });
+    input = periodPreviewPayload({ ...input, reference: "", reason: "", remainingReason: "", adjustmentReference: "", adjustmentReason: "", adjustmentKind: input.adjustmentKind || "", paymentAccountCode: "acc-1001" });
     const rows = bills().filter(bill => bill.serviceDate >= input.from && bill.serviceDate <= input.to && cents(bill.outstanding) > 0);
     const total = cents(sumMoney(rows.map(bill => bill.outstanding))), received = cents(input.amount);
     if (!total || received > total) throw new Error("NHIS_PERIOD_BALANCE_EXCEEDED: No eligible balance, or amount exceeds outstanding");
@@ -66,7 +92,7 @@ async function preview(input: PeriodPreviewInput) {
         remaining: decimal(total - received), adjusted: input.remainingDisposition === "final" ? decimal(total - received) : "0.00",
         outstandingAfter: input.remainingDisposition === "final" ? "0.00" : decimal(total - received), allocationMethod: "proportional",
         snapshotToken: `fixture-${Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2, "0")).join("")}`,
-        excludedMixedBillCount: query.has("warnings") ? 1 : 0,
+        excludedMixedBillCount: query.has("warnings") ? 1 : 0, excludedMissingAccrualBillCount: 0,
         allocationSample: allocated.slice(0, 20).map(row => ({ billingId: row.bill.billingId, reference: row.bill.reference, outstanding: row.bill.outstanding, received: decimal(row.received), remaining: decimal(cents(row.bill.outstanding) - row.received) })),
     };
     return { result, allocated };
@@ -130,12 +156,12 @@ export async function customPost(endpoint: string, method: string, payload: Entr
             if (endpoint !== "accounting/nhis/period-settlements") throw new Error("Unknown period endpoint");
             const core: PeriodPreviewInput = { from: payload.from, to: payload.to, amount: payload.amount, date: payload.date, remainingDisposition: payload.remainingDisposition, ...(payload.adjustmentKind ? { adjustmentKind: payload.adjustmentKind } : {}) };
             const { result: reviewed, allocated } = await preview(core);
-            if (payload.snapshotToken !== reviewed.snapshotToken) throw new Error("NHIS_STALE_PERIOD_PREVIEW: Balances changed; preview again");
+            if (payload.snapshotToken !== reviewed.snapshotToken) return failure("Balances changed; preview again", "NHIS_SNAPSHOT_STALE");
             const validated = periodSettlementPayload({ ...payload, reference: payload.reference, reason: payload.reason, remainingReason: payload.remainingReason || "", adjustmentReference: payload.adjustmentReference || "", adjustmentReason: payload.adjustmentReason || "", adjustmentKind: payload.adjustmentKind || "", paymentAccountCode: payload.paymentAccountCode || "acc-1001" }, reviewed, true);
             if (Object.keys(payload).sort().join() !== [...Object.keys(validated), "requestKey"].sort().join()) throw new Error("Strict period schema rejected");
             if (cents(payload.amount) > 0 && !permitted(nhisPermissions.receipt)) throw new Error("Posting authority denied");
             if (cents(reviewed.adjusted) > 0 && !permitted(nhisPermissions.write_off)) throw new Error("Approval authority denied");
-            const settlement: PeriodSettlementResult["settlement"] = { id: events.length + 1, from: payload.from, to: payload.to, billCount: reviewed.billCount, received: reviewed.received, remaining: reviewed.remaining, adjusted: reviewed.adjusted, outstandingAfter: reviewed.outstandingAfter, remainingDisposition: payload.remainingDisposition, remainingReason: payload.remainingReason, adjustmentKind: payload.adjustmentKind };
+            const settlement: PeriodSettlementResult["settlement"] = { id: events.length + 1, from: payload.from, to: payload.to, billCount: reviewed.billCount, received: reviewed.received, remaining: reviewed.remaining, adjusted: reviewed.adjusted, outstandingAfter: reviewed.outstandingAfter, remainingDisposition: payload.remainingDisposition, remainingReason: payload.remainingReason, adjustmentKind: payload.adjustmentKind, state: "applied", reversalEventIds: [], totalsBasis: "at_posting_not_current_balance" };
             const makeEvent = (kind: "receipt" | "revenue_adjustment" | "write_off", id: number, reference: string, reason: string): NhisEvent => ({
                 id, kind, reference, reason, event_date: payload.date, created_by: 9, amount: kind === "receipt" ? reviewed.received : reviewed.adjusted, periodSettlement: settlement,
                 allocations: allocated.map((row, index) => ({ id: id * 10000 + index, event_id: id, billingid: row.bill.billingId, amount: decimal(kind === "receipt" ? row.received : cents(row.bill.outstanding) - row.received), tax_amount: "0.00" })).filter(row => cents(row.amount) > 0),
@@ -151,6 +177,22 @@ export async function customPost(endpoint: string, method: string, payload: Entr
             if (controls.loseNextResponse) { controls.loseNextResponse = false; throw new Error("Synthetic interrupted response AFTER application; retry unchanged"); }
             return success(result, 201);
         }
+        const periodReversal = /^accounting\/nhis\/period-settlements\/(\d+)\/reversal$/.exec(endpoint);
+        if (periodReversal) {
+            if (!permitted(nhisPermissions.reversal)) throw new Error("Reversal authority denied");
+            const originals = events.filter(event => event.periodSettlement?.id === Number(periodReversal[1]) && event.kind !== "reversal");
+            if (!originals.length || originals.some(event => event.periodSettlement?.state === "reversed")) throw new Error("Settlement already reversed or missing");
+            reversalPayload(payload.reference, payload.reason, payload.date, originals[0].event_date, true);
+            const reversed = originals.map((original, index): NhisEvent => {
+                const id = events.length + index + 1;
+                return { ...original, id, kind: "reversal", reverses_kind: original.kind, reversal_of_event_id: original.id, reference: `${payload.reference}-${original.kind}`, reason: payload.reason, event_date: payload.date, amount: decimal(-cents(original.amount)), allocations: original.allocations.map((row, i) => ({ ...row, id: id * 10000 + i, event_id: id, amount: decimal(-cents(row.amount)), tax_amount: decimal(-cents(row.tax_amount)) })) };
+            });
+            for (const original of originals) { original.periodSettlement!.state = "reversed"; original.periodSettlement!.reversalEventIds = reversed.map(event => event.id); }
+            events = [...events, ...reversed];
+            const result = { settlement: originals[0].periodSettlement, reversalEvents: reversed.map(event => ({ ...event, allocations: [], allocationCount: event.allocations.length })) };
+            requests.set(payload.requestKey, { fingerprint, result });
+            return success(result, 201);
+        }
         const reversal = /^accounting\/nhis\/events\/(\d+)\/reversal$/.exec(endpoint);
         let event: NhisEvent;
         const id = events.length + 1;
@@ -159,6 +201,7 @@ export async function customPost(endpoint: string, method: string, payload: Entr
             if (Object.keys(payload).sort().join() !== ["requestKey", "reference", "reason", "date"].sort().join()) throw new Error("Strict reversal schema rejected");
             const original = events.find(e => e.id === Number(reversal[1]));
             if (!original || original.kind === "reversal" || events.some(e => e.reversal_of_event_id === original.id)) throw new Error("Event is already reversed or not reversible");
+            if (original.periodSettlement) throw new Error("Reverse the linked period settlement instead");
             reversalPayload(payload.reference, payload.reason, payload.date, original.event_date, true);
             event = { id, kind: "reversal", reverses_kind: original.kind, reversal_of_event_id: original.id, reference: payload.reference, reason: payload.reason, event_date: payload.date,
                 amount: decimal(-cents(original.amount)), created_by: 9, allocations: original.allocations.map((a, i) => ({ ...a, id: id * 100 + i, event_id: id, amount: decimal(-cents(a.amount)), tax_amount: decimal(-cents(a.tax_amount)) })) };

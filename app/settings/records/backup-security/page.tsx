@@ -14,6 +14,7 @@ type EncryptionAlgorithm = 'AES-128' | 'AES-256' | 'ChaCha20';
 interface BackupSecuritySettingsResponse {
      id: number;
      encryption_enabled: boolean;
+     encryption_required?: boolean;
      encryption_algorithm: string;
      encryption_password?: string | null;
      key_rotation_days: number;
@@ -65,6 +66,7 @@ export default function BackupSecurityPage() {
 
      // State variables
      const [encryptionEnabled, setEncryptionEnabled] = useState(true);
+     const [encryptionRequired, setEncryptionRequired] = useState(false);
      const [encryptionAlgorithm, setEncryptionAlgorithm] = useState<EncryptionAlgorithm>('AES-256');
      const [encryptionPassword, setEncryptionPassword] = useState('');
      const [confirmPassword, setConfirmPassword] = useState('');
@@ -105,7 +107,7 @@ export default function BackupSecurityPage() {
      const validateForm = () => {
           const nextErrors: ValidationErrors = {};
 
-          if (encryptionEnabled) {
+          if (encryptionEnabled && (!encryptionRequired || encryptionPassword.trim() || confirmPassword.trim())) {
                if (!encryptionPassword.trim()) {
                     nextErrors.encryption_password = 'Encryption password is required when encryption is enabled';
                } else if (encryptionPassword.length < 8) {
@@ -163,9 +165,14 @@ export default function BackupSecurityPage() {
           try {
                setLoading(true);
                const response = await customFetch(`security-features/backup/security-settings`);
+               if (response.status && response.encryption_required) {
+                    setEncryptionRequired(true);
+                    setEncryptionEnabled(true);
+               }
                if (response.status && response.data) {
                     const settings = response.data as BackupSecuritySettingsResponse;
-                    setEncryptionEnabled(settings.encryption_enabled);
+                    setEncryptionEnabled(Boolean(settings.encryption_required || settings.encryption_enabled));
+                    setEncryptionRequired(Boolean(settings.encryption_required));
                     setEncryptionAlgorithm(normalizeEncryptionAlgorithm(settings.encryption_algorithm));
                     setEncryptionPassword(settings.encryption_password || '');
                     setConfirmPassword(settings.encryption_password || '');
@@ -319,10 +326,11 @@ export default function BackupSecurityPage() {
                                                        id="encryption-enabled"
                                                        label="Enable Backup Encryption"
                                                        checked={encryptionEnabled}
+                                                       disabled={encryptionRequired}
                                                        onChange={(e) => setEncryptionEnabled(e.target.checked)}
                                                   />
                                                   <Form.Text className="text-muted">
-                                                       Encrypt all backup files to protect sensitive medical data
+                                                       {encryptionRequired ? 'Encryption is required by the server. Keys are managed securely on the host. A settings password is optional.' : 'Encrypt all backup files to protect sensitive medical data'}
                                                   </Form.Text>
                                              </Form.Group>
 
@@ -332,14 +340,8 @@ export default function BackupSecurityPage() {
                                                             <Col md={6}>
                                                                  <Form.Group>
                                                                       <Form.Label>Encryption Algorithm</Form.Label>
-                                                                      <Form.Select
-                                                                           value={encryptionAlgorithm}
-                                                                           onChange={(e) => setEncryptionAlgorithm(e.target.value as EncryptionAlgorithm)}
-                                                                      >
-                                                                           <option value="AES-128">AES-128 (Fast)</option>
-                                                                           <option value="AES-256">AES-256 (Secure)</option>
-                                                                           <option value="ChaCha20">ChaCha20 (Modern)</option>
-                                                                      </Form.Select>
+                                                                      <Form.Control value="AES-256-GCM" readOnly />
+                                                                      <Form.Text>Authenticated encryption for new backups. Existing backups remain readable.</Form.Text>
                                                                  </Form.Group>
                                                             </Col>
                                                             <Col md={6}>

@@ -50,3 +50,29 @@ test('local HTTP backend requires an explicit loopback exception under encryptio
     assert.equal(target('patients', 'http://127.0.0.1:5000/api/v1/').hostname, '127.0.0.1');
     assert.throws(() => target('patients', 'http://backend.example.test/api/v1/'), /requires HTTPS/);
 });
+
+test('encrypted backend transport rejects a global certificate-verification bypass', async () => {
+    const f = fixture({ env: { HTTPS_REQUIRED: 'true', NODE_TLS_REJECT_UNAUTHORIZED: '0' } });
+    await assert.rejects(() => f.load('lib/serverBackendRequest.ts').serverBackendRequest('patients'), /verification must remain enabled/);
+    assert.equal(f.calls.length, 0);
+});
+
+test('dedicated logout rejects plaintext upstream transport and retains the session for a safe retry', async () => {
+    const f = fixture({ env: { HTTPS_REQUIRED: 'true', PRODUCTION_BASEURL: 'http://backend.example.test/api/v1/' } });
+    const result = await f.load('app/api/auth/logout/route.ts').POST(f.request);
+    assert.equal(result.status, 502);
+    assert.equal(f.calls.length, 0);
+    assert.equal(f.deleted.length, 0);
+});
+
+for (const file of [
+    'app/api/auth/login/route.ts', 'app/api/auth/logout/route.ts', 'app/api/auth/context-retrieval/route.ts',
+    'app/api/auth/switch-role/route.ts', 'app/api/auth/refresh-role-session/route.ts',
+    'app/api/billing/verify-auth-code/route.ts', 'app/api/organization-logo/route.ts',
+]) {
+    test('dedicated upstream transport validates encryption before fetch in ' + file, () => {
+        const source = fs.readFileSync(path.join(root, file), 'utf8');
+        assert.ok(source.indexOf('assertBackendTransport(', source.indexOf('export')) < source.indexOf('await fetch('));
+        assert.match(source, /assertBackendTransport\((url|validationUrl)\)/);
+    });
+}

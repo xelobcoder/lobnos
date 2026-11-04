@@ -171,7 +171,7 @@ test('general receivables API passes payer filter, dates and server pagination u
         const forms = compile('components/accounting/NhisForms.tsx', {
             react: hooks, 'react-dom': { useFormStatus: () => ({ pending: false }) },
             '../Auth/customFetch': { currencyFormatter: new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS' }) },
-            '../../lib/accounting/nhis': helpers, '../../lib/accounting/nhisApi': { nhisApi: { entry: post, reverse: post, ...periodApi } },
+            '../../lib/accounting/nhis': helpers, '../../lib/accounting/nhisApi': { nhisApi: { entry: post, reverse: post, reversePeriod: post, ...periodApi } },
             '../Auth/useApplicationContext': { useApplication: () => ({ branchid: 4, user: { employeeid: 9 } }) },
             '../../lib/billing/submissionIdentity': identities,
             './NhisWorkspace.module.css': {},
@@ -187,12 +187,12 @@ test('general receivables API passes payer filter, dates and server pagination u
         from: '2026-01-01', to: '2026-01-31', billCount: 5000, eligibleOutstanding: '800000.00', received: amount,
         remaining: helpers.sumMoney(['800000.00', helpers.decimal(-helpers.cents(amount))]), adjusted: disposition === 'final' ? helpers.sumMoney(['800000.00', helpers.decimal(-helpers.cents(amount))]) : '0.00',
         outstandingAfter: disposition === 'final' ? '0.00' : helpers.sumMoney(['800000.00', helpers.decimal(-helpers.cents(amount))]),
-        allocationMethod: 'proportional', snapshotToken: 'reviewed-snapshot-000001', excludedMixedBillCount: 2,
+        allocationMethod: 'proportional', snapshotToken: 'reviewed-snapshot-000001', excludedMixedBillCount: 2, excludedMissingAccrualBillCount: 0,
         allocationSample: [{ billingId: 1, reference: 'BILL-1', outstanding: '160.00', received: amount === '0.00' ? '0.00' : '120.00', remaining: amount === '0.00' ? '160.00' : '40.00' }],
     });
     const periodResult = (disposition = 'pending', amount = '600000.00') => ({
-        receiptEvent: amount === '0.00' ? null : { id: 10 }, adjustmentEvent: disposition === 'final' ? { id: 11 } : null,
-        settlement: { id: 1, ...periodPreview(disposition, amount), remainingDisposition: disposition },
+        receiptEvent: amount === '0.00' ? null : { id: 10, kind: 'receipt', amount }, adjustmentEvent: disposition === 'final' ? { id: 11, kind: 'write_off', amount: helpers.sumMoney(['800000.00', helpers.decimal(-helpers.cents(amount))]) } : null,
+        settlement: { id: 1, ...periodPreview(disposition, amount), remainingDisposition: disposition, state: 'applied' },
     });
     const intent = value => ({ get: key => key === 'intent' ? value : null });
     test('period payload covers all 5000 bills without client allocations and leaves pending/appealed debt outstanding', () => {
@@ -242,6 +242,41 @@ test('general receivables API passes payer filter, dates and server pagination u
         invalid = true;
         await assert.rejects(api.previewPeriod(helpers.periodPreviewPayload(periodDraft())), /totals do not reconcile/);
     });
+    test('activity allocations are paged on demand and linked period reversal rejects success-shaped failures', async () => {
+        const calls = [];
+        let invalid = false;
+        const api = compile('lib/accounting/nhisApi.ts', {
+            './nhis': helpers, '../../components/Auth/customFetch': {
+                customFetch: async endpoint => {
+                    calls.push(endpoint);
+                    return { status: 'success', statusCode: 200, result: { rows: [{ id: 1, event_id: 10, billingid: 101, amount: '120.00', tax_amount: '0.00' }], total: 5000, page: 2, count: 25 } };
+                },
+                customPost: async endpoint => {
+                    calls.push(endpoint);
+                    return { status: 'success', statusCode: 201, result: { ...periodResult(), settlement: { ...periodResult().settlement, state: invalid ? 'applied' : 'reversed' }, reversalEvents: [{ kind: 'reversal', amount: '-600000.00' }] } };
+                },
+            },
+        }).nhisApi;
+        const allocations = await api.allocations(10, { page: 2, count: 25 });
+        assert.equal(allocations.total, 5000); assert.equal(allocations.rows.length, 1);
+        await api.reversePeriod(1, { requestKey: 'period-reversal-key-001', reference: 'REV-PERIOD', reason: 'Correct the full settlement', date: helpers.today() });
+        assert.deepEqual(calls, ['accounting/nhis/events/10/allocations?page=2&count=25', 'accounting/nhis/period-settlements/1/reversal']);
+        invalid = true;
+        await assert.rejects(api.reversePeriod(1, {}), /did not confirm/);
+    });
+    test('period reversal Action uses the paired endpoint instead of reversing only the selected receipt', async () => {
+        const calls = [];
+        const harness = formHarness(async () => assert.fail('Individual reversal must not be used'), undefined, {
+            reversePeriod: async (...args) => { calls.push(plain(args)); return {}; },
+        });
+        const props = { authority: fullAuthority, event: { id: 10, kind: 'receipt', reference: 'PERIOD-001', event_date: '2026-02-01', amount: '600000.00', periodSettlement: periodResult('final').settlement }, onSuccess() {}, onCancel() {} };
+        harness.render('NhisReversalForm', props);
+        Object.assign(harness.slots, { 0: 'REV-PERIOD', 1: 'Correct all linked settlement entries', 2: helpers.today(), 3: true });
+        harness.render('NhisReversalForm', props);
+        await harness.submit();
+        assert.equal(calls.length, 1); assert.equal(calls[0][0], 1);
+        assert.equal(calls[0][1].reason, 'Correct all linked settlement entries');
+    });
     test('period Action requires fresh review and confirmation, retains snapshot/key on uncertain retry, and never posts during preview', async () => {
         const posts = [];
         let previews = 0, successes = 0;
@@ -277,6 +312,22 @@ test('general receivables API passes payer filter, dates and server pagination u
         harness.slots[0] = { ...periodDraft(), remainingDisposition: 'final', adjustmentKind: 'write_off' };
         harness.render('NhisPeriodRemittanceForm', { ...props, authority: receiptOnly });
         assert.match((await harness.submit(intent('preview'))).error, /approval authority/);
+    });
+    test('a definitive stale snapshot clears confirmation and permits a fresh preview without uncertain-outcome acknowledgement', async () => {
+        let previews = 0;
+        const harness = formHarness(async () => assert.fail('Manual endpoint must not be used'), undefined, {
+            previewPeriod: async () => ({ ...periodPreview(), snapshotToken: `snapshot-${++previews}` }),
+            settlePeriod: async () => { throw new Error('NHIS_SNAPSHOT_STALE: cohort balances changed'); },
+        });
+        const props = { authority: fullAuthority, from: '2026-01-01', to: '2026-01-31', onCancel() {}, onSuccess() {} };
+        harness.render('NhisPeriodRemittanceForm', props); harness.slots[0] = periodDraft(); harness.render('NhisPeriodRemittanceForm', props);
+        await harness.submit(intent('preview'));
+        harness.slots[2] = true; harness.render('NhisPeriodRemittanceForm', props);
+        const state = await harness.submit(intent('post'));
+        assert.match(state.error, /NHIS_SNAPSHOT_STALE/); assert.equal(state.unresolved, false); assert.equal(state.preview, undefined);
+        assert.equal(harness.slots[2], false);
+        await harness.submit(intent('preview'));
+        assert.equal(previews, 2);
     });
     test('production remittance Action retries identical key after backend error, refreshes only on confirmed success and guards stale duplicate callback', async () => {
         const calls = [];

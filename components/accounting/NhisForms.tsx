@@ -27,16 +27,17 @@ function RetryWarning({ checked, onChange }: { checked: boolean; onChange: (valu
         <a href="/accounting/nhis" target="_blank" rel="noopener noreferrer">Open NHIS workspace to review Activity</a>
     </div>;
 }
-function Fields({ prefix, reference, reason, date, setReference, setReason, setDate }: {
+function Fields({ prefix, reference, reason, date, setReference, setReason, setDate, dateLocked = false }: {
     prefix: string; reference: string; reason: string; date: string;
+    dateLocked?: boolean;
     setReference: (value: string) => void; setReason: (value: string) => void; setDate: (value: string) => void;
 }) {
     return <div className="row g-3 mb-3">
         <div className="col-md-6"><label className="form-label" htmlFor={`${prefix}-reference`}>Remittance / approval reference</label>
             <input id={`${prefix}-reference`} name="reference" className="form-control" required maxLength={120} placeholder="e.g. NHIA-2026-0042" value={reference} onChange={e => setReference(e.target.value)} />
             <small className={styles.fieldHint}>Use the unique reference on the remittance or approval.</small></div>
-        <div className="col-md-6"><label className="form-label" htmlFor={`${prefix}-date`}>Posting date</label>
-            <input id={`${prefix}-date`} name="date" type="date" className="form-control" required max={today()} value={date} onChange={e => setDate(e.target.value)} /></div>
+        <div className="col-md-6"><label className="form-label" htmlFor={`${prefix}-date`}>{dateLocked ? "Posting date (today UTC)" : "Posting date"}</label>
+            <input id={`${prefix}-date`} name="date" type="date" className="form-control" required readOnly={dateLocked} max={dateLocked ? date : today()} value={date} onChange={e => setDate(e.target.value)} /></div>
         <div className="col-12"><label className="form-label" htmlFor={`${prefix}-reason`}>Reason / remittance details</label>
             <textarea id={`${prefix}-reason`} name="reason" className="form-control" required maxLength={1000} rows={2} placeholder="Add the remittance details or approval reason" value={reason} onChange={e => setReason(e.target.value)} /></div>
     </div>;
@@ -47,7 +48,7 @@ export function NhisPeriodRemittanceForm({ authority, from, to, adjustmentOnly =
 } & MutationLock) {
     const application = useApplication();
     const [draft, setDraft] = useState<PeriodSettlementDraft>(() => ({
-        from, to, amount: adjustmentOnly ? "0.00" : "", date: today(), reference: "", reason: "",
+        from, to, amount: adjustmentOnly ? "0.00" : "", date: new Date().toISOString().slice(0, 10), reference: "", reason: "",
         paymentAccountCode: "acc-1001", remainingDisposition: adjustmentOnly ? "final" : "pending", remainingReason: "",
         adjustmentKind: "", adjustmentReference: "", adjustmentReason: "",
     }));
@@ -82,6 +83,10 @@ export function NhisPeriodRemittanceForm({ authority, from, to, adjustmentOnly =
             onSuccess(result);
             return { success: result.alreadyApplied ? "Previously recorded period settlement confirmed." : "Period settlement recorded." };
         } catch (error) {
+            if (error instanceof Error && error.message.startsWith("NHIS_SNAPSHOT_STALE:")) {
+                attempt.current = null; setConfirmed(false);
+                return { error: `${error.message}. Preview the period again before posting.`, unresolved: false };
+            }
             return { ...previous, error: error instanceof Error ? error.message : "Unable to settle this NHIS period", unresolved: !!attempt.current };
         } finally { if (acquired) end?.(); }
     }, {});
@@ -104,7 +109,7 @@ export function NhisPeriodRemittanceForm({ authority, from, to, adjustmentOnly =
                 {!adjustmentOnly && <><div className="col-md-6"><label className="form-label" htmlFor="nhis-period-amount">Actual received amount (GHS)</label><input id="nhis-period-amount" className="form-control" inputMode="decimal" required pattern="\d+(\.\d{1,2})?" placeholder="e.g. 600000.00" value={draft.amount} onChange={e => update("amount", e.target.value)} /></div>
                     <div className="col-md-6"><label className="form-label" htmlFor="nhis-period-account">Received into</label><select id="nhis-period-account" className="form-select" value={draft.paymentAccountCode} onChange={e => update("paymentAccountCode", e.target.value as PeriodSettlementDraft["paymentAccountCode"])}><option value="acc-1001">Bank account</option><option value="acc-1000">Cash account</option></select></div></>}
             </div>
-            <Fields prefix="nhis-period" reference={draft.reference} reason={draft.reason} date={draft.date} setReference={value => update("reference", value)} setReason={value => update("reason", value)} setDate={value => update("date", value)} />
+            <Fields prefix="nhis-period" dateLocked reference={draft.reference} reason={draft.reason} date={draft.date} setReference={value => update("reference", value)} setReason={value => update("reason", value)} setDate={value => update("date", value)} />
             <div className={styles.formSection}>
                 <div className={styles.allocationHeading}><h3>How should the unpaid balance be handled?</h3></div>
                 <div className={styles.periodDecision}>
@@ -133,6 +138,7 @@ export function NhisPeriodRemittanceForm({ authority, from, to, adjustmentOnly =
             {preview && <section className={styles.periodPreview} aria-label="Reviewed period allocation">
                 <h3>{preview.billCount.toLocaleString()} outstanding NHIS bills in this period</h3>
                 <p>Proportional allocation across all eligible bills. {preview.excludedMixedBillCount > 0 && `${preview.excludedMixedBillCount.toLocaleString()} mixed-payer bills excluded.`}</p>
+                {!!preview.excludedMissingAccrualBillCount && <p className="alert alert-warning" role="alert">{preview.excludedMissingAccrualBillCount.toLocaleString()} bills excluded because their NHIS receivable has not been recognized. Reconcile these bills in accounting before including them; this settlement will not silently recreate historical revenue.</p>}
                 <dl><div><dt>Outstanding before settlement</dt><dd>{money(preview.eligibleOutstanding)}</dd></div><div><dt>Cash received in this settlement</dt><dd>{money(preview.received)}</dd></div>
                     <div><dt>Unpaid after cash receipt</dt><dd>{money(preview.remaining)}</dd></div><div><dt>Authorized noncash adjustment</dt><dd>{money(preview.adjusted)}</dd></div><div><dt>Outstanding afterwards</dt><dd>{money(preview.outstandingAfter)}</dd></div></dl>
                 {preview.allocationSample.length > 0 && <details><summary>View sample allocations ({preview.allocationSample.length} of {preview.billCount.toLocaleString()} bills)</summary>
@@ -258,7 +264,7 @@ export function NhisReversalForm({ event, authority, onSuccess, onCancel, busy, 
     event: NhisEvent; authority: Authority; onSuccess: () => void; onCancel: () => void;
 } & MutationLock) {
     const application = useApplication();
-    const [reference, setReference] = useState(""), [reason, setReason] = useState(""), [date, setDate] = useState(today);
+    const [reference, setReference] = useState(""), [reason, setReason] = useState(""), [date, setDate] = useState(() => event.periodSettlement ? new Date().toISOString().slice(0, 10) : today());
     const [confirmed, setConfirmed] = useState(false), [reviewedChanges, setReviewedChanges] = useState(false);
     const attempt = useRef<RequestAttempt<Omit<ReversalPayload, "requestKey">> | null>(null);
     const completed = useRef(false);
@@ -272,9 +278,11 @@ export function NhisReversalForm({ event, authority, onSuccess, onCancel, busy, 
             const payload = reversalPayload(reference, reason, date, event.event_date, confirmed);
             if (attempt.current && JSON.stringify(payload) !== attempt.current.fingerprint && !reviewedChanges)
                 throw new Error("Check audit history before changing a failed reversal");
-            const identity = billingSubmissionIdentity({ namespace: "laboratory-nhis", context: application, endpoint: `events/${event.id}/reversal`, payload });
+            const periodId = event.periodSettlement?.id;
+            const identity = billingSubmissionIdentity({ namespace: "laboratory-nhis", context: application, endpoint: periodId != null ? `period-settlements/${periodId}/reversal` : `events/${event.id}/reversal`, payload });
             attempt.current = requestAttempt(payload, attempt.current, () => identity.key);
-            await nhisApi.reverse(event.id, attempt.current.payload);
+            if (periodId != null) await nhisApi.reversePeriod(periodId, attempt.current.payload);
+            else await nhisApi.reverse(event.id, attempt.current.payload);
             identity.complete();
             completed.current = true;
             attempt.current = null; onSuccess();
@@ -286,12 +294,12 @@ export function NhisReversalForm({ event, authority, onSuccess, onCancel, busy, 
     return <form action={action} aria-label={`Reverse ${event.reference}`}>
         <div className={styles.reversalSource}><span>Original event</span><strong>{event.reference}<span>{currencyFormatter.format(Number(event.amount))}</span></strong>
             <small>{event.event_date.slice(0, 10)} · {event.kind.replaceAll("_", " ")}</small></div>
-        <p className={styles.formIntro}>The full amount and every allocation will be reversed. The original event stays in history.</p>
+        <p className={styles.formIntro}>{event.periodSettlement ? `This reverses the entire service-period settlement atomically: ${currencyFormatter.format(Number(event.periodSettlement.received))} cash and ${currencyFormatter.format(Number(event.periodSettlement.adjusted))} noncash adjustment. All linked allocations are restored; original history remains.` : "The full amount and every allocation will be reversed. The original event stays in history."}</p>
         <Outcome state={state} />
         <fieldset disabled={pending || busy}>
             {state.error && state.unresolved && <RetryWarning checked={reviewedChanges} onChange={setReviewedChanges} />}
-            <Fields prefix={`nhis-reversal-${event.id}`} {...{ reference, reason, date, setReference, setReason, setDate }} />
-            <label className="d-block mb-3"><input type="checkbox" className="me-2" required checked={confirmed} onChange={e => setConfirmed(e.target.checked)} />I confirm the exact reversal of {event.reference} and understand that history is preserved.</label>
+            <Fields prefix={`nhis-reversal-${event.id}`} dateLocked={!!event.periodSettlement} {...{ reference, reason, date, setReference, setReason, setDate }} />
+            <label className="d-block mb-3"><input type="checkbox" className="me-2" required checked={confirmed} onChange={e => setConfirmed(e.target.checked)} />I confirm the exact reversal of {event.periodSettlement ? "the entire linked period settlement" : event.reference} and understand that history is preserved.</label>
             <div className={styles.formFooter}><button type="button" className="btn btn-outline-secondary" disabled={!!state.unresolved && !reviewedChanges} onClick={onCancel}>Cancel</button>
                 <Submit label="Confirm reversal" retry={!!state.unresolved} /></div>
         </fieldset>

@@ -3,6 +3,17 @@ import {getServerRequestContext} from './serverRequestContext';
 import {getBackendAuthorization} from './serverBackendAccess';
 import {usesTenantQuery} from './apiBaseUrl';
 
+export function assertBackendTransport(target: URL): void {
+    if (process.env.PLS_ENCRYPTION_REQUIRED === 'true' || process.env.HTTPS_REQUIRED === 'true') {
+        if (process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0') throw new Error('TLS certificate verification must remain enabled');
+        const loopback = ['localhost', '127.0.0.1', '[::1]'].includes(target.hostname);
+        const localHttpAllowed = process.env.HTTPS_ALLOW_LOOPBACK_HTTP === 'true' && loopback;
+        if (target.protocol !== 'https:' && !(target.protocol === 'http:' && localHttpAllowed)) {
+            throw new Error('The configured backend requires HTTPS');
+        }
+    }
+}
+
 export function backendTarget(endpoint: string, base: string) {
     const root = new URL(base.endsWith('/') ? base : base + '/');
     const relative = endpoint.replace(/^\/+/, '');
@@ -16,13 +27,7 @@ export function backendTarget(endpoint: string, base: string) {
     }
     const target = new URL(relative, root);
     if (target.origin !== root.origin || !target.pathname.startsWith(root.pathname) || target.hash) throw new Error('Invalid API path');
-    if (process.env.PLS_ENCRYPTION_REQUIRED === 'true' || process.env.HTTPS_REQUIRED === 'true') {
-        const loopback = ['localhost', '127.0.0.1', '[::1]'].includes(target.hostname);
-        const localHttpAllowed = process.env.HTTPS_ALLOW_LOOPBACK_HTTP === 'true' && loopback;
-        if (target.protocol !== 'https:' && !(target.protocol === 'http:' && localHttpAllowed)) {
-            throw new Error('The configured backend requires HTTPS');
-        }
-    }
+    assertBackendTransport(target);
     return target;
 }
 

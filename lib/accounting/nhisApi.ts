@@ -9,7 +9,7 @@ export function checkedResult<T>(response: { status?: string; statusCode?: numbe
 }
 export function checkedPage<T>(value: PageResult<T>): PageResult<T> {
     if (!value || !Array.isArray(value.rows) || !Number.isSafeInteger(value.total) || value.total < 0 ||
-        !Number.isSafeInteger(value.page) || value.page < 1 || !Number.isSafeInteger(value.count) || value.count < 1)
+        !Number.isSafeInteger(value.page) || value.page < 1 || !Number.isSafeInteger(value.count) || value.count < 1 || value.rows.length > value.count || value.rows.length > value.total)
         throw new Error("The server returned an invalid paginated report");
     return value;
 }
@@ -36,6 +36,14 @@ export const nhisApi = {
         result.rows.forEach(event => {
             cents(event.amount);
             if (!Array.isArray(event.allocations)) throw new Error("Invalid event allocations");
+            if (event.allocationCount != null && (!Number.isSafeInteger(event.allocationCount) || event.allocationCount < event.allocations.length)) throw new Error("Invalid event allocation count");
+            if (event.periodSettlement) {
+                const period = event.periodSettlement;
+                if (!["applied", "partially_reversed", "reversed"].includes(period.state ?? "") ||
+                    typeof period.from !== "string" || typeof period.to !== "string" || !Number.isSafeInteger(period.billCount) || period.billCount < 1 ||
+                    !["pending", "appeal", "disputed", "final"].includes(period.remainingDisposition)) throw new Error("Invalid period settlement history");
+                [period.received, period.remaining, period.adjusted, period.outstandingAfter].forEach(cents);
+            }
         });
         return result;
     },
@@ -54,9 +62,10 @@ export const nhisApi = {
         const result = checkedResult<PeriodSettlementPreview>(await customPost("accounting/nhis/period-settlements/preview", "POST", payload));
         if (result.from !== payload.from || result.to !== payload.to || result.allocationMethod !== "proportional" ||
             !Number.isSafeInteger(result.billCount) || result.billCount < 0 || !Number.isSafeInteger(result.excludedMixedBillCount) || result.excludedMixedBillCount < 0 ||
-            typeof result.snapshotToken !== "string" || !result.snapshotToken || !Array.isArray(result.allocationSample))
+            typeof result.snapshotToken !== "string" || !result.snapshotToken || !Array.isArray(result.allocationSample) || result.allocationSample.length > 20 || result.allocationSample.length > result.billCount)
             throw new Error("The server returned an invalid period allocation preview");
         const outstanding = cents(result.eligibleOutstanding), received = cents(result.received), remaining = cents(result.remaining), adjusted = cents(result.adjusted), after = cents(result.outstandingAfter);
+        if (result.excludedMissingAccrualBillCount != null && (!Number.isSafeInteger(result.excludedMissingAccrualBillCount) || result.excludedMissingAccrualBillCount < 0)) throw new Error("Invalid unrecognized receivable count");
         if ([outstanding, received, remaining, adjusted, after].some(value => value < 0) || received !== cents(payload.amount) ||
             received > outstanding || remaining !== outstanding - received || after !== remaining - adjusted ||
             adjusted !== (payload.remainingDisposition === "final" ? remaining : 0))
@@ -71,6 +80,8 @@ export const nhisApi = {
     async settlePeriod(payload: PeriodSettlementPayload): Promise<PeriodSettlementResult> {
         const result = checkedResult<PeriodSettlementResult>(await customPost("accounting/nhis/period-settlements", "POST", payload));
         if (!result.settlement || result.settlement.from !== payload.from || result.settlement.to !== payload.to ||
+            !Number.isSafeInteger(result.settlement.id) || result.settlement.id < 1 ||
+            !["applied", "partially_reversed", "reversed"].includes(result.settlement.state) ||
             !Number.isSafeInteger(result.settlement.billCount) || result.settlement.billCount < 1)
             throw new Error("The server did not confirm the period settlement");
         const settlement = result.settlement;
@@ -78,12 +89,22 @@ export const nhisApi = {
         if ([received, remaining, adjusted, outstanding].some(amount => amount < 0) || received !== cents(payload.amount) ||
             remaining - adjusted !== outstanding || settlement.remainingDisposition !== payload.remainingDisposition ||
             adjusted !== (payload.remainingDisposition === "final" ? remaining : 0) ||
-            (received > 0 && !result.receiptEvent) || (adjusted > 0 && !result.adjustmentEvent))
+            (received > 0 && (!result.receiptEvent || result.receiptEvent.kind !== "receipt" || cents(result.receiptEvent.amount) !== received)) ||
+            (received === 0 && result.receiptEvent != null) ||
+            (adjusted > 0 && (!result.adjustmentEvent || result.adjustmentEvent.kind !== payload.adjustmentKind || cents(result.adjustmentEvent.amount) !== adjusted)))
             throw new Error("The confirmed period settlement does not reconcile");
         return result;
     },
     async reverse(id: number, payload: ReversalPayload) {
         return checkedResult<{ event: NhisEvent; allocations: NhisEvent["allocations"]; alreadyApplied?: boolean }>(
             await customPost(`accounting/nhis/events/${id}/reversal`, "POST", payload));
+    },
+    async reversePeriod(id: number, payload: ReversalPayload) {
+        if (!Number.isSafeInteger(id) || id < 1) throw new Error("Invalid NHIS period settlement");
+        const result = checkedResult<PeriodSettlementResult & { reversalEvents: NhisEvent[] }>(
+            await customPost(`accounting/nhis/period-settlements/${id}/reversal`, "POST", payload));
+        if (result.settlement?.id !== id || result.settlement.state !== "reversed" || !Array.isArray(result.reversalEvents) || !result.reversalEvents.length ||
+            result.reversalEvents.some(event => event.kind !== "reversal" || cents(event.amount) >= 0)) throw new Error("The server did not confirm the linked period reversal");
+        return result;
     },
 };

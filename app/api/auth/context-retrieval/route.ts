@@ -1,3 +1,4 @@
+import {assertBackendTransport} from '../../../../lib/serverBackendRequest';
 import { NextRequest, NextResponse } from 'next/server';
 import {getServerRequestContext as getRequestContext} from '../../../../lib/serverRequestContext';
 import { getBackendAuthorization } from '../../../../lib/serverBackendAccess';
@@ -34,6 +35,7 @@ export async function GET(request: NextRequest) {
           const url = new URL(`/api/v1/prime/validate-token`, process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL : process.env.PRODUCTION_BASEURL);
           url.searchParams.set('tenantId', String(context.tenantId));
           const authorization = getBackendAuthorization();
+          assertBackendTransport(url);
           const response = await fetch(url.toString(), {
                headers: {
                     'Cookie': `pls-prime-tenant-session=${sessionCookie}`,

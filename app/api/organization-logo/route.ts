@@ -1,3 +1,4 @@
+import {assertBackendTransport} from '../../../lib/serverBackendRequest';
 import {NextRequest, NextResponse} from 'next/server';
 import {getServerRequestContext as getRequestContext} from '../../../lib/serverRequestContext';
 import {getBackendAuthorization} from '../../../lib/serverBackendAccess';
@@ -13,6 +14,7 @@ export async function GET(request: NextRequest) {
         const url = new URL('organization/profile/image', base);
         url.searchParams.set('id',String(id)); url.searchParams.set('tenantId',String(context.tenantId));
         const authorization = getBackendAuthorization();
+        assertBackendTransport(url);
         const response = await fetch(url, {headers:{'pls-session':context.PLS_SESSION,'pls-prime-tenant-session':context.PLS_PRIME_TENANT_SESSION,...(authorization?{Authorization:authorization}:{})},cache:'no-store'});
         if (!response.ok) return new Response(null,{status:response.status,headers:{'Cache-Control':'private, no-store'}});
         const type = response.headers.get('content-type')?.split(';')[0];

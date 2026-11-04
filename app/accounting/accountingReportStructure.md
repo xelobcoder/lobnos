@@ -701,14 +701,35 @@ separate keyboard-accessible tabs; their independent date filters and pagination
 survive tab changes. Bill details reveal noncash adjustments and reconciliation
 amounts without widening the main receivables table.
 
-Record remittance opens a focused cash/bank dialog. Adjust balance opens a
-separate noncash dialog. Select bills on the report (including across pages), or
-add candidates from the current page inside the dialog. The allocation summary
+Record remittance defaults to **By service period**. Choose inclusive service
+dates, enter the actual remittance, and preview all eligible outstanding NHIS
+bills, not only the current report page. Allocation is proportional to current
+outstanding balances, using deterministic largest-remainder rounding in pesewas.
+For 5,000 bills owing GHS800,000, a GHS600,000 receipt allocates across the entire
+cohort and leaves GHS200,000 receivable.
+
+Choose whether the unpaid amount is expected later, under appeal, disputed, or
+finally unpaid. The first three leave accounts receivable open; appeals/disputes
+require explanatory notes. Final treatment requires an explicit approved
+tariff/revenue adjustment or bad-debt write-off, with approval reference/reason.
+Cash and noncash postings are atomic but remain separately identifiable.
+**Adjust balance** supports later final resolution of the period with zero new
+cash. No historical accounting period is automatically closed or reopened.
+
+The reviewed cohort snapshot must still match at posting. Changed balances or
+membership require a new preview. Mixed-payer and missing-accrual exclusions are
+shown explicitly; historical revenue is not silently re-accrued. New period
+settlements and their reversals post on today's UTC date, which must be open.
+Successful unchanged retries replay before snapshot/day revalidation.
+
+The advanced **Selected bills** workflow retains individual allocations.
+Select bills on the report (including across pages), or add candidates from the
+current page inside the dialog. Its allocation summary
 shows the exact difference from the entered amount. Neither full-balance nor
 allocated-total shortcuts submit a payment automatically.
 
-Receipt forms require the explicit actual amount, cash/bank account, effective
-date, unique reference, reason and multiple selected bill allocations. Amounts
+Manual receipt forms require the explicit actual amount, cash/bank account, effective
+date, unique reference, reason and selected bill allocations. Amounts
 are parsed and summed in integer pesewas; only exact decimal strings reach the
 API. Each positive allocation must fit the candidate balance, and allocations
 must sum exactly to the entered amount.
@@ -716,7 +737,16 @@ must sum exactly to the entered amount.
 Revenue adjustment and bad-debt write-off require explicit confirmation and
 omit paymentAccountCode. Reversal uses its own dialog with separate reference/reason/date and
 explicit confirmation; it sends only requestKey/reference/reason/date, creating
-one exact signed reversal without deleting history.
+an exact signed reversal without deleting history. Period reversal instead calls
+`accounting/nhis/period-settlements/:id/reversal` and reverses the receipt and any
+linked adjustment together; individual reversal is prohibited. Activity labels
+the service-period decision and reversal state and distinguishes original posting
+totals from current balances. Expanding an activity row shows the recorded reason,
+service-period posting amounts, decision and status together in a full-width,
+mobile-friendly audit panel. Signed bill allocations belong to that event, which
+may be the receipt, its separate adjustment, or a reversal. Allocation detail
+loads only when expanded, using `accounting/nhis/events/:id/allocations?page&count`,
+rather than mounting or downloading thousands of allocations for every activity row.
 
 Authority comes from `accounting/authority/mine` using the **full application
 session**, with fail-closed controls:

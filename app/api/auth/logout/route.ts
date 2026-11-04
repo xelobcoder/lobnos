@@ -1,3 +1,4 @@
+import {assertBackendTransport} from '../../../../lib/serverBackendRequest';
 import {NextRequest, NextResponse} from 'next/server';
 import {cookies} from 'next/headers';
 import {getServerRequestContext} from '../../../../lib/serverRequestContext';
@@ -14,6 +15,7 @@ export async function POST(request: NextRequest) {
             const url = new URL('logins/logout', base.endsWith('/') ? base : base + '/');
             if (context.tenantId) url.searchParams.set('tenantId', String(context.tenantId));
             const authorization = getBackendAuthorization();
+            assertBackendTransport(url);
             const response = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json','pls-prime-tenant-session':context.PLS_PRIME_TENANT_SESSION,...(authorization?{Authorization:authorization}:{})},body:'{}',cache:'no-store',redirect:'manual',signal:AbortSignal.timeout(15000)});
             if (!response.ok && ![401,403].includes(response.status)) return NextResponse.json({error:'The session could not be revoked. Please retry signing out.'}, {status:502});
             if (response.ok) {

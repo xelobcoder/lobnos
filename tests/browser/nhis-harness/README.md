@@ -10,6 +10,8 @@ From the frontend root:
 
 ```powershell
 pnpm exec node tests/browser/nhis-harness/build.cjs
+# Bounded Chrome checks for responsive audit details and keyboard access:
+pnpm exec node tests\browser\nhis-harness\verify-render.cjs
 # Parent owns this bounded browser helper; prints random loopback URL and PID:
 pnpm exec node tests/browser/nhis-harness/serve.cjs
 # After browser checks, GET <printed-url>/shutdown (removes exact temp bundle).
@@ -48,6 +50,10 @@ Useful browser scenarios:
   reversal controls. `?authorityError=1`, `?reportError=1` exercise visible errors;
   `?warnings=1` shows excluded mixed bills and legacy/reconciliation warnings.
   Each page reload resets only the synthetic in-memory books.
+- Query `?audit=1` adds a synthetic period settlement with a long unbroken reason
+  and a signed reversal. Add `&many=1` for 27 allocation rows or
+  `&auditState=reversed` / `&auditState=partially_reversed` to check status display;
+  `&empty=1` adds an event with no bill allocations.
 
 The fixture validates schemas, balance limits, idempotency, reference uniqueness,
 one exact reversal, and synthetic authority. It is not live database or

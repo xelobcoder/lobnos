@@ -1,3 +1,4 @@
+import {assertBackendTransport} from '../../../../lib/serverBackendRequest';
 import {secureSessionCookies} from '../../../../lib/sessionCookies';
 import { NextRequest, NextResponse } from 'next/server';
 import { getBackendAuthorization } from '../../../../lib/serverBackendAccess';
@@ -32,6 +33,7 @@ export async function POST(request: NextRequest) {
 
         const validationUrl = new URL('prime/validate-token', backendBaseUrl);
         validationUrl.searchParams.set('tenantId', String(tenantId));
+        assertBackendTransport(validationUrl);
         const validationResponse = await fetch(validationUrl, {
             method: 'GET',
             headers: {

@@ -53,39 +53,115 @@ async function run() {
     const { targetId } = await send('Target.createTarget', { url: 'about:blank' }, null);
     ({ sessionId: session } = await send('Target.attachToTarget', { targetId, flatten: true }, null));
     await send('Page.enable'); await send('Runtime.enable'); await send('Accessibility.enable');
+    await send('Page.bringToFront');
     await send('Page.navigate', { url: pathToFileURL(path.join(output, 'index.html')).href });
     for (let n = 0; n < 60; n++) {
         await wait(100);
-        if (await evaluate(`!!window.nhisFixture && window.nhisFixture.calls.length===4 && !!document.querySelector('#nhis-service-title') && !!document.querySelector('#nhis-entry-title')`)) break;
+        if (await evaluate(`!!window.nhisFixture && window.nhisFixture.calls.length===4 && !!document.querySelector('[aria-label="Select BILL-101"]:not(:disabled)')`)) break;
         if (n === 59) throw new Error('Initial NHIS render did not settle');
     }
-    const initial = await evaluate(`({calls:window.nhisFixture.calls.length, body:document.body.innerText, button:[...document.querySelectorAll('button')].find(b=>b.textContent==='Select BILL-101')?.getBoundingClientRect().toJSON()})`);
+    const initial = await evaluate(`({calls:window.nhisFixture.calls.length, body:document.body.innerText, control:document.querySelector('[aria-label="Select BILL-101"]').getBoundingClientRect().toJSON()})`);
     assert.equal(initial.calls, 4);
     assert.match(initial.body, /1,200,000\.00/);
     assert.match(initial.body, /500,000\.00/);
     assert.match(initial.body, /700,000\.00/);
-    console.log(JSON.stringify({ stage: 'initial-render', calls: initial.calls, button: initial.button }));
+    console.log(JSON.stringify({ stage: 'initial-render', calls: initial.calls, control: initial.control }));
     const ax = await send('Accessibility.getFullAXTree');
     console.log(JSON.stringify({ stage: 'initial-accessibility-snapshot', nodes: ax.nodes.length }));
     await wait(500);
     assert.equal(await evaluate('window.nhisFixture.calls.length'), 4);
-    await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent==='Select BILL-101').scrollIntoView({block:'center',inline:'nearest'})`);
+    await evaluate(`document.querySelector('[aria-label="Select BILL-101"]').scrollIntoView({block:'center',inline:'nearest'})`);
     await wait(200);
-    const pointer = await evaluate(`(()=>{const r=[...document.querySelectorAll('button')].find(b=>b.textContent==='Select BILL-101').getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2,width:innerWidth,height:innerHeight}})()`);
+    const pointer = await evaluate(`(()=>{const r=document.querySelector('[aria-label="Select BILL-101"]').getBoundingClientRect();const x=r.x+r.width/2,y=r.y+r.height/2;return{x,y,width:innerWidth,height:innerHeight,target:document.elementFromPoint(x,y)?.getAttribute('aria-label')}})()`);
     assert.ok(pointer.x > 0 && pointer.x < pointer.width && pointer.y > 0 && pointer.y < pointer.height, 'Selection must be reachable inside the viewport');
+    assert.equal(pointer.target, 'Select BILL-101', 'Selection must not be obscured by another element');
+    await evaluate(`(() => { window.__selectionEvents = []; const control = document.querySelector('[aria-label="Select BILL-101"]'); for (const type of ['mousedown', 'mouseup', 'click', 'input', 'change']) control.addEventListener(type, event => window.__selectionEvents.push({ type, checked: control.checked, prevented: event.defaultPrevented })); })()`);
     await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: pointer.x, y: pointer.y });
-    await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: pointer.x, y: pointer.y, button: 'left', clickCount: 1 });
-    await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: pointer.x, y: pointer.y, button: 'left', clickCount: 1 });
+    await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: pointer.x, y: pointer.y, button: 'left', buttons: 1, clickCount: 1 });
+    await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: pointer.x, y: pointer.y, button: 'left', buttons: 0, clickCount: 1 });
     await wait(200);
-    assert.equal(await evaluate(`!!document.querySelector('[aria-label="Allocation for BILL-101"]')`), true);
+    const selection = await evaluate(`({ checked: document.querySelector('[aria-label="Select BILL-101"]').checked, selectedText: document.body.innerText.includes('1 bill selected'), events: window.__selectionEvents })`);
+    assert.ok(selection.checked && selection.selectedText, `Selection did not update: ${JSON.stringify(selection)}`);
     assert.equal(await evaluate('window.nhisFixture.calls.length'), 4);
     const selectedAx = await send('Accessibility.getFullAXTree');
     console.log(JSON.stringify({ stage: 'selection-and-accessibility-snapshot', calls: 4, nodes: selectedAx.nodes.length }));
     const screenshot = await send('Page.captureScreenshot', { format: 'png' });
     console.log(JSON.stringify({ stage: 'screenshot', bytes: Buffer.byteLength(screenshot.data, 'base64') }));
+
+    await send('Emulation.setDeviceMetricsOverride', { width: 320, height: 900, deviceScaleFactor: 1, mobile: false });
+    await send('Page.navigate', { url: `${pathToFileURL(path.join(output, 'index.html')).href}?audit=1` });
+    for (let n = 0; n < 60; n++) {
+        await wait(100);
+        if (await evaluate(`location.search === '?audit=1' && !!window.nhisFixture && window.nhisFixture.calls.length >= 4 && !!document.querySelector('#nhis-tab-activity')`)) break;
+        if (n === 59) throw new Error('Synthetic activity fixture did not settle');
+    }
+    await evaluate(`document.querySelector('#nhis-tab-activity').click()`);
+    for (let n = 0; n < 60; n++) {
+        await wait(100);
+        if (await evaluate(`!!document.querySelector('#nhis-event-2-toggle')`)) break;
+        if (n === 59) throw new Error('Synthetic activity rows did not render');
+    }
+    assert.equal(await evaluate(`window.nhisFixture.calls.filter(call => call.endpoint.includes('/events/2/allocations')).length`), 0);
+    await evaluate(`document.querySelector('#nhis-event-2-toggle').click()`);
+    for (let n = 0; n < 60; n++) {
+        await wait(100);
+        if (await evaluate(`!!document.querySelector('#nhis-event-2-details table > tbody > tr')`)) break;
+        if (n === 59) throw new Error('Synthetic activity allocations did not render');
+    }
+    const narrow = await evaluate(`(() => {
+        const panel = document.querySelector('#nhis-event-2-details');
+        const activity = document.querySelector('#nhis-event-2-toggle').closest('table');
+        const reason = panel.querySelector('p');
+        const audit = panel.querySelector('[aria-label="Settlement at posting"]');
+        return {
+            documentWidth: document.documentElement.scrollWidth, viewportWidth: document.documentElement.clientWidth,
+            activityWidth: activity.parentElement.scrollWidth, activityClientWidth: activity.parentElement.clientWidth,
+            reasonWidth: reason.scrollWidth, reasonClientWidth: reason.clientWidth,
+            metricColumns: getComputedStyle(audit.querySelector('dl')).gridTemplateColumns.split(' ').length,
+            amounts: [...audit.querySelectorAll('dd')].map(item => item.textContent),
+            rows: panel.querySelectorAll('table > tbody > tr').length,
+            expanded: document.querySelector('#nhis-event-2-toggle').getAttribute('aria-expanded'),
+            note: audit.textContent.includes("original posting, not today's receivable balance"),
+        };
+    })()`);
+    assert.ok(narrow.documentWidth <= narrow.viewportWidth, 'Mobile page must not overflow horizontally');
+    assert.ok(narrow.activityWidth <= narrow.activityClientWidth, 'Mobile activity must not overflow horizontally');
+    assert.ok(narrow.reasonWidth <= narrow.reasonClientWidth, 'Long unbroken reasons must wrap');
+    assert.equal(narrow.metricColumns, 1);
+    assert.deepEqual(narrow.amounts, ['GH₵60.00', 'GH₵24.90', 'GH₵0.00']);
+    assert.equal(narrow.rows, 2);
+    assert.equal(narrow.expanded, 'true');
+    assert.equal(narrow.note, true);
+    const activityAx = await send('Accessibility.getFullAXTree');
+    assert.ok(activityAx.nodes.some(node => node.role?.value === 'table' && node.name?.value === 'NHIS accounting activity'));
+    assert.ok(activityAx.nodes.some(node => node.role?.value === 'region' && node.name?.value?.includes('SYNTH-PERIOD-8477')));
+    await evaluate(`document.querySelector('#nhis-event-2-toggle').focus()`);
+    for (const type of ['keyDown', 'keyUp']) await send('Input.dispatchKeyEvent', { type, key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, nativeVirtualKeyCode: 13 });
+    await wait(100);
+    assert.equal(await evaluate(`document.querySelector('#nhis-event-2-toggle').getAttribute('aria-expanded')`), 'false');
+    for (const type of ['keyDown', 'keyUp']) await send('Input.dispatchKeyEvent', { type, key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, nativeVirtualKeyCode: 13 });
+    for (let n = 0; n < 60; n++) {
+        await wait(100);
+        if (await evaluate(`!!document.querySelector('#nhis-event-2-details table > tbody > tr')`)) break;
+        if (n === 59) throw new Error('Keyboard reopening did not reload allocations');
+    }
+    await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1100, deviceScaleFactor: 1, mobile: false });
+    const wide = await evaluate(`(() => {
+        const panel = document.querySelector('#nhis-event-2-details');
+        const activity = document.querySelector('#nhis-event-2-toggle').closest('table');
+        const columns = getComputedStyle(panel.querySelector('dl')).gridTemplateColumns.split(' ').length;
+        const light = getComputedStyle(panel).backgroundColor;
+        document.documentElement.dataset.bsTheme = 'dark';
+        return { panelWidth: panel.getBoundingClientRect().width, activityWidth: activity.getBoundingClientRect().width,
+            columns, light, dark: getComputedStyle(panel).backgroundColor };
+    })()`);
+    assert.ok(wide.panelWidth >= wide.activityWidth * .9, 'Expanded details must use the activity row width');
+    assert.equal(wide.columns, 3);
+    assert.notEqual(wide.light, wide.dark, 'Audit panel must follow the selected theme');
+    console.log(JSON.stringify({ stage: 'responsive-activity-audit', narrow, wide, accessibilityNodes: activityAx.nodes.length }));
     assert.deepEqual(runtimeErrors, []);
     await send('Page.navigate', { url: 'about:blank' });
-    console.log('PASS: real Chrome initial render, stable requests, selection, AX snapshots, screenshot and navigation; no render/fetch loop reproduced.');
+    console.log('PASS: real Chrome render, stable requests, selection, responsive activity, keyboard, themes and accessibility snapshots.');
 }
 run().catch(error => { console.error(error.stack || error); process.exitCode = 1; }).finally(async () => {
     try { if (socket?.readyState === WebSocket.OPEN) await send('Browser.close', {}, null); } catch { /* Chrome may close before returning its acknowledgement. */ }

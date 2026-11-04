@@ -1,3 +1,4 @@
+import {assertBackendTransport} from '../../../../lib/serverBackendRequest';
 import { NextRequest } from 'next/server';
 import { getBackendAuthorization } from '../../../../lib/serverBackendAccess';
 
@@ -31,6 +32,7 @@ export async function POST(request: NextRequest) {
           }
 
           const authorization = getBackendAuthorization();
+          assertBackendTransport(url);
           const response = await fetch(url.toString(), {
                method: 'POST',
                headers: {

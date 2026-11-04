@@ -44,7 +44,9 @@
     "app/billing/expenses/category/page.tsx",
     ".next\\dev/types/**/*.ts",
     ".next\\dev/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    ".next-critique-verification/types/**/*.ts",
+    ".next-critique-verification/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
