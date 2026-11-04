@@ -7,6 +7,7 @@ interface BackupLog {
      id: number;
      backup_name: string;
      is_successful: boolean;
+     file_available?: boolean;
      is_full_backup: boolean;
      backup_size_bytes: number;
      backup_type: string;
@@ -40,6 +41,7 @@ export default function BackupLogsTable({ backupLogs, onDownloadBackup, onDelete
                Cell: ({ row }: {row: {original: BackupLog; index: number}}) => (
                     <span>
                          {row.original.is_successful ? 'Success' : 'Failed'}
+                         {row.original.is_successful && row.original.file_available === false && <small className="d-block text-danger-emphasis">File unavailable</small>}
                     </span>
                )
           },
@@ -83,8 +85,8 @@ export default function BackupLogsTable({ backupLogs, onDownloadBackup, onDelete
                               variant="outline-info"
                               size="sm"
                               onClick={() => onDownloadBackup?.(row.original)}
-                              disabled={!row.original.is_successful}
-                              title="Download backup file"
+                              disabled={!row.original.is_successful || row.original.file_available === false}
+                              title={row.original.file_available === false ? 'Backup file is unavailable on the server' : 'Download backup file'}
                          >
                               <RiDownloadLine size={14} className="me-1" />
                               Download

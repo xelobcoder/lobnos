@@ -6,7 +6,7 @@ import { Row, Col, Button, Alert, Modal } from 'react-bootstrap';
 import { RiShieldCheckLine, RiAddLine, RiDatabaseLine } from '@remixicon/react';
 import Link from 'next/link';
 import { customFetch, customPost } from '../../../../components/Auth/customFetch';
-import { buildApiUrl } from '../../../../lib/apiBaseUrl';
+import { BackupDownloadError, requestBackupDownload } from '../../../../lib/backupDownload';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 import { toast } from 'react-toastify';
 import themeContrast from '../../../../styles/theme-contrast.module.css';
@@ -47,6 +47,7 @@ interface BackupLog {
      backup_mode: 'automated' | 'manual';
      backup_date: string;
      backup_path?: string;
+     file_available?: boolean;
      error_message?: string;
      duration_seconds: number;
      created_by: string;
@@ -93,6 +94,7 @@ export default function DataBackupRestorePage() {
      // Decrypt modal states
      const [showDecryptModal, setShowDecryptModal] = useState(false);
      const [backupToDownload, setBackupToDownload] = useState<BackupLog | null>(null);
+     const [downloadError, setDownloadError] = useState('');
 
      // Form states for schedule creation/editing
      const [scheduleForm, setScheduleForm] = useState({
@@ -356,6 +358,11 @@ export default function DataBackupRestorePage() {
      };
 
      const handleDownloadFromLog = (backupLog: BackupLog) => {
+          if (backupLog.file_available === false) {
+               toast.error('This backup file is no longer available on the server. Restore the original file or create a new backup.');
+               return;
+          }
+          setDownloadError('');
           setBackupToDownload(backupLog);
           setShowDecryptModal(true);
      };
@@ -364,26 +371,7 @@ export default function DataBackupRestorePage() {
           if (!backupToDownload) return;
 
           try {
-               const url = new URL(buildApiUrl(`${API_BASE}/logs/${backupToDownload.id}/download`));
-               if (process.env.NEXT_PUBLIC_TENANTID) {
-                    url.searchParams.append("tenantId", process.env.NEXT_PUBLIC_TENANTID);
-               }
-               if (decrypt) {
-                    url.searchParams.append("decrypt", "true");
-               }
-
-               const response = await fetch(url.toString(), {
-                    method: 'GET',
-                    headers: {
-                         'cache': 'no-cache,must-revalidate,no-store,max-age=60,s-maxage=0'
-                    },
-                    cache: 'no-cache',
-                    credentials: 'include'
-               });
-
-               if (!response.ok) {
-                    throw new Error(`Download failed: ${response.status} ${response.statusText}`);
-               }
+               const response = await requestBackupDownload(backupToDownload.id, decrypt);
 
                const blob = await response.blob();
                const downloadUrl = window.URL.createObjectURL(blob);
@@ -397,7 +385,7 @@ export default function DataBackupRestorePage() {
 
                const link = document.createElement('a');
                link.href = downloadUrl;
-               link.download = filename as string;
+               link.download = filename || `backup-${backupToDownload.id}`;
                link.style.display = 'none';
 
                document.body.appendChild(link);
@@ -408,8 +396,15 @@ export default function DataBackupRestorePage() {
 
                toast.success(`Download completed for backup: ${backupToDownload.backup_name}`);
           } catch (error) {
-               console.error('Download backup error:', error);
-               toast.error(`Failed to download backup file: ${errorMessage(error)}`);
+               const message = errorMessage(error);
+               setDownloadError(message);
+               if (error instanceof BackupDownloadError && error.code === 'BACKUP_FILE_NOT_FOUND') {
+                    setBackupLogs(logs => logs.map(log => log.id === backupToDownload.id ? { ...log, file_available: false } : log));
+                    console.warn('Backup file unavailable:', message);
+               } else {
+                    console.error('Download backup error:', error);
+               }
+               toast.error(message);
           } finally {
                setShowDecryptModal(false);
                setBackupToDownload(null);
@@ -472,6 +467,7 @@ export default function DataBackupRestorePage() {
                     </div>
                </div>
 
+               {downloadError && <Alert variant="danger" dismissible onClose={() => setDownloadError('')} role="alert">{downloadError}</Alert>}
                <Alert variant="info" className="mb-4">
                     <div className="d-flex align-items-start gap-3">
                          <RiShieldCheckLine size={20} className="text-info-emphasis mt-1" />
