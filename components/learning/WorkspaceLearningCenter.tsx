@@ -13,6 +13,7 @@ import LearningCenterHome from '../../app/pharmacy/guide/LearningCenterHome';
 import LearningArticleContent from '../../app/pharmacy/guide/LearningArticleContent';
 import WorkspaceWorkflowFigure from './WorkspaceWorkflowFigure';
 import WorkspaceManual from './WorkspaceManual';
+import ManualPdfDownload from './ManualPdfDownload';
 import guide from '../../app/pharmacy/guide/page.module.css';
 import articleStyles from '../../app/pharmacy/guide/LearningCenterArticle.module.css';
 import styles from './WorkspaceLearningCenter.module.css';
@@ -116,6 +117,7 @@ function LearningWorkspace({ moduleId, slug, view = 'manual' }: { moduleId: Lear
                 Department stock guide access could not be checked.
                 <button type="button" className="btn btn-outline-secondary" onClick={() => setAccessRevision(value => value + 1)}>Retry access check</button>
             </div>}
+            {(slug || view === 'guides') && <div className="d-flex justify-content-end mb-3"><ManualPdfDownload/></div>}
             {!slug && view === 'manual' && <WorkspaceManual module={module} articles={available} role={String(app.user.role)}/>}
             {!slug && view === 'guides' && <LearningCenterHome
                 available={homeArticles}

@@ -6,6 +6,7 @@ import { RiBookOpenLine, RiPrinterLine } from '@remixicon/react';
 import { manualIntroductions } from '../../lib/workspaceManual';
 import type { WorkspaceArticle, WorkspaceLearningModule } from '../../lib/workspaceLearning';
 import WorkspaceWorkflowFigure from './WorkspaceWorkflowFigure';
+import ManualPdfDownload from './ManualPdfDownload';
 import styles from './WorkspaceManual.module.css';
 
 export default function WorkspaceManual({ module, articles, role }: {
@@ -48,7 +49,7 @@ export default function WorkspaceManual({ module, articles, role }: {
     return <div className={styles.manual}>
         <header className={styles.toolbar}>
             <div><RiBookOpenLine size={22} aria-hidden="true"/> <strong>{module.title} User Manual</strong></div>
-            <div><Link href={`/${module.id}/guide?view=guides`}>Find a procedure</Link><button type="button" className="btn btn-outline-primary" onClick={printManual}><RiPrinterLine size={18} aria-hidden="true"/> Print manual</button></div>
+            <div><Link href={`/${module.id}/guide?view=guides`}>Find a procedure</Link><ManualPdfDownload/><button type="button" className="btn btn-outline-primary" onClick={printManual}><RiPrinterLine size={18} aria-hidden="true"/> Print manual</button></div>
         </header>
         {printError && <p role="alert">{printError}</p>}
         <div className={styles.layout}>
@@ -111,7 +112,7 @@ export default function WorkspaceManual({ module, articles, role }: {
                 <section id="manual-glossary"><h2>Glossary</h2><dl>{module.glossary.map(item => <div key={item.term}><dt>{item.term}</dt><dd>{item.meaning}</dd></div>)}</dl></section>
             </div>
             <aside className={styles.reading} aria-label="Manual reading guidance">
-                <h2>Using this manual</h2><p>Follow the numbered chapters in the main document.</p><p>Use Contents to jump to a procedure. Search narrows the contents while keeping the manual intact.</p><p>Print manual creates a printable copy of this active-role edition.</p><a href="#manual-document">Back to the beginning</a>
+                <h2>Using this manual</h2><p>Follow the numbered chapters in the main document.</p><p>Use Contents to jump to a procedure. Search narrows the contents while keeping the manual intact.</p><p>Download PDF saves the full Operations, CRM, Billing and Inventory trainer manual. Print manual creates a printable copy of this active-role edition.</p><a href="#manual-document">Back to the beginning</a>
             </aside>
         </div>
     </div>;
