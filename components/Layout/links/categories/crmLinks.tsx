@@ -1,3 +1,4 @@
+import { RiBookOpenLine } from '@remixicon/react';
 import { Link } from '../types';
 import {
     RiCustomerService2Line,
@@ -17,8 +18,10 @@ import {
     RiUserHeartLine
 } from '@remixicon/react';
 
-export const MarketerLinks: Link[] = [{ title: 'Referrer acquisition', link: '/crm/acquisition', icon: <RiCustomerService2Line /> }];
+export const MarketerLinks: Link[] = [{title:'CRM Learning Center',link:'/crm/guide',icon:<RiBookOpenLine/>},{ title: 'Referrer acquisition', link: '/crm/acquisition', icon: <RiCustomerService2Line /> }];
 export const CrmLinks: Link[] = [
+    {title:"Billing Learning Center",link:"/billing/guide",icon:<RiBookOpenLine/>},
+    {title:"Learning Center",link:"/crm/guide",icon:<RiBookOpenLine/>},
     { title: 'Referrer acquisition & performance', link: '/crm/acquisition', icon: <RiCustomerService2Line />, roles: ['admin', 'super-admin', 'manager', 'marketer', 'customer service representative'] },
     {
         title: "Customer Management",

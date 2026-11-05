@@ -15,27 +15,46 @@ import {
   RiSearchLine,
   RiStackLine,
 } from '@remixicon/react';
-import { articleHref, learningCategories, pharmacyGlossary, type LearningArticle } from '../../../lib/pharmacyLearning';
+import { articleHref, learningCategories, pharmacyGlossary } from '../../../lib/pharmacyLearning';
 import styles from './LearningCenterHome.module.css';
 
+export interface LearningHomeArticle {
+  slug: string;
+  category: string;
+  title: string;
+  manual: { kind?: 'workflow' };
+}
+export interface LearningHomePresentation {
+  title: string;
+  supportLabel: string;
+  description: string;
+  homeHref: string;
+  homeLabel: string;
+  searchPlaceholder?: string;
+  categories: ReadonlyArray<readonly [string, string]>;
+  glossary: ReadonlyArray<readonly [string, string]>;
+  articleHref: (slug: string) => string;
+}
 interface LearningCenterHomeProps {
-  available: LearningArticle[];
-  matches: LearningArticle[];
-  suggested: LearningArticle[];
+  available: LearningHomeArticle[];
+  matches: LearningHomeArticle[];
+  suggested: LearningHomeArticle[];
   read: string[];
   roleTitle: string;
   query: string;
   onQueryChange: (value: string) => void;
   storageError: string;
+  presentation?: LearningHomePresentation;
 }
 
-function GuideGroup({ id, title, items, read, expanded, workflow = false }: {
+function GuideGroup({ id, title, items, read, expanded, workflow = false, hrefForArticle = articleHref }: {
   id: string;
   title: string;
-  items: LearningArticle[];
+  items: LearningHomeArticle[];
   read: string[];
   expanded: boolean;
   workflow?: boolean;
+  hrefForArticle?: (slug: string) => string;
 }) {
   return <details id={id} className={styles.guideGroup} open={expanded}>
     <summary>
@@ -45,7 +64,7 @@ function GuideGroup({ id, title, items, read, expanded, workflow = false }: {
     </summary>
     <ul className={styles.guideList}>
       {items.map(item => <li key={item.slug}>
-        <Link href={articleHref(item.slug)}>
+        <Link href={hrefForArticle(item.slug)}>
           <span>{item.title}</span>
           {read.includes(item.slug) && <span className={styles.readBadge}><RiCheckboxCircleLine size={15} aria-hidden="true"/> Read</span>}
           <RiArrowRightLine className={styles.guideArrow} size={17} aria-hidden="true"/>
@@ -55,11 +74,14 @@ function GuideGroup({ id, title, items, read, expanded, workflow = false }: {
   </details>;
 }
 
-export default function LearningCenterHome({ available, matches, suggested, read, roleTitle, query, onQueryChange, storageError }: LearningCenterHomeProps) {
+export default function LearningCenterHome({ available, matches, suggested, read, roleTitle, query, onQueryChange, storageError, presentation }: LearningCenterHomeProps) {
+  const categories = presentation?.categories || learningCategories;
+  const glossary = presentation?.glossary || pharmacyGlossary;
+  const hrefForArticle = presentation?.articleHref || articleHref;
   const [topic, setTopic] = useState('all');
   const [format, setFormat] = useState('all');
   const searchInput = useRef<HTMLInputElement>(null);
-  const topics = learningCategories.filter(([id]) => available.some(article => article.category === id));
+  const topics = categories.filter(([id]) => available.some(article => article.category === id));
   const activeTopic = topic === 'all' || topics.some(([id]) => id === topic) ? topic : 'all';
 
   useEffect(() => {
@@ -100,13 +122,13 @@ export default function LearningCenterHome({ available, matches, suggested, read
       <div className={styles.heading}>
         <span className={styles.headerIcon} aria-hidden="true"><RiBookOpenLine size={24}/></span>
         <div>
-          <span className={styles.eyebrow}>Pharmacy support</span>
-          <h1>Pharmacy Learning Center</h1>
-          <p>Find practical guidance for your daily pharmacy tasks.</p>
+          <span className={styles.eyebrow}>{presentation?.supportLabel || 'Pharmacy support'}</span>
+          <h1>{presentation?.title || 'Pharmacy Learning Center'}</h1>
+          <p>{presentation?.description || 'Find practical guidance for your daily pharmacy tasks.'}</p>
         </div>
       </div>
       <div className={styles.actions}>
-        <Link className={styles.secondary} href="/pharmacy"><RiArrowLeftLine size={18} aria-hidden="true"/> Pharmacy home</Link>
+        <Link className={styles.secondary} href={presentation?.homeHref || '/pharmacy'}><RiArrowLeftLine size={18} aria-hidden="true"/> {presentation?.homeLabel || 'Pharmacy home'}</Link>
         <a className={styles.primary} href="#guide-catalogue">Browse guides <RiArrowRightLine size={18} aria-hidden="true"/></a>
       </div>
     </header>
@@ -138,7 +160,7 @@ export default function LearningCenterHome({ available, matches, suggested, read
       <div className={styles.toolbar}>
         <div className={styles.field}>
           <label htmlFor="learning-search"><RiSearchLine size={16} aria-hidden="true"/> Search guides</label>
-          <input ref={searchInput} id="learning-search" type="search" value={query} onChange={event => onQueryChange(event.target.value)} placeholder="For example: pay a supplier"/>
+          <input ref={searchInput} id="learning-search" type="search" value={query} onChange={event => onQueryChange(event.target.value)} placeholder={presentation?.searchPlaceholder || 'For example: pay a supplier'}/>
         </div>
         <div className={styles.field}>
           <label htmlFor="learning-topic">Topic</label>
@@ -173,7 +195,7 @@ export default function LearningCenterHome({ available, matches, suggested, read
           <p>Recommended for your responsibilities. Guides and task links follow your existing page access.</p>
           <ol className={styles.recommendations}>
             {suggested.map((article, index) => <li key={article.slug}>
-              <Link href={articleHref(article.slug)}>
+              <Link href={hrefForArticle(article.slug)}>
                 <span className={styles.stepNumber} aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
                 <span className={styles.recommendationText}><strong>{article.title}</strong><small>{article.manual.kind === 'workflow' ? 'Workflow' : 'Page guide'}{read.includes(article.slug) ? ' · Read' : ''}</small></span>
                 <RiArrowRightLine size={18} aria-hidden="true"/>
@@ -186,11 +208,11 @@ export default function LearningCenterHome({ available, matches, suggested, read
           <div className={styles.directoryHeader}>
             <div><h3>Browse by topic</h3><p>Expand a topic to choose a guide.</p></div>
           </div>
-          {workflows.length > 0 && <GuideGroup key={`workflows:${filterKey}`} id="workflows" title="End-to-end workflows" items={workflows} read={read} expanded={hasFilters} workflow/>}
+          {workflows.length > 0 && <GuideGroup key={`workflows:${filterKey}`} id="workflows" title="End-to-end workflows" items={workflows} read={read} expanded={hasFilters} workflow hrefForArticle={hrefForArticle}/>}
           <div className={styles.directory}>
-            {learningCategories.map(([id, title]) => {
+            {categories.map(([id, title]) => {
               const items = filtered.filter(article => article.category === id && article.manual.kind !== 'workflow');
-              return items.length ? <GuideGroup key={`${id}:${filterKey}`} id={id} title={title} items={items} read={read} expanded={hasFilters}/> : null;
+              return items.length ? <GuideGroup key={`${id}:${filterKey}`} id={id} title={title} items={items} read={read} expanded={hasFilters} hrefForArticle={hrefForArticle}/> : null;
             })}
           </div>
         </> : <div className={styles.empty}>
@@ -208,7 +230,7 @@ export default function LearningCenterHome({ available, matches, suggested, read
         <span className={styles.groupHeading}><strong>Words used in these pages</strong><small>Common terms explained in plain language</small></span>
         <RiArrowDownSLine className={styles.chevron} size={20} aria-hidden="true"/>
       </summary>
-      <dl>{pharmacyGlossary.map(([word, meaning]) => <div key={word}><dt>{word}</dt><dd>{meaning}</dd></div>)}</dl>
+      <dl>{glossary.map(([word, meaning]) => <div key={word}><dt>{word}</dt><dd>{meaning}</dd></div>)}</dl>
     </details>
   </div>;
 }

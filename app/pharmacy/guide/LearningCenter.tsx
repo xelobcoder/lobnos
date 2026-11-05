@@ -6,6 +6,7 @@ import { canAccessRolePage } from '../../../lib/roleNavigationPolicy';
 import { normalizeRole } from '../../../components/Auth/roles';
 import { usePharmacyAccess } from '../components/PharmacyWorkspace';
 import LearningCenterHome from './LearningCenterHome';
+import LearningArticleContent from './LearningArticleContent';
 import guide from './page.module.css';
 import articleStyles from './LearningCenterArticle.module.css';
 
@@ -25,29 +26,7 @@ const pathForRole = (role: unknown): { title: string; slugs: string[] } => {
 };
 
 function Article({ article, available }: { article: LearningArticle; available: LearningArticle[] }) {
-  const page = article.manual;
-  const visual = pharmacyGuideVisuals[article.slug];
-  return <>
-    <section id="open"><h2>How do I open this page?</h2><p className={guide.example}>{page.open}</p><p><code>{page.route}</code></p><Link className="btn btn-outline-primary" href={article.route}>{page.taskRoute ? 'Open the register to select your record' : 'Open the task page'}</Link><p className={guide.muted}>Navigation does not submit anything or grant permissions. Use your own authorized account.</p></section>
-    <section id="purpose"><h2>What can I do on this page?</h2><p>{article.what}</p></section>
-    <section id="interface"><h2>What am I looking at?</h2><dl className={guide.controls}>{page.controls.map(([name, description]) => <div key={name}><dt>{name}</dt><dd>{description}</dd></div>)}</dl>
-      {visual && <figure className={guide.visual}><a href={`/pharmacy-help/${visual.file}`} target="_blank" rel="noreferrer"><img src={`/pharmacy-help/${visual.file}`} alt={visual.alt} width={1440} loading="lazy"/></a><figcaption><strong>Isolated demonstration, not live records.</strong> Captured from the actual interface using synthetic test data; the numbers annotate existing controls. {visual.caption} Open the image to enlarge it. Your branch, role and records may differ.</figcaption></figure>}
-    </section>
-    <section id="steps"><h2>How do I complete the task?</h2>
-      <nav aria-label="Tasks in this guide"><ul>{page.operations.map(operation => <li key={operation.id}><a href={`#task-${operation.id}`}>{operation.title}</a></li>)}</ul></nav>
-      {page.operations.map(operation => <section key={operation.id} id={`task-${operation.id}`} className={guide.operation}>
-        <h3>{operation.title}</h3><ol>{operation.steps.map(step => <li key={step}>{step}</li>)}</ol>
-        <p><strong>Expected result:</strong> {operation.result}</p><p className={guide.example}><strong>Check it worked:</strong> {operation.verify}</p>
-      </section>)}
-    </section>
-    <section id="after"><h2>What happens after I complete the task?</h2><p>{article.after}</p></section>
-    <section id="verify"><h2>How do I check that it worked?</h2><ul>{page.verify.map(check => <li key={check}>{check}</li>)}</ul><p className={guide.muted}>These instructions have been checked against the application source. Full action-by-action runtime and representative-user acceptance are not yet verified. Do not practise by posting demonstration transactions to live records.</p></section>
-    <section id="recovery"><h2>What if something goes wrong?</h2><ul>{article.mistakes.map(mistake => <li key={mistake}>{mistake}</li>)}</ul></section>
-    <section id="next"><h2>What should I do next?</h2><ul>{article.related.filter(slug => available.some(a => a.slug === slug)).map(slug => {
-      const related = available.find(a => a.slug === slug)!;
-      return <li key={slug}><Link href={articleHref(slug)}>{related.title}</Link></li>;
-    })}</ul></section>
-  </>;
+  return <LearningArticleContent article={article} available={available} hrefForArticle={articleHref} visual={pharmacyGuideVisuals[article.slug]}/>;
 }
 
 export default function LearningCenter({ slug }: { slug?: string }) {

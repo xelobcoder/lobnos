@@ -14,6 +14,7 @@ import {CommissionLinks} from './categories/CommissionLinks';
 import {PharmacyLinks} from './categories/PharmacyLinks';
 const item=(title:string,link:string,icon=<RiFileListLine/>):Link=>({title,link,icon});
 export const CrmStaffLinks:Link[]=[
+ item('CRM Learning Center','/crm/guide'),item('Billing Learning Center','/billing/guide'),
  item('CRM workspace','/crm/overview',<RiCustomerService2Line/>),
  {title:'Patients & service',link:'',children:[item('Customers','/crm/customers',<RiUserLine/>),item('Patient registration','/crm/registration',<RiUserAddLine/>),item('Walk-in queue','/operations/queue',<RiTimeLine/>),item('Appointments','/appointments',<RiCalendarLine/>),item('Released results','/crm/validated'),item('Result delivery','/operations/laboratory/undelivered')]},
  {title:'Billing requests',link:'',children:[item('Prepare billing','/billing/patientid'),item('Entity order review','/billing/entity-orders'),item('Suspended billing','/billing/suspended-transactions'),item('Test price list','/crm/pricelist'),item('View packages','/billing/packages')]},
@@ -21,17 +22,17 @@ export const CrmStaffLinks:Link[]=[
  {title:'SMS',link:'',children:[item('SMS overview','/communications/sms/dashboard'),item('Compose SMS','/communications/sms/jobs'),item('SMS campaigns','/communications/sms/jobs/list'),item('SMS templates','/communications/sms/templates')]},
  item('Organizations','/organization'),item('Referring practitioners','/clinicians')
 ];
-export const CashierLinks:Link[]=[item('Cash collection','/billing/cash-collection',<RiMoneyDollarCircleLine/>),item('Receipts & reprints','/billing/receipts'),item('Cashier sales session','/billing/billing-sessions/sales-session',<RiTimeLine/>),item('Organization invoices','/billing/organization-invoices'),item('Test price list','/crm/pricelist'),item('View packages','/billing/packages')];
-export const MarketingStaffLinks:Link[]=[item('Referrer acquisition & follow-up','/crm/acquisition',<RiCustomerService2Line/>)];
+export const CashierLinks:Link[]=[item('Billing Learning Center','/billing/guide'),item('Cash collection','/billing/cash-collection',<RiMoneyDollarCircleLine/>),item('Receipts & reprints','/billing/receipts'),item('Cashier sales session','/billing/billing-sessions/sales-session',<RiTimeLine/>),item('Organization invoices','/billing/organization-invoices'),item('Test price list','/crm/pricelist'),item('View packages','/billing/packages')];
+export const MarketingStaffLinks:Link[]=[item('CRM Learning Center','/crm/guide'),item('Referrer acquisition & follow-up','/crm/acquisition',<RiCustomerService2Line/>)];
 export function roleSidebarSource(role:unknown,supplied:Link[]):Link[]{
  switch(roleWorkspace(role)){
  case 'crm':return CrmStaffLinks;case 'cashier':return CashierLinks;case 'marketer':return MarketingStaffLinks;
  case 'doctor':case 'medicalofficer':case 'consultant':case 'pharmacydoctor':case 'pharmacynurse':return [item('Practitioner workspace','/doctor'),item('Consultations','/doctor/consultation'),item('My clinical access','/doctor/permissions')];
- case 'nurse':case 'nursing':return [item('Patients & triage','/doctor/consultation'),item('Vital signs','/operations/laboratory/vitals/record-vital-sign')];
- case 'headoflaboratory':return [item('Laboratory requisitions','/operations/laboratory/requisitions'),item('Manage test panels','/operations/laboratory/test-panels/testlist')];
- case 'headofimaging':return [item('Imaging Operations','/operations/imaging'),item('Imaging requisitions','/operations/imaging/ultrasound/requisitions')];
+ case 'nurse':case 'nursing':return [item('Operations Learning Center','/operations/guide'),item('Patients & triage','/doctor/consultation'),item('Vital signs','/operations/laboratory/vitals/record-vital-sign')];
+ case 'headoflaboratory':return [item('Operations Learning Center','/operations/guide'),item('Laboratory requisitions','/operations/laboratory/requisitions'),item('Manage test panels','/operations/laboratory/test-panels/testlist')];
+ case 'headofimaging':return [item('Operations Learning Center','/operations/guide'),item('Imaging Operations','/operations/imaging'),item('Imaging requisitions','/operations/imaging/ultrasound/requisitions')];
  case 'scientist':return LaboratoryOperationsLinks;case 'phlebotomist':return PhlebotomyLinks;case 'sonographer':return ImagingLinks;
- case 'storekeeper':return InventoryLinks;case 'accountant':return [...AccountingLinks,{title:'Collections',link:'',children:CashierLinks},{title:'Expenses',link:'',children:ExpensesLinks},{title:'Payroll',link:'',children:PayrollLinks},{title:'Commissions',link:'',children:CommissionLinks}];
+ case 'storekeeper':return InventoryLinks;case 'accountant':return [...AccountingLinks,item('Inventory Learning Center','/inventory/guide'),{title:'Collections',link:'',children:CashierLinks},{title:'Expenses',link:'',children:ExpensesLinks},{title:'Payroll',link:'',children:PayrollLinks},{title:'Commissions',link:'',children:CommissionLinks}];
  case 'pharmacymanager':case 'pharmacycashier':case 'pharmacystorekeeper':case 'pharmacyaccountant':case 'pharmacydispensaryofficer':case 'pharmacist':return PharmacyLinks;
  default:return supplied;
  }

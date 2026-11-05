@@ -42,7 +42,14 @@ Prime Laboratory Software (PLS) Version 2.0 is a comprehensive Laboratory Inform
 
 ## 📋 Patient Management & CRM
 
+### Walk-in queue workspace
+
+- The front-desk workspace at `/operations/queue` follows the accounting/payroll workspace conventions: a compact header, bordered summary strip and worklist panels, shared theme colors and consistent typography. Summary filters cover total, waiting, called, in-service and finished visits.
+- Facility context and the 15-second auto-refresh indicator appear separately below the page description. Refresh and authorized queue settings remain available in the header.
+- Responsive layouts keep search, arrival-date filters, public check-in/display links, client progress and registration/billing actions usable on narrow screens.
+
 ### Patient Registration & Management
+
 - **Comprehensive Patient Registration**
   - Complete demographic information capture
   - Medical history tracking

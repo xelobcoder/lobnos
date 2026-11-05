@@ -1,3 +1,4 @@
+import { RiBookOpenLine } from '@remixicon/react';
 import { Link } from '../types';
 import {
     RiHeartPulseLine,
@@ -17,6 +18,7 @@ import {
 } from '@remixicon/react';
 
 export const LaboratoryOperationsLinks: Link[] = [
+    {title:"Learning Center",link:"/operations/guide",icon:<RiBookOpenLine/>},
     {title:"Manage test panels",link:"/operations/laboratory/test-panels/testlist",icon:<RiTestTubeLine/>},
     {title:"Stock requisitions",link:"/operations/laboratory/requisitions",icon:<RiFileListLine/>},
     {

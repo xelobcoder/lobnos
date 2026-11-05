@@ -1,0 +1,18 @@
+.figure { margin: 24px 0 0; padding: 18px; background: var(--bs-tertiary-bg); border: 1px solid var(--bs-border-color); border-radius: 8px; }
+.figure figcaption { font-weight: 600; line-height: 1.6; }
+.diagram { display: block; width: 100%; height: auto; margin: 16px auto; max-width: 720px; }
+.track { fill: none; stroke: color-mix(in srgb, var(--pls-primary, #2e7d32) 18%, var(--bs-body-bg)); stroke-width: 10; }
+.connector { fill: none; stroke: var(--pls-primary, #2e7d32); stroke-width: 3; stroke-dasharray: 5 7; }
+.marker { fill: var(--pls-primary, #2e7d32); }
+.node { fill: var(--pls-primary-dark, #1b5e20); stroke: var(--bs-body-bg); stroke-width: 5; }
+.number { fill: #fff; font-size: 23px; font-weight: 600; font-family: inherit; }
+.label { fill: var(--bs-body-color); font-family: inherit; font-size: 18px; font-weight: 500; }
+.centerTitle { fill: var(--bs-body-color); font-family: inherit; font-size: 20px; font-weight: 600; }
+.centerDetail { fill: var(--bs-secondary-color); font-family: inherit; font-size: 14px; }
+.document rect { fill: var(--bs-body-bg); stroke: var(--pls-primary, #2e7d32); stroke-width: 3; }
+.document path { fill: none; stroke: var(--pls-primary, #2e7d32); stroke-width: 3; stroke-linecap: round; }
+.stages { margin-bottom: 0; }
+.stages li { padding-block: 8px !important; font-size: .9375rem; }
+.stages p { margin: 4px 0; }
+@media (max-width: 767px) { .diagram { display: none; } .figure { padding: 14px; } }
+@media print { .figure { break-inside: avoid; } }

@@ -1,3 +1,4 @@
+import { RiBookOpenLine } from '@remixicon/react';
 import { Link } from '../types';
 import {
      RiBox3Line,
@@ -21,6 +22,7 @@ import {
 } from '@remixicon/react';
 
 export const InventoryLinks: Link[] = [
+    {title:"Learning Center",link:"/inventory/guide",icon:<RiBookOpenLine/>},
      {title:"Department stock",link:"/inventory/department-stock",icon:<RiBox3Line/>},
      {
           title: "Analytics Dashboard",

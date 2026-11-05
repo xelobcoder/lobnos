@@ -69,6 +69,14 @@ export function canAccessRolePage(role: unknown, value: string, settings: Naviga
      if (!p || !p.startsWith("/")) return false;
      if (isMasterPlatformPath(p)) return isSuperAdminRole(role);
      if (key === "admin" || isSuperAdminRole(role)) return true;
+     const learningRoles: Record<string,string[]> = {
+          operations: ['manager','scientist','phlebotomist','sonographer','headoflaboratory','headofimaging','nurse','nursing','crm'],
+          crm: ['manager','crm','marketer'],
+          billing: ['manager','crm','cashier','accountant'],
+          inventory: ['manager','storekeeper','accountant'],
+     };
+     const learningMatch = p.match(/^\/(operations|crm|billing|inventory)\/guide(?:\/|$)/);
+     if (learningMatch) return learningRoles[learningMatch[1]].includes(key);
      if (p === "/operations/imaging" && key === "headofimaging") return true;
      if (within(p, "/operations/laboratory/requisitions") || within(p, "/operations/imaging/ultrasound/requisitions")) {
           const department = p.includes("/imaging/") ? "imaging" : "laboratory";

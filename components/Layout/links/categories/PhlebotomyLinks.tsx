@@ -1,7 +1,9 @@
+import { RiBookOpenLine } from '@remixicon/react';
 import { Link } from '../types';
 import { RiSyringeLine, RiCloseCircleLine, RiBarChartBoxLine, RiHome2Line, RiFileListLine, RiQuestionAnswerLine, RiMailLine } from '@remixicon/react';
 
 export const PhlebotomyLinks: Link[] = [
+    {title:"Learning Center",link:"/operations/guide",icon:<RiBookOpenLine/>},
     { title: 'Walk-in Queue & Client Tracking', link: '/operations/queue', icon: <RiHome2Line /> },
     {
         title: "Summary",

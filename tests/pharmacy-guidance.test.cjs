@@ -32,6 +32,7 @@ function guidePage(role='pharmacy_manager',query='',slug,read=[]){
     '../../../components/Auth/roles':roles,
     '../components/PharmacyWorkspace':{styles:css.default,usePharmacyAccess:()=>({app:{user:{role}}})},
     './LearningCenterHome':learningHome,
+    './LearningArticleContent':compile('app/pharmacy/guide/LearningArticleContent.tsx'),
   }).default({slug});
 }
 test('guide explains every static pharmacy page, with existing destinations and steps for every topic',()=>{

@@ -1,3 +1,4 @@
+import { RiBookOpenLine } from '@remixicon/react';
 import { Link } from '../types';
 import {
     RiUserFollowLine,
@@ -10,6 +11,7 @@ import {
 } from '@remixicon/react';
 
 export const ImagingLinks: Link[] = [
+    {title:"Learning Center",link:"/operations/guide",icon:<RiBookOpenLine/>},
     {title:'Imaging Operations',link:'/operations/imaging',icon:<RiUserFollowLine/>},
     {title:"Stock requisitions",link:"/operations/imaging/ultrasound/requisitions",icon:<RiFileListLine/>},
     { title: 'Waiting List', link: '/operations/imaging/ultrasound', icon: <RiUserFollowLine /> },

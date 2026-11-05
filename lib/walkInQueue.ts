@@ -21,6 +21,14 @@ const transitions: Record<QueueStatus, QueueStatus[]> = {
 };
 export const nextQueueStatuses = (status: QueueStatus): QueueStatus[] => transitions[status] || [];
 export const queueFailure = (failure: unknown): string => failure instanceof Error ? failure.message : 'Unable to update the queue. Please try again.';
+export function queueMatchesSearch(ticket: QueueTicket, query: string): boolean {
+    const search = query.trim().replace(/\s+/g, ' ').toLowerCase();
+    if (!search) return true;
+    const fields = [ticket.ticketNumber, ticket.name, ticket.phone, ticket.patientid, ticket.billingid, ticket.counter];
+    if (fields.some(value => value != null && String(value).replace(/\s+/g, ' ').toLowerCase().includes(search))) return true;
+    const digits = search.replace(/\D/g, '');
+    return Boolean(digits && /^[+\d\s().-]+$/.test(search) && ticket.phone?.replace(/\D/g, '').includes(digits));
+}
 /** Idempotency keys also work on facility LAN kiosks served over plain HTTP. */
 export function createQueueRetryKey(source: { randomUUID?: () => string; getRandomValues?: (bytes: Uint8Array) => Uint8Array } | null = typeof crypto === 'undefined' ? null : crypto): string {
     if (typeof source?.randomUUID === 'function') return source.randomUUID();
