@@ -81,13 +81,14 @@ test('backup log controls disable unavailable files without hiding historical su
      vm.runInNewContext(source, {
           exports,
           require: name => {
+               if(name.endsWith('.module.css'))return {default:new Proxy({},{get:(_,key)=>String(key)})};
                if (name === 'react-bootstrap') return { Button: 'button' };
                if (name === '../../accessories/Datatables/PrimeTable') return { default: 'prime-table' };
                if (name === '@remixicon/react') return { RiDatabaseLine: 'span', RiDownloadLine: 'span', RiDeleteBinLine: 'span' };
                return require(name);
           },
      });
-     const table = exports.default({ backupLogs: [] }).props.children[1];
+     const table = exports.default({ backupLogs: [] }).props.children[1].props.children;
      const actions = table.props.column.find(column => column.Header === 'Actions');
      const status = table.props.column.find(column => column.Header === 'Status');
      for (const [is_successful, file_available, disabled] of [
@@ -98,7 +99,7 @@ test('backup log controls disable unavailable files without hiding historical su
      }
      const row = { original: { is_successful: true, file_available: false } };
      const statusCell = status.Cell({ row });
-     assert.equal(statusCell.props.children[0], 'Success');
+     assert.equal(statusCell.props.children[0].props.children, 'Successful');
      assert.equal(statusCell.props.children[1].props.children, 'File unavailable');
      assert.match(actions.Cell({ row }).props.children[0].props.title, /unavailable/);
 });

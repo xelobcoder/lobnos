@@ -19,8 +19,8 @@ const nodes = (tree, predicate) => !tree || typeof tree !== "object" ? [] : Arra
 const text = tree => tree == null ? "" : typeof tree !== "object" ? String(tree)
     : Array.isArray(tree) ? tree.map(text).join("") : text(tree.props?.children);
 
-function harness({ context, role = "admin", blockedStorage = false, search = "" } = {}) {
-    const states = [], redirects = [], writes = [], requests = [];
+function harness({ context, role = "admin", blockedStorage = false, search = "", tenantId = 397773, moduleConfiguration, username = "PLS20154S004", loginResponse } = {}) {
+    const states = [], redirects = [], writes = [], requests = [], authCalls = [];
     let cursor = 0;
     const exports = {};
     const storage = {
@@ -39,7 +39,7 @@ function harness({ context, role = "admin", blockedStorage = false, search = "" 
             if (url === "/api/auth/login") return { ok: true, json: async () => ({ status: true, role }) };
             return context ? context(options) : {
                 ok: true,
-                json: async () => ({ user: { user: { role } }, tenantId: 397773, settings: { homeCollectionPromptEnabled: 1 } }),
+                json: async () => ({ user: { user: { role } }, tenantId, settings: { homeCollectionPromptEnabled: 1, moduleConfiguration } }),
             };
         },
         require(name) {
@@ -55,7 +55,8 @@ function harness({ context, role = "admin", blockedStorage = false, search = "" 
             if (name === "react-bootstrap") return { Alert: "Alert", Spinner: "Spinner" };
             if (name === "next/navigation") return { useRouter: () => ({ push: url => redirects.push(url) }) };
             if (name === "next/link") return "Link";
-            if (name.includes("customFetch")) return { customPost: async () => ({ status: true, accessToken: "test-token", tenantId: 397773 }) };
+            if (name.includes("customFetch")) return { customPost: async (endpoint, method, body) => { authCalls.push({endpoint,method,body}); return loginResponse || { status: true, accessToken: "test-token", tenantId }; } };
+            if (name.endsWith("errorMessage")) return require("./helpers/error-message.cjs");
             if (name.endsWith("workspaceDestination")) return destinations;
             if (name.endsWith(".css")) return {};
             if (name === "@remixicon/react") return new Proxy({}, { get: () => "Icon" });
@@ -64,18 +65,18 @@ function harness({ context, role = "admin", blockedStorage = false, search = "" 
     });
     const render = () => { cursor = 0; return exports.default(); };
     const submit = () => {
-        nodes(render(), node => node.props?.id === "username")[0].props.onChange({ target: { value: "PLS20154S004" } });
+        nodes(render(), node => node.props?.id === "username")[0].props.onChange({ target: { value: username } });
         nodes(render(), node => node.props?.id === "password")[0].props.onChange({ target: { value: "test-password" } });
         nodes(render(), node => node.type === "form")[0].props.onSubmit({ preventDefault() {} });
     };
-    return { render, submit, redirects, writes, requests, flush: () => new Promise(resolve => setImmediate(resolve)) };
+    return { render, submit, redirects, writes, requests, authCalls, flush: () => new Promise(resolve => setImmediate(resolve)) };
 }
 
 for (const [role, target] of [
     ["admin", "/analytics"], ["super-admin", "/settings/facilities"], ["scientist", "/operations/laboratory"],
-    ["patient", "/patientportal"], ["clinician", "/doctor"], ["manager", "/"],
-    ["marketer", "/crm/acquisition"], ["customer service representative", "/crm/overview"], ["sonographer", "/operations/imaging/ultrasound"],
-    ["storekeeper", "/inventory"], ["accountant", "/accounting"], ["unknown", "/"],
+    ["patient", "/patientportal"], ["clinician", "/doctor"], ["manager", "/crm/overview"],
+    ["marketer", "/crm/acquisition"], ["customer service representative", "/crm/overview"], ["sonographer", "/operations/imaging"],
+    ["storekeeper", "/inventory"], ["accountant", "/accounting"], ["unknown", "/unauthorized"],
 ]) {
     test(`verified ${role} session leaves the login page for ${target}`, async () => {
         const h = harness({ role });
@@ -146,4 +147,45 @@ test("portal staff login retains only safe dedicated portal destinations", async
         h.submit(); await h.flush();
         assert.deepEqual(h.redirects, [expected]);
     }
+});
+
+
+for(const tenantId of [397773,827461])for(const [role,target] of [
+ ["cashier","/billing/cash-collection"],["manager","/crm/overview"],["pharmacy_cashier","/pharmacy/sell"],
+ ["pharmacy_storekeeper","/pharmacy/inventory"],["pharmacy_accountant","/pharmacy/finance"],["pharmacy_dispensary_officer","/pharmacy/prescriptions"],
+ ["head_of_laboratory","/operations/laboratory/requisitions"],["head_of_imaging","/operations/imaging/ultrasound/requisitions"],
+ ["phlebotomist","/operations/phelobotomy"],["doctor","/doctor"],
+])test(`fresh ${role} login completes only after facility ${tenantId} context is confirmed`,async()=>{
+ const h=harness({role,tenantId,username:tenantId===397773?'PLS20153S004':'PLS20154S004'});h.submit();await h.flush();
+ assert.deepEqual(h.redirects,[target]);
+ assert.equal(JSON.parse(h.requests[0].options.body).tenantId,tenantId);
+ assert.equal(h.writes[0][1].tenantId,tenantId);
+});
+for(const role of ['admin','manager'])test(`fresh ${role} pharmacy-only login uses confirmed facility modules`,async()=>{
+ const h=harness({role,moduleConfiguration:{modules:{pharmacy:{enabled:true},laboratoryOperations:{enabled:false},imaging:{enabled:false}}}});h.submit();await h.flush();assert.deepEqual(h.redirects,[role==='admin'?'/pharmacy':'/account/roles']);
+});
+
+
+for(const [username,message] of [['PLS20154C004',/Choose Doctor Login/],['PLS20154P004',/Choose Patient Login/]])test(`staff form explains the correct account type for ${username}`,async()=>{
+ const h=harness({username});h.submit();await h.flush();assert.equal(h.redirects.length,0);assert.equal(h.requests.length,0);assert.equal(h.authCalls.length,0);assert.match(text(h.render()),message);
+});
+test('changing staff/practitioner account type clears the password without losing the username',()=>{
+ const h=harness();
+ nodes(h.render(),node=>node.props?.id==='username')[0].props.onChange({target:{value:'PLS20154C004'}});
+ nodes(h.render(),node=>node.props?.id==='password')[0].props.onChange({target:{value:'not-sent'}});
+ nodes(h.render(),node=>node.props?.role==='tab'&&text(node)==='Doctor Login')[0].props.onClick();
+ assert.equal(nodes(h.render(),node=>node.props?.id==='password')[0].props.value,'');
+ assert.equal(nodes(h.render(),node=>node.props?.id==='username')[0].props.value,'PLS20154C004');
+});
+test('practitioner form retains its clinician endpoint and verified workspace',async()=>{
+ const h=harness({username:'PLS20154C004',role:'clinician'});
+ nodes(h.render(),node=>node.props?.role==='tab'&&text(node)==='Doctor Login')[0].props.onClick();
+ h.submit();await h.flush();assert.deepEqual(h.redirects,['/doctor']);assert.equal(h.authCalls[0].endpoint,'login/clinician');assert.equal(h.authCalls[0].body.username,'PLS20154C004');
+});
+
+
+test('structured backend login rejection renders its readable message instead of a React child object',async()=>{
+ const h=harness({loginResponse:{status:false,error:{code:'SESSION_REPLACED',message:'Your account was signed in on another device.'}}});
+ h.submit();await h.flush();const tree=h.render();assert.match(text(tree),/Your account was signed in on another device/);assert.equal(h.redirects.length,0);
+ const alert=nodes(tree,node=>node.type==='Alert')[0];assert.equal(typeof alert.props.children.props.children,'string');
 });

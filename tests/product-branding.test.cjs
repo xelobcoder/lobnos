@@ -8,13 +8,14 @@ const test = require('node:test');
 const root = path.join(__dirname, '..');
 
 test('public entry screens and package metadata use Prime Laboratory Software', () => {
+    assert.ok(fs.existsSync(path.join(root, 'app', '(website)', 'page.tsx')), 'public homepage is present in its route group');
     const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
     assert.equal(packageJson.productName, 'Prime Laboratory Software');
     const installer = fs.readFileSync(path.join(root, 'electron-builder.yml'), 'utf8');
     assert.match(installer, /productName: Prime Laboratory Software/);
     assert.match(installer, /shortcutName: Prime Laboratory Software/);
     for (const relative of [
-        ['app', 'page.tsx'],
+        ['website', 'components', 'layout', 'SiteHeader.tsx'],
         ['app', 'authentications', 'login', 'page.tsx'],
         ['app', 'authentications', 'license-expired', 'page.tsx'],
         ['components', 'Layout', 'PrimeLayout.tsx'],

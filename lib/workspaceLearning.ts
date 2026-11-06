@@ -2,7 +2,13 @@ import { canAccessRolePage, type NavigationSettings } from './roleNavigationPoli
 import { canAccessFacilityModule } from './facilityModuleAccess';
 import { isSuperAdminRole } from '../components/Auth/roles';
 export type LearningModule = 'operations' | 'crm' | 'billing' | 'inventory';
+export interface WorkspacePilot {
+    reviewedAt: string; status: string; checked: string[]; pending: string[]; exercise: string;
+    fields: { name: string; rule: string; mistake: string }[];
+    screenshots: { file: string; caption: string; callouts: { x: number; y: number; label: string }[] }[];
+}
 export interface WorkspaceArticle {
+    pilot?: WorkspacePilot;
     slug: string;
     title: string;
     category: string;
@@ -186,19 +192,24 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/operations/laboratory/sample/collection",
                 "purpose": "Identify the patient and requested services before collecting a specimen.",
                 "steps": [
-                    "Open collect and review samples using the task-page link below. Confirm the page and active branch match your intended work.",
-                    "Find the patient and bill in the collection list. Match the patient identity and requested specimen.",
-                    "Review the service and collection requirements. Use the available collection action for the selected service.",
-                    "Record the collection details and confirm. Review the updated collection status.",
-                    "The correct service shows its recorded collection details."
+                    "Open Operations → Laboratory Operations Lifecycle → Sample Collection. Use Search samples and Load samples, or the date filters, to locate the visit. Compare patient, PatientId/BillID and requested tests, then choose Collect Samples.",
+                    "Review Samples to collect. Each card proposes a specimen type and container and lists Tests sharing this physical sample. Check the test selections against the actual container.",
+                    "If the plan says Unspecified container, resolve the test/container configuration with the authorized laboratory lead before a real clinical collection. Training screenshots illustrate the interface, not specimen compatibility or clinical approval.",
+                    "If the plan is wrong, use Combine / split / change proposed containers and review the corrected grouping before continuing. Use proposed containers returns to the proposed plan.",
+                    "Use Start collection when the procedure has begun but is not complete. Use Collect now only after the specimen has actually been collected. Wait for the resulting sample UID.",
+                    "For a started specimen, use Complete collection on its existing Physical samples card. Use + Add another container only when a genuinely additional physical container is required.",
+                    "Review each Physical samples card: UID, specimen/container, linked tests and collected status. Use Print sample barcode and match the label to the patient and container before handoff.",
+                    "Review any collection-supply recording available for the specimen. Keep supply usage separate from specimen status.",
+                    "Select Finish after the required collection groups are complete. Then open Sample Validation, locate the intended visit and choose Validate Sample. Scan or enter the saved UID/barcode in Scan or enter sample barcode / ID, then Find sample. Review the linked tests before Accept container or Reject container; a decision applies to the displayed container and all its linked tests. Use Finish validation after the intended review. Storage remains a separate action."
                 ],
-                "verify": "The correct service shows its recorded collection details.",
-                "recovery": "If collection is blocked, review the service status and access with the laboratory lead.",
+                "verify": "The visit shows the intended collected sample UID(s), with the correct tests attached and no unintended extra containers. The receiving team can locate the same identifiers.",
+                "recovery": "If an action fails or times out, reopen Physical samples before creating another container. If the specimen is unsuitable, use the authorized rejection/recollection workflow and retain the original history. Do not mark a specimen accepted solely to unlock result entry.",
                 "kind": "page",
                 "concept": "Collection records specimen custody for a particular billed service. A patient can have several services with different specimen requirements.",
                 "before": [
-                    "Confirm the patient using the visit and patient identifiers.",
-                    "Review the service and specimen requirements before collecting."
+                    "Identify the patient and visit using at least the facility’s required identifiers.",
+                    "Confirm the requested services and the payment/sample prerequisites enforced by the facility.",
+                    "Prepare the correct containers and follow the facility’s specimen collection and infection-control procedures. This manual does not replace those clinical procedures."
                 ],
                 "controls": [
                     {
@@ -215,15 +226,73 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     }
                 ],
                 "example": {
-                    "situation": "A visit contains two requested tests.",
-                    "action": "Review the specimen requirements of both services before recording collection for either.",
-                    "expected": "Check each selected service status after saving."
+                    "situation": "The fictional visit NE-000005-MY has paid Bill #67 with two test requests.",
+                    "action": "The live software exercise created S-20261106-52F1C902 with Start collection, completed it, then found and accepted that same UID in Physical Sample Validation. No real patient specimen was involved.",
+                    "expected": "The UID remained linked to ascensions 170 and 171. The accepted-container view was displayed. Clinical container suitability and physical printer output still require separate validation."
                 },
                 "after": "The collection record identifies the service and feeds the sample review and processing stages.",
                 "related": [
                     "sample-validation"
                 ],
-                "open": "Use Laboratory Operations Lifecycle → Sample Collection in the workspace navigation. Menu wording depends on your active role. The Open task page button opens the same register or form directly."
+                "open": "Open Operations or Phelobotomy and choose Sample Collection. The laboratory collection entry opens the same collection workspace.",
+                "pilot": {
+                    "reviewedAt": "6 November 2026",
+                    "status": "Live simulated start, collection and specimen acceptance verified",
+                    "checked": [
+                        "Located paid Bill #67 in Sample Collection and opened Collect Samples.",
+                        "Used Start collection to create S-20261106-52F1C902, then Complete collection. Confirmed Collected and linked ascensions 170 and 171.",
+                        "Opened Sample Validation → Validate Sample, found the same UID and used Accept container. Verified that it appeared under accepted containers."
+                    ],
+                    "pending": [
+                        "Clinical suitability, actual container configuration, physical barcode printer output, rejection/recollection and storage were not clinically validated.",
+                        "The training catalogue proposed Unspecified container. That display is a configuration gap to review before clinical use, not a recommended collection plan."
+                    ],
+                    "exercise": "With an approved fictional visit, identify the intended tests and containers. Record collection once, note each sample UID and demonstrate that the linked tests and subsequent reception use those same samples.",
+                    "fields": [
+                        {
+                            "name": "Tests sharing this physical sample",
+                            "rule": "Keep only tests actually sharing the same specimen/container selected. At least one is required.",
+                            "mistake": "Selecting every test can link an incompatible test to the wrong physical sample."
+                        },
+                        {
+                            "name": "Start collection / Collect now",
+                            "rule": "Start collection creates an in-progress specimen; Collect now records completed collection.",
+                            "mistake": "Do not record collected before the specimen is physically obtained."
+                        },
+                        {
+                            "name": "Combine / split / change proposed containers",
+                            "rule": "Use only when the proposed specimen plan needs correction and you are authorized.",
+                            "mistake": "Do not create a duplicate container to correct a recoverable planning issue."
+                        },
+                        {
+                            "name": "Physical samples",
+                            "rule": "Review sample UID, status, specimen/container type and linked tests.",
+                            "mistake": "A printed barcode alone does not prove reception or acceptance."
+                        },
+                        {
+                            "name": "Complete collection",
+                            "rule": "Completes an existing collection_started sample.",
+                            "mistake": "Do not create a second sample for an already started container."
+                        }
+                    ],
+                    "screenshots": [
+                        {
+                            "file": "sample-plan.jpg",
+                            "caption": "The actual training collection plan. Unspecified container indicates setup to review; this screenshot is not a clinical specimen recommendation.",
+                            "callouts": []
+                        },
+                        {
+                            "file": "sample-collected.jpg",
+                            "caption": "The same simulated physical sample has Collected status, a UID/barcode and its linked tests. Collection does not itself mean specimen acceptance.",
+                            "callouts": []
+                        },
+                        {
+                            "file": "sample-accepted.jpg",
+                            "caption": "Sample Validation recorded acceptance of the same UID. Storage is a separate available task.",
+                            "callouts": []
+                        }
+                    ]
+                }
             },
             {
                 "slug": "sample-validation",
@@ -232,7 +301,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/operations/laboratory/sample/validation",
                 "purpose": "Review specimen suitability before processing.",
                 "steps": [
-                    "Open validate collected samples using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open validate collected samples using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Filter the pending samples and identify the patient and service.",
                     "Review specimen details before selecting individual samples or the header selection checkbox.",
                     "Apply the available validation action only to the reviewed samples.",
@@ -275,22 +344,27 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "slug": "result-entry",
                 "title": "Enter and review results",
                 "category": "Results",
-                "route": "/operations/laboratory/processing",
+                "route": "/operations/laboratory/completed",
                 "purpose": "Work on the correct patient visit and test revision.",
                 "steps": [
-                    "Open enter and review results using the task-page link below. Confirm the page and active branch match your intended work.",
-                    "Locate the patient and service in the processing list. Open the result entry task.",
-                    "Review the requested test, units and reference information. Enter the measured results and review calculated fields.",
-                    "Save using the existing result action and review its confirmation before leaving.",
-                    "Reopen the service and confirm the saved values and revision."
+                    "Locate the patient and test by Patient ID, Billing ID or Ascension ID. Laboratory Workbench shows the current eligibility and any payment, sample or QC blockers. Do not assume an older stage-list row proves that a processing action is required.",
+                    "Where processing is required, use Start and Stop in Processing stage for the actual test work, then Proceed to Result Entry or Completed stage. If the server reports Processing is already completed or bypassed, review the configured workflow and use the eligible result-entry stage; do not change settings to force processing. In Completed stage choose Enter result and verify the patient, test, units and reference information.",
+                    "Enter every required value in the actual test form. Review decimal placement, units, flags and comments. Use fictional values only on the designated training record.",
+                    "Use the save action offered by that test form once. Wait for confirmation, reopen the service and compare every saved value with the source worksheet. A blocked unpaid service must remain blocked when its settings require payment.",
+                    "For validation, open the current results and select Reload latest results after any stale-revision warning. Review patient, service, values, comments and any revalidation notice.",
+                    "Confirm I have reviewed the patient details and current results. If Your secure PIN appears, enter your own PIN and use Verify PIN.",
+                    "Select Record approval, or the permitted bulk action only after reviewing each included result. Check whether further validators are required before final release.",
+                    "If a result changes after approval, reopen the latest revision and repeat the required review. Previous approvals do not apply to the changed revision.",
+                    "Print or deliver only when the configured validation, payment, critical-value and release requirements are satisfied. Review the patient and final version in the preview."
                 ],
-                "verify": "Reopen the service and confirm the saved values and revision.",
-                "recovery": "Payment rules, required fields and result permissions still apply. Resolve the reported issue before retrying.",
+                "verify": "Reopened values match the saved worksheet. Each approval names the signed-in validator and current revision. A changed result requires the applicable new approvals, and a service blocked by settings cannot be saved, validated or printed through an alternative path.",
+                "recovery": "For “The result has changed”, reload and review the latest revision before approving. For a payment, sample or QC block, resolve the underlying prerequisite through the responsible team. If save returns an uncertain error, reopen the current result before resubmitting.",
                 "kind": "page",
                 "concept": "Results belong to a specific service and revision. Editing a previously approved result can require validation again. Payment and application settings still control whether entry is allowed.",
                 "before": [
-                    "Confirm the patient, billing reference and test.",
-                    "Review payment eligibility and required specimen or workflow stages."
+                    "Confirm patient, visit, test and sample identity. The specimen must satisfy the configured reception/acceptance checks.",
+                    "Confirm paid, part-paid or unpaid-service eligibility under the application settings. Do not change the settings merely to complete training.",
+                    "Complete any required QC and use your own result-entry or validation permission."
                 ],
                 "controls": [
                     {
@@ -307,16 +381,55 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     }
                 ],
                 "example": {
-                    "situation": "A result was approved, then a measured value needs correction.",
-                    "action": "Open the correct service, review the units and save the corrected value.",
-                    "expected": "Reopen the result and confirm that the updated revision follows the required validation process."
+                    "situation": "A fictional test result is saved and approved, then an authorized correction changes a value.",
+                    "action": "Reopen the result, inspect the changed value and revalidation notice, and have the required validators approve the current revision.",
+                    "expected": "The original approval remains historical evidence and does not release the new revision. This lifecycle still requires a successful live pilot."
                 },
                 "after": "Saving records the result revision. Final release still follows validation and application settings.",
                 "related": [
                     "result-validation",
                     "result-delivery"
                 ],
-                "open": "Use Laboratory Operations Lifecycle → Processing stage in the workspace navigation. Menu wording depends on your active role. The Open task page button opens the same register or form directly."
+                "open": "Open Operations → Laboratory Operations Lifecycle → Completed stage, then Enter result for the intended test. Processing stage is required only when the facility workflow has not configured it to be bypassed.",
+                "pilot": {
+                    "reviewedAt": "5 November 2026",
+                    "status": "Source reviewed — live save and validation pending",
+                    "checked": [
+                        "Reviewed current-revision validation, payment warnings, review confirmation and conditional secure-PIN controls."
+                    ],
+                    "pending": [
+                        "The training visit has not reached a saved bill and accepted specimen, so live result save, revision invalidation and final release remain unverified."
+                    ],
+                    "exercise": "Use a fictional test visit with authorized training values. Save a result, reopen it, have an authorized validator review the current revision, then change a value through the permitted correction workflow and demonstrate that earlier approval does not validate the new revision.",
+                    "fields": [
+                        {
+                            "name": "Result fields",
+                            "rule": "Use the test’s configured fields, units, reference ranges and required format.",
+                            "mistake": "A sample value from a manual is not a patient result."
+                        },
+                        {
+                            "name": "Reload latest results",
+                            "rule": "Refresh the current revision before approval after another edit or stale-result warning.",
+                            "mistake": "Do not approve an older screen after the result has changed."
+                        },
+                        {
+                            "name": "Review confirmation",
+                            "rule": "Select I have reviewed the patient details and current results. only after checking them.",
+                            "mistake": "The checkbox is an attestation, not a way around review."
+                        },
+                        {
+                            "name": "Your secure PIN / Verify PIN",
+                            "rule": "Shown where the facility requires secure validation. Enter your own PIN only in the software.",
+                            "mistake": "Never use another validator’s PIN or include it in training screenshots."
+                        },
+                        {
+                            "name": "Record approval",
+                            "rule": "Records your approval of the current revision; final release still needs the configured validators.",
+                            "mistake": "Saving and approving are different actions; one approval may not release the result."
+                        }
+                    ],
+                    "screenshots": []
+                }
             },
             {
                 "slug": "result-validation",
@@ -325,7 +438,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/operations/laboratory/validation",
                 "purpose": "Review current values before recording approval.",
                 "steps": [
-                    "Open validate the latest result revision using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open validate the latest result revision using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Open a pending result and review its patient, test and current values.",
                     "If the result changed, reload the latest results and review the replacement revision.",
                     "Record your validation through the available approval action.",
@@ -372,7 +485,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/operations/laboratory/undelivered",
                 "purpose": "Track delivery of eligible reports.",
                 "steps": [
-                    "Open deliver released results using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open deliver released results using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Search the undelivered list and confirm the patient and visit.",
                     "Review the released report and available delivery actions.",
                     "Use the authorized delivery action and check the updated record.",
@@ -419,6 +532,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/operations/laboratory/quality-control",
                 "purpose": "Record control measurements and review quality outcomes.",
                 "steps": [
+                    "From Quality & Performance > Quality Control, choose New QC session. Wait for New session to finish loading. Select Device first, then its Control material. Create QC session remains disabled while that selection is incomplete. After successful creation, use QC sessions to review and record results.",
                     "Open Quality control and choose New QC session or the New session tab.",
                     "Select the device. Wait for the control materials belonging to that device to load.",
                     "Select the intended control material and lot. If no devices or materials exist, configure them through Devices or Control materials with an authorized user.",
@@ -452,6 +566,10 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     {
                         "name": "Setup",
                         "description": "Authorized administrators and managers edit warning and action defaults for new control parameters."
+                    },
+                    {
+                        "name": "Workspace tabs",
+                        "description": "Overview, QC sessions, New session, Control materials, Devices and Setup separate monitoring, recording and configuration tasks."
                     }
                 ],
                 "example": {
@@ -473,7 +591,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/operations/imaging/ultrasound",
                 "purpose": "Review waiting imaging cases and record authorized reports.",
                 "steps": [
-                    "Open work through imaging cases using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open work through imaging cases using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Locate the patient in the waiting list and confirm the requested examination.",
                     "Open the case and review the available report fields and templates.",
                     "Complete the report using the permitted save or completion action.",
@@ -519,11 +637,15 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/operations/laboratory/requisitions",
                 "purpose": "Track stock from the storekeeper to laboratory usage.",
                 "steps": [
-                    "Open request, receive and consume laboratory stock using the task-page link below. Confirm the page and active branch match your intended work.",
-                    "Select items and quantities, add each item to the requisition basket and submit. Request reasons are optional.",
-                    "After stores issue the stock, confirm the quantity physically received. Record the actual quantity if it differs.",
-                    "Record consumption against the department stock. Use the separate wastage or loss action when appropriate.",
-                    "The request history and remaining department quantity reflect the recorded movement."
+                    "Open this department’s stock workspace using Open task page. Confirm facility, branch and department. Choose Requisitions & stock. Requesting, receiving and consuming require their own existing permissions; a head role is not required when a staff member has the relevant access.",
+                    "In Build a requisition, search Inventory item by name or SKU, select the correct item and unit, enter Requested quantity and optionally Request reason. Choose Add item or press Enter. The added line appears in Requisition basket and focus returns to item selection, with quantity reset to 1.",
+                    "Continue adding items. Adding the same item again combines its quantity into one line. Edit the basket quantity or reason, or use Remove to correct a line. Review all pages of the basket, then Send requisition once. All basket items are submitted, including those on other pages. Wait for Requisition sent to stores for review.",
+                    "Find the saved request in Requisitions and departmental stock. Request status can narrow Awaiting approval, Ready to issue, Awaiting receipt, Delivery shortages, Available to consume or Rejected. Filter department requests finds the item or request. Stores reviews the request, approves its quantity and issues the approved stock; Requested and Approved may differ.",
+                    "After issue, filter Awaiting receipt. On the correct item choose Confirm receipt. Enter Quantity physically received, review the unit and Confirm action. A lower receipt requires an explanation and automatically opens a Stock receipt discrepancy incident. Record physical truth rather than forcing Received to equal Issued. Unreceived stock cannot be consumed.",
+                    "After receipt, use Available to consume and choose Consume for the intended item. Enter the quantity actually used; it must fit the department’s available balance. A reason is optional for normal consumption. Confirm once and verify the new Available quantity. Use the separate Record wastage, Record loss / theft or Return to stores action when appropriate; those actions require explanations.",
+                    "For a Receipt shortage, review the automatically created incident in Incident Reporting and provide the request reference to stores. Stores investigates and uses its authorized return-unreceived or transit-loss action. Stock reconciliation and incident investigation are separate tasks; an unreceived balance reaching zero does not automatically close the incident.",
+                    "Open Movement history. Match the item and request to its approval, issue, receipt, consumption and any return/loss events, including quantity, date and staff. Use Department analytics to review balances and movements. Refresh before relying on a balance changed by another user.",
+                    "Verify the company/custody relationship: issue and receipt move custody; actual consumption, wastage and loss reduce company stock. For example, 100 Pieces with 8 received in the laboratory and 2 consumed leaves Stores 92, laboratory Available 6 and company stock 98. Investigate differences instead of entering balancing usage without evidence."
                 ],
                 "verify": "The request history and remaining department quantity reflect the recorded movement.",
                 "recovery": "A receipt shortage remains visible for resolution. Record investigation evidence through incident reporting. Loss and wastage require a reason.",
@@ -549,12 +671,20 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     {
                         "name": "Consume / Record wastage / Record loss",
                         "description": "Choose the movement matching what actually happened. Wastage and loss require reasons."
+                    },
+                    {
+                        "name": "Finding the next stage",
+                        "description": "Request status offers Awaiting approval, Ready to issue, Awaiting receipt, Delivery shortages, Available to consume and Rejected. Filter department requests narrows by item, request or status. Department analytics and Movement history provide separate views."
+                    },
+                    {
+                        "name": "Receipt shortage and incident",
+                        "description": "Issued, Received and Unreceived are separate quantities. A short receipt opens a reported incident containing the item, request, difference, department and receiver note. Recording a stores reconciliation does not automatically complete the incident investigation."
                     }
                 ],
                 "example": {
-                    "situation": "The laboratory requests 10 boxes. Stores approve and issue 8. Only 7 arrive.",
-                    "action": "Confirm receipt of 7 boxes. Keep the unreceived box visible for investigation.",
-                    "expected": "Consume from the 7 received boxes as used. Resolve the shortage with stores and incident reporting."
+                    "situation": "A department requests 10 Pieces; the storekeeper approves and issues 8 Pieces.",
+                    "action": "The department confirms physical receipt of 8, then records normal consumption of 2 without a mandatory reason.",
+                    "expected": "The request shows approved 8, issued 8 and received 8. Department stock available to consume is 6 Pieces. Movement history retains all four actions."
                 },
                 "after": "Request, approval, issue, receipt and usage remain traceable in the department movement history.",
                 "related": [
@@ -569,11 +699,15 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/operations/imaging/ultrasound/requisitions",
                 "purpose": "Track items held and used by imaging.",
                 "steps": [
-                    "Open request, receive and consume imaging stock using the task-page link below. Confirm the page and active branch match your intended work.",
-                    "Add the required items and quantities to the requisition and submit to stores.",
-                    "When issued, confirm the actual quantity received.",
-                    "Record consumption, returns or losses through the appropriate authorized action.",
-                    "The imaging stock balance and movement history match physical custody."
+                    "Open this department’s stock workspace using Open task page. Confirm facility, branch and department. Choose Requisitions & stock. Requesting, receiving and consuming require their own existing permissions; a head role is not required when a staff member has the relevant access.",
+                    "In Build a requisition, search Inventory item by name or SKU, select the correct item and unit, enter Requested quantity and optionally Request reason. Choose Add item or press Enter. The added line appears in Requisition basket and focus returns to item selection, with quantity reset to 1.",
+                    "Continue adding items. Adding the same item again combines its quantity into one line. Edit the basket quantity or reason, or use Remove to correct a line. Review all pages of the basket, then Send requisition once. All basket items are submitted, including those on other pages. Wait for Requisition sent to stores for review.",
+                    "Find the saved request in Requisitions and departmental stock. Request status can narrow Awaiting approval, Ready to issue, Awaiting receipt, Delivery shortages, Available to consume or Rejected. Filter department requests finds the item or request. Stores reviews the request, approves its quantity and issues the approved stock; Requested and Approved may differ.",
+                    "After issue, filter Awaiting receipt. On the correct item choose Confirm receipt. Enter Quantity physically received, review the unit and Confirm action. A lower receipt requires an explanation and automatically opens a Stock receipt discrepancy incident. Record physical truth rather than forcing Received to equal Issued. Unreceived stock cannot be consumed.",
+                    "After receipt, use Available to consume and choose Consume for the intended item. Enter the quantity actually used; it must fit the department’s available balance. A reason is optional for normal consumption. Confirm once and verify the new Available quantity. Use the separate Record wastage, Record loss / theft or Return to stores action when appropriate; those actions require explanations.",
+                    "For a Receipt shortage, review the automatically created incident in Incident Reporting and provide the request reference to stores. Stores investigates and uses its authorized return-unreceived or transit-loss action. Stock reconciliation and incident investigation are separate tasks; an unreceived balance reaching zero does not automatically close the incident.",
+                    "Open Movement history. Match the item and request to its approval, issue, receipt, consumption and any return/loss events, including quantity, date and staff. Use Department analytics to review balances and movements. Refresh before relying on a balance changed by another user.",
+                    "Verify the company/custody relationship: issue and receipt move custody; actual consumption, wastage and loss reduce company stock. For example, 100 Pieces with 8 received in the laboratory and 2 consumed leaves Stores 92, laboratory Available 6 and company stock 98. Investigate differences instead of entering balancing usage without evidence."
                 ],
                 "verify": "The imaging stock balance and movement history match physical custody.",
                 "recovery": "Ask an administrator to review request, receipt or consumption access if the action is unavailable.",
@@ -599,12 +733,20 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     {
                         "name": "Movement actions",
                         "description": "Record consumption, return, wastage or loss against the available imaging balance."
+                    },
+                    {
+                        "name": "Finding the next stage",
+                        "description": "Request status offers Awaiting approval, Ready to issue, Awaiting receipt, Delivery shortages, Available to consume and Rejected. Filter department requests narrows by item, request or status. Department analytics and Movement history provide separate views."
+                    },
+                    {
+                        "name": "Receipt shortage and incident",
+                        "description": "Issued, Received and Unreceived are separate quantities. A short receipt opens a reported incident containing the item, request, difference, department and receiver note. Recording a stores reconciliation does not automatically complete the incident investigation."
                     }
                 ],
                 "example": {
-                    "situation": "Imaging receives 20 units and uses 6 during examinations.",
-                    "action": "Confirm receipt of the 20 units, then record consumption of 6.",
-                    "expected": "Check that 14 remain available, provided there were no other movements."
+                    "situation": "Imaging requests 4 Pieces. Stores approves and issues 6; imaging physically receives 5.",
+                    "action": "Approve 6 with an adjustment explanation. At receipt enter 5 and explain the short delivery. Record normal consumption of 1. Stores investigates the missing Piece and, when confirmed retained at stores, uses Return unreceived stock to stores for 1 with evidence.",
+                    "expected": "The request retains requested 4, approved/issued 6 and received 5. Imaging has 4 Pieces available after consumption, Unreceived becomes zero after the stores return, and the reported incident remains available for its separate investigation workflow."
                 },
                 "after": "Imaging custody, remaining quantities and movements can be reviewed independently of laboratory stock.",
                 "related": [
@@ -641,9 +783,15 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     {
                         "name": "Materials",
                         "description": "Review the current material plan and available quantities before recording material use."
+                    },
+                    {
+                        "name": "Daily Laboratory Request alternative",
+                        "description": "This separate worklist starts with Today and Pending. Choose the relevant date period and Pending, Partial or Paid, then Load or press Enter. Filter by Patient Name, Patient ID, Billing ID or Laboratory Test. Open Selected remains disabled until rows are selected."
                     }
                 ],
                 "steps": [
+                    "Open Laboratory Workspace > Laboratory Workbench. Choose All open work, Assigned to me, Unassigned, Overdue by configured target or Urgent / STAT. Enter an accession reference, patient number, name or test and choose Search. Include finalized results only when reviewing completed work.",
+                    "For the intended row, open Manage / history. Review Assigned staff, Priority, Analyzer used for QC clearance and the current deadline. Use the test default target or turn it off to enter an override deadline. Review Work history before any authorized Save assignment or Escalate action.",
                     "Search the workbench for the patient or service reference.",
                     "Confirm the patient, test and displayed stage. Read a blocked reason before opening result work.",
                     "Review the assigned staff, device and timing information. Use the available assignment or planning action only when authorized.",
@@ -652,7 +800,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 ],
                 "after": "The selected service has the intended assignment, planning or material record, and its stage matches the completed work.",
                 "verify": "The selected service has the intended assignment, planning or material record, and its stage matches the completed work.",
-                "recovery": "Refresh the service after a stale plan or changed record. Restricted staff must use their assigned scope. A supervisor must review access rather than bypassing it.",
+                "recovery": "Refresh the service after a stale plan or changed record. Restricted staff must use their assigned scope. A supervisor must review access rather than bypassing it. An empty Today/Pending worklist does not mean the patient has no historical records. Use a specific identifier and a narrow date period. All Time can load a very large legacy worklist. If the page becomes unresponsive, reopen the workspace and narrow the query.",
                 "example": {
                     "situation": "A scientist sees a service blocked from result entry.",
                     "action": "Review its stage, assignment and blocked reason before changing anything.",
@@ -1137,10 +1285,13 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     }
                 ],
                 "steps": [
-                    "Search for an existing patient.",
-                    "Confirm identity and register only when needed.",
-                    "Track the active visit and direct the patient.",
-                    "Prepare the correct services and payer details."
+                    "Confirm facility, branch and active role. Ask whether the patient has an existing patient ID and what services are requested.",
+                    "Search Customers by the appropriate field and compare the patient identity. Use Registration only after checking that the patient is not already recorded.",
+                    "For a new patient, complete the required Basic Info and choose the appropriate registration path. Record the generated patient ID and verify the saved profile.",
+                    "Open Bill Client for that patient, or continue directly from registration. Confirm the actual payer and any separate referring clinician/organization.",
+                    "Review requested tests/services and their final charges. Follow the configured direct-payment or separate-cashier workflow; pass the saved Bill ID or code to the cashier.",
+                    "Direct the patient to the correct next service point. The collection/clinical team uses the same patient and requested-service references. A queue ticket or bill is not proof of clinical completion.",
+                    "For later inquiries, locate the original patient, bill and released report or receipt rather than creating another registration or collection."
                 ],
                 "verify": "Verify that the visit and bill refer to the same intended patient.",
                 "recovery": "If a stage is blocked, review its record status, required information and responsible role before proceeding. For an uncertain save, inspect the recorded history before retrying.",
@@ -1155,7 +1306,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     "registration",
                     "queue"
                 ],
-                "open": "Use the task-page link to open the first stage. Continue through the linked guides using your authorized role.",
+                "open": "Open CRM & Billing → Customer Management → Customers for a returning patient, or Registration for a new patient.",
                 "entryRoutes": [
                     "/crm/customers",
                     "/crm/registration",
@@ -1169,24 +1320,22 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/crm/registration",
                 "purpose": "Create a patient record after checking for an existing identity.",
                 "steps": [
-                    "Search for an existing patient and review matching identities. Confirm whether the patient is new or returning.",
-                    "In Personal Details, enter first name, last name and gender. Review designation, middle name, age and age unit or the supplied birth-date details.",
-                    "Review mobile and WhatsApp country codes and numbers. If the contact is a relative’s, review the contact ownership and relative information. Enter applicable email, occupation and organization details.",
-                    "Save Personal Details first. Confirm the saved patient identifier before proceeding. Use the available go-to-billing choice when only the required basic registration is being completed at this point.",
-                    "For the full registration, continue to Address & Location and enter the available region, district, area, GPS and address information, then save the step.",
-                    "Continue to Emergency Contact. Enter the intended contact, relationship, telephone and applicable address or occupation, then save.",
-                    "In Photo & Credentials, review the saved photo. Upload a supported image or use the available camera workflow. A selected preview remains pending until it is saved.",
-                    "If entering credentials, provide both username and password. Leave both blank when no credential change is intended.",
-                    "Choose Complete Registration & Go to Billing. Wait for confirmation and check the patient identity in billing.",
-                    "If a photo or credential save fails, resolve that step’s message. Keep using the same saved patient identity rather than creating another registration."
+                    "In Quick Duplicate Check, enter the mobile number in Search by mobile number... and select Check Mobile. Inspect any match and reuse the correct existing patient instead of registering them twice.",
+                    "On Basic Info, complete First Name, Last Name, Gender and Primary Mobile Contact. Enter DOB & Age carefully and review its unit. Complete optional fields only when known.",
+                    "Review the patient’s spelling, age and contact with them. Save & Proceed to Billing saves the basic registration and goes to billing; Save & Continue to Address continues the longer registration. Choose the path required by your facility.",
+                    "For the full registration, select Save & Continue to Address. Choose Region and enter Area. Add District, GPS and street address when available. Select Save & Continue to Emergency Contact.",
+                    "On Emergency Contact, enter the contact details available to you, then use the save-and-continue button to reach Photo & Credentials.",
+                    "On Photo & Credentials, leave the optional photo and both credentials blank if they are not required. Otherwise follow your facility’s consent and account-creation process. Never share passwords in training material.",
+                    "Select Complete Registration & Go to Billing. Confirm the full patient name and generated patient ID on the next screen. Record the identifier before selecting services."
                 ],
-                "verify": "Find the saved patient using their name or patient identifier.",
-                "recovery": "Required first name, last name and gender must be entered. Later wizard steps require Personal Details to have been saved. Supply both username and password together or leave both empty. Check photo file type and the 5 MB limit, camera permission, and pending-photo status before completing.",
+                "verify": "Reopen the saved patient using the generated patient ID. Verify name, gender, age, mobile and any completed address/emergency details. Confirm billing is for that same patient.",
+                "recovery": "If a duplicate appears, stop and inspect it before creating another record. If a save is uncertain, search for the patient before clicking Save again. At Address, complete both Region and Area. If the session is replaced, sign in again; do not keep resubmitting the form.",
                 "kind": "page",
                 "concept": "Registration creates the patient identity used by billing and clinical services. Searching first prevents histories being split across avoidable duplicate records.",
                 "before": [
-                    "Have enough information to identify the patient accurately.",
-                    "Check for an existing patient before starting another registration."
+                    "Confirm the active facility and branch and that you have patient-registration access.",
+                    "Ask for existing patient ID and check for an existing registration before creating a new patient.",
+                    "Use fictional details only for a training exercise; do not send notifications to a fabricated contact."
                 ],
                 "controls": [
                     {
@@ -1207,7 +1356,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     },
                     {
                         "name": "Address & Location",
-                        "description": "Enter region, district, area, GPS location and address as appropriate."
+                        "description": "Region and Area are required when saving this step. District, country, GPS location and address are optional additional details."
                     },
                     {
                         "name": "Emergency Contact",
@@ -1228,18 +1377,84 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     {
                         "name": "Complete Registration & Go to Billing",
                         "description": "Persist the pending photo and entered credentials, then continue using the saved patient reference."
+                    },
+                    {
+                        "name": "Primary Mobile Contact",
+                        "description": "Required. Enter the correct 10-digit local mobile number and review the selected country code. Resolve duplicate matches before creating another patient."
                     }
                 ],
                 "example": {
-                    "situation": "A returning patient gives a slightly different spelling of their name.",
-                    "action": "Search their existing identity using available identifiers and contact information.",
-                    "expected": "Use the existing patient when identity is confirmed instead of registering another record."
+                    "situation": "A new fictional adult is being registered for a training exercise.",
+                    "action": "The live pilot used TRAINING MANUAL PILOT NOV05, Male, 30 Yrs, a non-routable training phone and TRAINING AREA. It followed all four wizard stages.",
+                    "expected": "The application generated NE-000005-MY in the pilot facility and opened billing for the same patient. Your facility generates its own identifier; never type this pilot ID into another facility."
                 },
                 "after": "The saved patient identifier can be used to locate the patient for billing and subsequent services.",
                 "related": [
                     "customers"
                 ],
-                "open": "Use CRM → Patient registration or Customer Management → Registration in the workspace navigation. Menu wording depends on your active role. The Open task page button opens the same register or form directly."
+                "open": "Open CRM & Billing from Applications, then Customer Management → Registration. The page heading is Patient Registration Wizard.",
+                "pilot": {
+                    "reviewedAt": "5 November 2026",
+                    "status": "Live registration completed",
+                    "checked": [
+                        "Created fictional patient TRAINING MANUAL PILOT NOV05; saved Basic Info, Address and Emergency Contact, then completed registration into billing.",
+                        "Verified the four wizard stages and both Basic Info save paths in the signed-in application."
+                    ],
+                    "pending": [
+                        "Duplicate-match reuse, optional photo upload and portal credential creation were not performed in this pilot."
+                    ],
+                    "exercise": "In a designated training facility, register a fictional patient with no real contact details. Record the generated patient ID, reopen the record and compare the saved name, age, gender and address. Pass only when the same patient opens in billing without a second registration.",
+                    "fields": [
+                        {
+                            "name": "First Name / Last Name",
+                            "rule": "Required. Enter the patient’s actual names; Middle Name is optional.",
+                            "mistake": "Do not enter an identifier in place of the patient name."
+                        },
+                        {
+                            "name": "Gender",
+                            "rule": "Required. Choose the appropriate listed option.",
+                            "mistake": "Do not leave a default selection unreviewed."
+                        },
+                        {
+                            "name": "DOB & Age",
+                            "rule": "Use DD/MM/YYYY for a known birth date, or enter age with Yrs, Mths or Days. Review the calculated value.",
+                            "mistake": "An age in months entered as years changes clinical reference ranges."
+                        },
+                        {
+                            "name": "Primary Mobile Contact",
+                            "rule": "Required; the local mobile input expects 10 digits. Review the country selection.",
+                            "mistake": "Do not publish real phone numbers in training screenshots."
+                        },
+                        {
+                            "name": "Region / Area",
+                            "rule": "Required when saving the Address stage, even if the current labels do not show an asterisk.",
+                            "mistake": "An empty Area can prevent progression."
+                        },
+                        {
+                            "name": "Photo & Credentials",
+                            "rule": "Optional. JPEG, PNG or GIF photo, at most 5 MB. Leave both username and password empty when no portal account is needed.",
+                            "mistake": "Do not enter only one credential or capture a password in a screenshot."
+                        }
+                    ],
+                    "screenshots": [
+                        {
+                            "file": "registration-start.jpg",
+                            "caption": "Basic Info: run the duplicate check before creating another patient.",
+                            "callouts": [
+                                {
+                                    "x": 37,
+                                    "y": 51,
+                                    "label": "Check Mobile: search before registering another patient."
+                                },
+                                {
+                                    "x": 17,
+                                    "y": 87,
+                                    "label": "Name fields: enter and review the patient identity."
+                                }
+                            ]
+                        }
+                    ]
+                }
             },
             {
                 "slug": "customers",
@@ -1248,11 +1463,12 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/crm/customers",
                 "purpose": "Open the correct customer record and its permitted actions.",
                 "steps": [
-                    "Open find and manage a patient using the task-page link below. Confirm the page and active branch match your intended work.",
-                    "Use the customer list filters to find the patient. Confirm identity using more than a name.",
-                    "Open the row Actions menu and choose the required available task.",
-                    "Review the selected patient before saving any changes.",
-                    "The task opens for the intended patient and saved changes appear after reload."
+                    "In Filter By Field, choose Fullname, Patientid, Fullpatientid, Mobile number or another relevant field. Enter the matching value in Search patient using the selected field. Confirm the identifier in the returned row.",
+                    "Use Advanced Filtering when the simple field search is insufficient. Rows per page and Search table control the displayed table. Confirm the returned record before using Actions.",
+                    "Open the matching row’s Actions menu. Bill Client prepares a bill; Update Records opens the profile; Record Vital Signs opens the permitted clinical form. Confirm the same patient ID in the destination.",
+                    "Use Transactions(Analytics) for the financial history or View Previous Transactions(Test) for clinical case history. These answer different questions.",
+                    "Patient Portal, Book Appointment and Consultation open their specific permitted workflows. Opening a menu does not grant access to restricted actions.",
+                    "For profile changes, compare existing and intended values, save through the relevant form and reopen the same patient to confirm the update. Do not change one person’s record into another person."
                 ],
                 "verify": "The task opens for the intended patient and saved changes appear after reload.",
                 "recovery": "Use the current role permissions if an action is unavailable. Check the result before retrying an uncertain save.",
@@ -1274,6 +1490,10 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     {
                         "name": "Patient record",
                         "description": "Review the identity and existing information before making an authorized update."
+                    },
+                    {
+                        "name": "Patient row Actions",
+                        "description": "Available choices include Bill Client, Update Records, Record Vital Signs, Transactions(Analytics), View Previous Transactions(Test), Patient Portal, Book Appointment and Consultation. The exact choices follow current access. Transactions(Analytics) opens financial history. View Previous Transactions(Test) opens laboratory case history."
                     }
                 ],
                 "example": {
@@ -1294,7 +1514,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/operations/queue",
                 "purpose": "Review the patient journey and current service stage.",
                 "steps": [
-                    "Open track a patient through the queue using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open track a patient through the queue using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Find the patient in the active queue.",
                     "Review the visit and stage before using any available transition action.",
                     "Confirm the new stage and direct the patient to the appropriate service point.",
@@ -1340,7 +1560,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/organization",
                 "purpose": "Find organization details and authorized record actions.",
                 "steps": [
-                    "Open review referring organizations using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open review referring organizations using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Search the organization list and open the matching record or available row action.",
                     "Review contact information and applicable relationships.",
                     "For an authorized edit, check the unique contact and email before saving.",
@@ -1387,7 +1607,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/clinicians",
                 "purpose": "Review practitioner records and available access actions.",
                 "steps": [
-                    "Open find referring practitioners using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open find referring practitioners using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Find the practitioner in the list and confirm their contact details.",
                     "Use the available record action to review their details.",
                     "If authorized to manage access, review the invitation or access result before sending again.",
@@ -1434,7 +1654,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/crm/acquisition",
                 "purpose": "Keep follow-up activity attached to the correct lead.",
                 "steps": [
-                    "Open review patient follow-up using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open Referrer acquisition & performance using Open task page. Confirm the page and active branch match your intended work.",
                     "Find the lead using the list filters.",
                     "Review existing follow-up information and contact details.",
                     "Record the permitted follow-up update and review the saved record.",
@@ -1480,7 +1700,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/crm/acquisition",
                 "purpose": "Review assigned referrer acquisition and follow-up.",
                 "steps": [
-                    "Open review referrer acquisition using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open review referrer acquisition using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Open the acquisition workspace and review the available filters.",
                     "Select the relevant referrer or acquisition record.",
                     "Record permitted follow-up and review the resulting status.",
@@ -1758,8 +1978,9 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "kind": "workflow",
                 "concept": "Understand the separate billing and payment stages, including cashier handoffs. Each stage is performed by a person with the existing permission for that task.",
                 "before": [
-                    "Confirm the patient, payer, selected services and bill reference passed to the cashier.",
-                    "Agree who is responsible for the next handoff."
+                    "Confirm facility, branch, patient and payer. Use the sales session required by the facility.",
+                    "The registrar prepares charges; the authorized cashier records the actual payment. One person may perform both only where configured and permitted.",
+                    "Do not proceed with clinical work when payment, specimen, QC or release settings prohibit it."
                 ],
                 "controls": [
                     {
@@ -1780,30 +2001,109 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     }
                 ],
                 "steps": [
-                    "Select patient, payer and services.",
-                    "Review charges and save the bill.",
-                    "Find the bill and allocate the collected payment.",
-                    "Review and print the recorded receipt."
+                    "Select the intended patient. On Select Billing Source, choose the actual payer and Continue. Complete payer details for organization or insurance billing.",
+                    "In Modern UI Layout, complete Billing setup, Select items, Review charges and Payment in that order. Review Transaction options and Urgency. Load the catalogue when requested.",
+                    "Search for each requested test and add it. Review the selected list, remove unintended tests and check applicable package or pricing rules. Select an outsourcing organization if known; an unassigned outsourced test can still be billed.",
+                    "At Review charges, compare every service and Bill totals. Add a meaningful Billing note when needed. Continue only after the final payable amount is correct.",
+                    "In separate-cashier mode, Payment shows Send this bill to the cashier. Select Save bill & generate cashier code once. Wait for a saved Bill ID and four-character code. If either is missing, check the saved history before trying again.",
+                    "Give the cashier the saved code or Bill ID. The payment slip identifies an unpaid bill and must not be described as a receipt. In direct-payment mode, complete the configured payment controls instead.",
+                    "The cashier opens Cash Collection. In Find a bill, enter the reference in Cashier code, Patient ID or Bill ID and choose Find bill. Confirm patient identity, services, paid amounts and current balance. Payment status can be set to All or Completed to locate a settled bill.",
+                    "For partial payment, enter only the amount actually received against the intended service rows. Select Payment method and, for cash, enter Cash received. Review Current balance, Collecting now and Remaining after payment. Apply a waive-off only with its existing authority.",
+                    "Select Collect Payment once. Inspect the recorded collection and remaining balance. For a second instalment, retrieve the same bill and pay only the current balance.",
+                    "Use Reprint receipt for a saved collection, or the original bill’s Actions → Print Receipt POS format / Print Receipt A4 format in Daily Sales Report. Reprinting must not create another collection."
                 ],
-                "verify": "The saved services, collected amount and receipt must match the intended bill.",
-                "recovery": "If a stage is blocked, review its record status, required information and responsible role before proceeding. For an uncertain save, inspect the recorded history before retrying.",
-                "after": "The saved bill, recorded collection and printed receipt can be traced using the same billing reference.",
+                "verify": "Check the saved bill and payment history, not only a success message. Initial payable minus actual collections minus authorized waivers must equal the remaining balance, with refunds and adjustments reviewed separately.",
+                "recovery": "If “The bill was not saved” appears, retain the selections and review the original patient’s saved bills before retrying. If a collection response is uncertain, inspect payment history first. Resolve sales-session, authorization and current-balance warnings through their existing controls.",
+                "after": "A successfully saved bill has its own reference. A successfully recorded payment reduces that bill’s balance. The receipt is evidence of that payment; the cashier code is a retrieval reference.",
                 "example": {
-                    "situation": "The front desk prepares a bill and the client pays at a separate counter.",
-                    "action": "Use the configured billing-without-payment action, hand over the bill reference and let the authorized cashier collect against that bill.",
-                    "expected": "The saved services, collected amount and receipt must match the intended bill."
+                    "situation": "The reviewed training quote is GH₵93.50 for WIDAL and FBC ADULT MALE. The client intends to pay GH₵30.00 first.",
+                    "action": "Save the bill without collection, retrieve the same reference at Cash Collection, then record GH₵30.00 only in an approved training payment exercise.",
+                    "expected": "Live verified: the first GH₵30.00 payment left GH₵63.50. A second GH₵63.50 settled the same Bill #67, with GH₵93.50 paid and zero outstanding. The original receipt was opened for reprinting."
                 },
                 "related": [
                     "prepare-bill",
                     "collect-payment",
                     "receipts"
                 ],
-                "open": "Use the task-page link to open the first stage. Continue through the linked guides using your authorized role.",
+                "open": "Open CRM & Billing → Billing & Sales → Billing, or continue from patient registration. Cashiers use Cash Collection to retrieve the saved bill.",
                 "entryRoutes": [
                     "/billing/patientid",
                     "/billing/cash-collection",
                     "/billing/receipts"
-                ]
+                ],
+                "pilot": {
+                    "reviewedAt": "6 November 2026",
+                    "status": "Live save, cashier lookup, partial payment, settlement and reprint verified",
+                    "checked": [
+                        "Saved fictional Bill #67 for NE-000005-MY with cashier code BBK6 and GH₵93.50 payable.",
+                        "Retrieved the original bill by BBK6 in Cash Collection. Recorded GH₵30.00, then reopened and verified GH₵63.50 remaining.",
+                        "Recorded the remaining GH₵63.50 against the same bill. Verified GH₵93.50 paid and zero outstanding; opened the existing receipt reprint link."
+                    ],
+                    "pending": [
+                        "Printer output on physical 80 mm/A4 paper, direct-payment mode, staff-benefit approvals, insurance cases and restricted cashier-role acceptance are separate checks.",
+                        "The first follow-up lookup was interrupted by a backend restart. Reopening after the server recovered displayed the saved balance; no payment was repeated."
+                    ],
+                    "exercise": "Prepare two services for a fictional patient. Record the reviewed total and save once. Pass the billing stage only after a saved Bill ID and cashier code are visible. An authorized cashier must retrieve that same bill and demonstrate a partial payment and its remaining balance in the designated training environment.",
+                    "fields": [
+                        {
+                            "name": "Billing source",
+                            "rule": "Select the actual payer, then Continue. General Billing is for the private/general example.",
+                            "mistake": "NHIS needs configured services and claim/member details; do not substitute General merely to bypass a warning."
+                        },
+                        {
+                            "name": "Urgency",
+                            "rule": "Review Routine versus the configured urgent option before loading charges.",
+                            "mistake": "The displayed default may be urgent; check it rather than assuming normal pricing."
+                        },
+                        {
+                            "name": "Receiving laboratories",
+                            "rule": "An outsourcing organization is optional for billing. Review charges again after changing it.",
+                            "mistake": "Do not bill another test just because no organization has been assigned."
+                        },
+                        {
+                            "name": "Bill totals",
+                            "rule": "Compare selected services, subtotal, discount, surcharge, tax and Amount payable.",
+                            "mistake": "Catalogue prices can differ from the final reviewed quote."
+                        },
+                        {
+                            "name": "Save bill & generate cashier code",
+                            "rule": "In separate-cashier mode, saves the bill without collecting payment.",
+                            "mistake": "A payment slip or code is not a payment receipt."
+                        },
+                        {
+                            "name": "Payment / Waive-off",
+                            "rule": "Enter actual collection separately from any authorized waiver.",
+                            "mistake": "Never use a waiver to represent money received."
+                        }
+                    ],
+                    "screenshots": [
+                        {
+                            "file": "billing-source.jpg",
+                            "caption": "Select the payer for the confirmed training patient before building the bill.",
+                            "callouts": []
+                        },
+                        {
+                            "file": "billing-review.jpg",
+                            "caption": "Reviewed quote in this pilot: 85.00 + 8.50 tax = 93.50. Prices and tax are facility-specific.",
+                            "callouts": []
+                        },
+                        {
+                            "file": "billing-handoff.jpg",
+                            "caption": "The separate-cashier handoff saves charges first; money is collected against the resulting bill.",
+                            "callouts": []
+                        },
+                        {
+                            "file": "billing-saved-code.jpg",
+                            "caption": "Live saved bill #67 and cashier code BBK6. The unpaid balance remains GH₵93.50 until the cashier records payment.",
+                            "callouts": []
+                        },
+                        {
+                            "file": "billing-settled.jpg",
+                            "caption": "After the two recorded collections, Bill #67 is SETTLED. Already paid is GH₵93.50, outstanding is zero and Reprint receipt uses the existing bill.",
+                            "callouts": []
+                        }
+                    ]
+                }
             },
             {
                 "slug": "prepare-bill",
@@ -1813,7 +2113,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "purpose": "Select the patient before building a bill.",
                 "steps": [
                     "Search for and select the intended patient. Confirm the patient identity and active branch.",
-                    "Review the payer/source and required organization, insurance or other payer information before loading applicable services.",
+                    "On Select Billing Source, review the patient selected. Use Change patient if it is incorrect. Select General Billing, Organizational Billing, Private Health Insurance Scheme(P.H.I.S), National Health Insurance Scheme(N.H.I.S) or Special Health Care Provider Billing to match the payer. Continue remains disabled until a source is selected. Complete the required payer details before loading applicable services.",
                     "Choose the requested tests or packages. Review each selected service, applicable prices, quantities or other available options and the running total.",
                     "For an outsourced service, select a receiving laboratory when known. An unassigned outsourced service can still be billed. Review charges again after a change that affects them.",
                     "Review discount, surcharge, urgent or other applicable adjustments and the final payable amount.",
@@ -1836,6 +2136,10 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     {
                         "name": "Patient selection",
                         "description": "Find the patient before opening the configured billing layout."
+                    },
+                    {
+                        "name": "Select Billing Source",
+                        "description": "The setup shows Patient selected, Choose billing source and Build the bill. Select one payer option, then Continue. Change patient returns to patient selection. Billing tools provides Find clinician, Add clinician, Find organization and Add organization in a new tab so the setup remains open."
                     },
                     {
                         "name": "Catalogue and selected services",
@@ -1888,11 +2192,14 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/billing/cash-collection",
                 "purpose": "Record money against the correct outstanding bill.",
                 "steps": [
-                    "Open collect an outstanding payment using the task-page link below. Confirm the page and active branch match your intended work.",
-                    "Find the patient or billing reference and review the open bills.",
-                    "Enter the intended service payments and any authorized waiver. Check the remaining balance and payment method.",
-                    "Review the allocation totals, collect the payment and wait for the recorded confirmation.",
-                    "The payment appears in the bill history and the outstanding amount reduces correctly."
+                    "Open Cash Collection and confirm the active facility and branch. Find a bill has separate Cashier code, Patient ID and Bill ID fields. Enter the appropriate reference and choose Payment status, then Find bill. A code lookup resolves the saved patient and bill automatically.",
+                    "Choose Find bill. For a cashier-handoff invoice, use the short code supplied by the attendant. Confirm the full patient identity, Bill ID, service names, original charges, paid amounts and current balances. The code retrieves an existing bill; it does not create another bill.",
+                    "If lookup returns No billing records found, review the reference and Payment status. Use Outstanding list to return to the list, then Search outstanding bills and Billed date to narrow the records. Use NHIS remittances for eligible NHIS settlement rather than direct cash collection.",
+                    "Enter the amount actually being collected against the intended service or services. For final settlement, Use full balance fills the remaining service balances. Enter any waive-off only with existing authorization; a waiver reduces the balance without being money received.",
+                    "Select the actual Payment method. For Cash, enter Cash received. Review Current balance, Collecting now and Remaining after payment, including any entered waive-off. Resolve any mismatch before submitting.",
+                    "Choose Collect Payment once and wait for confirmation. Confirm the saved paid amount and remaining balance. If the response is uncertain, reload the bill and inspect its payment history before retrying.",
+                    "For a later instalment, retrieve the same bill again, review its latest outstanding balance and record only the new money. For example, a GH₵40.00 bill paid GH₵10.00 first must show GH₵30.00 remaining before the final GH₵30.00 payment.",
+                    "After collection, use Reprint receipt to preview another copy for the saved bill. Check the patient, bill and payment information before printing. Do not record another collection to obtain a receipt copy."
                 ],
                 "verify": "The payment appears in the bill history and the outstanding amount reduces correctly.",
                 "recovery": "If the response is uncertain, review payment history before resubmitting. Waivers and payment actions retain their authorization checks.",
@@ -1921,9 +2228,9 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     }
                 ],
                 "example": {
-                    "situation": "A bill has GH₵148.50 outstanding and the client pays GH₵100.00 with an authorized GH₵48.50 waiver.",
-                    "action": "Enter the payment and waiver and review the allocated totals before collecting.",
-                    "expected": "Confirm the recorded payment is GH₵100.00, the waiver is GH₵48.50 and the remaining balance is zero."
+                    "situation": "An attendant has generated a cashier code for a GH₵40.00 bill. The patient pays GH₵10.00 now.",
+                    "action": "Find the existing bill using Cashier code. Enter 10.00 for the service, select Cash, enter Cash received as 10.00 and Collect Payment. Later use the remaining balance of 30.00 for the final collection.",
+                    "expected": "The first payment leaves GH₵30.00 outstanding and the bill part-paid. The final GH₵30.00 payment brings the balance to zero. Both payments belong to the original bill."
                 },
                 "after": "The payment and authorized waiver update the selected balances. A receipt records the collection.",
                 "related": [
@@ -1934,19 +2241,20 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
             },
             {
                 "slug": "receipts",
-                "title": "Find and reprint a receipt",
+                "title": "Find a receipt record and reprint from sales",
                 "category": "Payments",
                 "route": "/billing/receipts",
                 "purpose": "Retrieve a recorded receipt for a client.",
                 "steps": [
-                    "Open find and reprint a receipt using the task-page link below. Confirm the page and active branch match your intended work.",
-                    "Search the receipt register using the available patient, date or transaction filters.",
-                    "Open the matching receipt and verify its patient, amount and reference.",
-                    "Use the available print or reprint action.",
-                    "The print preview matches the original recorded payment."
+                    "Open Billing & Sales > Receipts to review the receipt audit register. Use Search table and Rows per page to locate the Billing ID or Receipt Number. Review Generated At, Printed At, Status, Generated By and Printed By.",
+                    "If you have just collected payment in Cash Collection, use its Reprint receipt link for the same saved bill. Review the patient, bill and paid amounts in the preview. This link is also available after a partial payment; it does not collect another payment.",
+                    "The receipt audit register does not expose a reprint action. Note the original Billing ID and billing date, then open Billing & Sales > Daily Sales Report.",
+                    "Choose the relevant Period and Search. In Billed Clients, enter the Bill ID in Patient or bill. Review the patient identifier, bill reference and paid amount.",
+                    "Open the row Actions dropdown beside View Tests. Select Print Receipt A4 format or Print Receipt POS format according to the paper required. Closed sales retain receipt and transaction-detail access.",
+                    "Review the receipt preview against the original recorded transaction before printing. A reprint must use the saved bill rather than recording another collection."
                 ],
                 "verify": "The print preview matches the original recorded payment.",
-                "recovery": "A reprint uses the existing receipt. Review payment history if no matching receipt can be found.",
+                "recovery": "If the audit register has no reprint control, use the saved Billing ID in the Daily Sales Report for the original billing period. Confirm patient identity and payment evidence before selecting a receipt format.",
                 "kind": "page",
                 "concept": "Reprinting retrieves evidence of a payment already recorded. Check the reference and amount before handing the receipt to the client.",
                 "before": [
@@ -1955,16 +2263,16 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 ],
                 "controls": [
                     {
-                        "name": "Receipt filters",
-                        "description": "Use the available date and transaction criteria to find the payment."
+                        "name": "Receipts audit register",
+                        "description": "Billing IDs, receipt numbers, generation and printing timestamps and staff names provide an audit reference. The register has table search but no direct reprint action."
                     },
                     {
-                        "name": "Receipt view",
-                        "description": "Review the patient, reference and paid amount."
+                        "name": "Billed Clients Actions",
+                        "description": "Daily Sales Report provides Print Receipt A4 format and Print Receipt POS format for the selected bill."
                     },
                     {
-                        "name": "Print or reprint",
-                        "description": "Print the recorded receipt using the available action."
+                        "name": "Cash Collection Reprint receipt",
+                        "description": "Opens the POS receipt preview for the bill after collection. Use it for another copy without entering or recording another payment."
                     }
                 ],
                 "example": {
@@ -1974,8 +2282,8 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 },
                 "after": "The client receives a copy of the recorded receipt.",
                 "related": [
-                    "collect-payment",
-                    "sales-session"
+                    "sales",
+                    "collect-payment"
                 ],
                 "open": "Use Receipts & reprints or Receipts in the workspace navigation. Menu wording depends on your active role. The Open task page button opens the same register or form directly."
             },
@@ -1986,7 +2294,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/billing/billing-sessions/sales-session",
                 "purpose": "Review the session used for collecting money.",
                 "steps": [
-                    "Open review your sales session using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open review your sales session using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Open your sales session and review its status.",
                     "Review the recorded collections and reconciliation information.",
                     "Use the available session action only after checking the cash and required details.",
@@ -2033,7 +2341,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/billing/packages",
                 "purpose": "Inspect package tests and applicable organizations.",
                 "steps": [
-                    "Open review a package and its applicability using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open review a package and its applicability using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Find the package in the package list.",
                     "Use its view action to inspect included test panels and applicability.",
                     "Use the patient billing workflow to bill the selected package.",
@@ -2079,7 +2387,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/billing/billing-strategy/strategies",
                 "purpose": "Review strategy pricing and organization assignments.",
                 "steps": [
-                    "Open configure billing strategies using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open configure billing strategies using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Find or create the intended strategy through the available controls.",
                     "Select the applicable tests and review each configured price.",
                     "Review the organization assignments and save the intended configuration.",
@@ -2129,7 +2437,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/billing/insurance",
                 "purpose": "Separate operational outstanding balances from recognized accounting receivables.",
                 "steps": [
-                    "Open review nhis receivables and remittances using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open review nhis receivables and remittances using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Choose the branch and service period and review the NHIS summary.",
                     "Check the amount eligible for settlement and review any missing-receivable warning.",
                     "Record a remittance only after the accounting prerequisites and payment details are complete.",
@@ -2177,7 +2485,9 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/billing/sales/branches",
                 "purpose": "Review branch sales for the selected period.",
                 "steps": [
-                    "Open review sales and breakdowns using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Select Period and choose Search to load the report. Use Patient or bill to narrow Billed Clients by identifier and Payment status or Transaction status to narrow the loaded bills. Clear filters resets the table criteria.",
+                    "View chart breakdown opens the chart view. In each billed row, View Tests opens the test details, while the adjacent Actions dropdown includes receipt formats and other currently permitted actions. Closed sales are read-only and retain receipt and transaction-detail access.",
+                    "Open review sales and breakdowns using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Select the branch and reporting period.",
                     "Review billed values, collections and outstanding balances in their respective summaries.",
                     "Use the chart or breakdown controls to inspect the selected period.",
@@ -2578,23 +2888,11 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "controls": [
                     {
                         "name": "Department",
-                        "description": "Request items and quantities."
+                        "description": "Request items and quantities. Count and confirm physical receipt. Record actual usage, returns or losses."
                     },
                     {
                         "name": "Stores",
-                        "description": "Review available stock and approve a quantity."
-                    },
-                    {
-                        "name": "Stores",
-                        "description": "Issue the approved stock."
-                    },
-                    {
-                        "name": "Department",
-                        "description": "Count and confirm physical receipt."
-                    },
-                    {
-                        "name": "Department",
-                        "description": "Record actual usage, returns or losses."
+                        "description": "Review available stock and approve a quantity. Issue the approved stock."
                     }
                 ],
                 "steps": [
@@ -2631,7 +2929,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/inventory/items",
                 "purpose": "Review items and their stock definitions.",
                 "steps": [
-                    "Open find and review inventory items using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open find and review inventory items using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Search the items list and select the intended item.",
                     "Review its category, unit and available stock information.",
                     "Use the authorized item action and verify saved changes.",
@@ -2680,7 +2978,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/inventory/orders",
                 "purpose": "Prepare an order for the correct supplier and items.",
                 "steps": [
-                    "Open create and review purchase orders using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open create and review purchase orders using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Review existing orders before creating a new purchase order.",
                     "Select the supplier and add the required items, quantities and costs.",
                     "Review totals and submit using the available order action.",
@@ -2726,7 +3024,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/inventory/orders/received-items-history",
                 "purpose": "Verify received items against purchasing records.",
                 "steps": [
-                    "Open review goods receipts using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open review goods receipts using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Find the relevant order or receipt in the received items history.",
                     "Review the quantities, item identity and recorded batch details.",
                     "Compare the received details with the physical delivery and the original order.",
@@ -2772,7 +3070,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/inventory/payments",
                 "purpose": "Review the funding source before recording supplier payment.",
                 "steps": [
-                    "Open pay an inventory supplier using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open pay an inventory supplier using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Find the supplier payment or related order and review the amount due.",
                     "Select the payment method and eligible funding account. Review the available balance.",
                     "Enter the payment details, review the totals and confirm the authorized payment.",
@@ -2822,7 +3120,9 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/inventory/payments/journal",
                 "purpose": "Review journal information associated with inventory payments.",
                 "steps": [
-                    "Open trace inventory payments using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open Payments > Journal Entries. Use Search for a reference, account or description. Choose Date period or enter From and To. Narrow by Account code, Status, Source and Reference type, then Apply filters.",
+                    "Use Reset filters to clear the scope. Loaded entries, Debits on this page and Credits on this page summarize the loaded page. They are not the complete period ledger totals. Review Date / entry, Account, Debit, Credit, Reference, Description and Status before exporting.",
+                    "Open trace inventory payments using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Choose the reporting filters and find the relevant payment.",
                     "Review its reference, accounts and posted amounts.",
                     "Compare the entry with the related payment record.",
@@ -2848,6 +3148,10 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     {
                         "name": "Transaction reference",
                         "description": "Match journal information with the related inventory payment."
+                    },
+                    {
+                        "name": "Journal status and source",
+                        "description": "Status supports draft, posted, cancelled and reversed. Source supports supplier, inventory, billing and accounting. The journal is read-only and active filters apply to exports."
                     }
                 ],
                 "example": {
@@ -2868,14 +3172,18 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/inventory/department-stock",
                 "purpose": "Review laboratory and imaging requisitions and custody.",
                 "steps": [
-                    "Open approve and issue departmental stock using the task-page link below. Confirm the page and active branch match your intended work.",
-                    "Find a pending requisition and review the requested items and available store quantity.",
-                    "Enter the approved quantity. It may be higher or lower than requested, within available stock.",
-                    "Issue approved stock. Review the receiving department confirmation and any unreceived balance.",
-                    "Issue and receipt history identify the department, quantities and responsible staff."
+                    "Open Inventory > Department stock to reach Stores requisition desk. Select Receiving department as Laboratory or Imaging and confirm the active branch before reviewing or changing any request.",
+                    "In Review & issue, choose the Request status filter: Awaiting approval, Ready to issue, Awaiting receipt, Delivery shortages, Available to consume or Rejected. Use Filter department requests for the item or request reference. An empty result means no rows match the current department and filters.",
+                    "For a pending request, choose Approve. Review the item, unit, Requested and Available in stores. Enter Approved quantity: it may be lower or higher than Requested, but must be positive and within available stores stock. Explain an adjustment before Confirm action. To reject instead, use Reject and give the required reason.",
+                    "For an approved request, choose Issue. Review Approved and Quantity to issue rather than assuming the original Requested quantity will be issued. Confirm only when handing over the approved goods. Verify Issued and Awaiting receipt afterward. The department must record physical receipt before using its received stock.",
+                    "Review Received, Unreceived and Available after the department confirms receipt. A short receipt creates a reported Stock receipt discrepancy incident identifying the item, request and difference. Work with the receiver to investigate it; do not replace the actual receipt with an invented matching quantity.",
+                    "When investigation confirms the unreceived goods are back in stores, use Return unreceived stock to stores, enter the reconciled quantity and supporting reason, then Confirm action. For confirmed loss in transit, use Record transit loss with the required explanation instead. Verify the remaining Unreceived quantity.",
+                    "Record findings and follow-up in Incident Reporting. Clearing the stock discrepancy does not automatically close the incident’s investigation workflow. Retain the request/incident references and movement history as evidence.",
+                    "Use Movement history to verify approval, issue and reconciliation quantities, dates, staff and notes. Use Department analytics for the selected department. If authorized to manage access, Staff permissions reviews independent request, receive, consume/loss/return and approve/issue grants for employees in the current branch and department.",
+                    "Reconcile stores, departmental custody and company stock. Starting with 100 Pieces, issuing and receiving 8 leaves Stores 92 and departmental custody 8. Consuming 2 leaves Stores 92, custody 6 and company stock 98. Internal issues are custody transfers, not consumption."
                 ],
                 "verify": "Issue and receipt history identify the department, quantities and responsible staff.",
-                "recovery": "Investigate receipt shortages. Resolve unreceived stock using the authorized return or transit-loss actions with supporting reasons.",
+                "recovery": "Investigate receipt shortages. Resolve unreceived stock using the authorized return or transit-loss actions with supporting reasons. No requests match this department and filter means there are no matching rows in the current branch and department scope. Review the department, status and search before assuming the requisition was lost.",
                 "kind": "page",
                 "concept": "Stores control approval and issue. The receiving department confirms actual custody, then records its own consumption. Unreceived stock remains distinct from available department stock.",
                 "before": [
@@ -2898,6 +3206,14 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     {
                         "name": "Unreceived and available quantities",
                         "description": "Track shortages and received stock separately. Authorized shortage actions resolve unreceived quantities."
+                    },
+                    {
+                        "name": "Staff permissions",
+                        "description": "This authorized view is separate from Review & issue, Department analytics and Movement history. Requesting, receiving and consuming access are reviewed independently."
+                    },
+                    {
+                        "name": "Issue confirmation",
+                        "description": "Approved and Quantity to issue show the actual amount that will be issued, which can differ from Requested. Verify the item and unit before Confirm action."
                     }
                 ],
                 "example": {
@@ -2916,7 +3232,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/inventory/consumption",
                 "purpose": "Record authorized stock usage.",
                 "steps": [
-                    "Open record inventory consumption using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open record inventory consumption using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Select the intended stock item and review the available quantity and unit.",
                     "Enter the consumed quantity and the available usage details.",
                     "Review and confirm the movement. For department-held stock, use that department requisition workspace.",
@@ -2962,7 +3278,9 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/inventory/expired-products/consumption-history",
                 "purpose": "Trace the movements of a selected inventory item.",
                 "steps": [
-                    "Open review an item consumption history using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open Expired Products > Consumption History. This page reviews recorded usage and wastage involving expired stock. For wider departmental usage, use the department workspace Movement history instead.",
+                    "Choose Inventory item to search for one item, or retain All items. Select Date period or From date and To date, then Apply filters. Review Recorded movements and use Reset filters when the scope hides expected records.",
+                    "Open review an item consumption history using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Select the item from the item list.",
                     "Review the available history and period filters.",
                     "Compare consumption, wastage, loss and return totals with the listed movements.",
@@ -2988,6 +3306,10 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     {
                         "name": "Movement totals and history",
                         "description": "Compare totals by movement type with the individual records."
+                    },
+                    {
+                        "name": "Loaded history summary",
+                        "description": "Loaded records, Affected items on this page and Expired wastage on this page describe the displayed results. Review Batch / brand, Expiry date, Quantity / recorded date, Recorded by and Reason / notes. Filters also apply to exports."
                     }
                 ],
                 "example": {
@@ -3008,7 +3330,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "route": "/inventory/analytics",
                 "purpose": "Review purchasing, stock levels and movement trends.",
                 "steps": [
-                    "Open understand stock analytics using the task-page link below. Confirm the page and active branch match your intended work.",
+                    "Open understand stock analytics using Open task page in this procedure. Confirm the page and active branch match your intended work.",
                     "Select the relevant reporting period and available filters.",
                     "Review the overview charts and open the appropriate stock, cost or movement report.",
                     "Compare report totals with the underlying items and transactions.",
@@ -3445,10 +3767,11 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "kind": "page",
                 "purpose": "Record the actual delivered quantities, costs and batch information against the selected purchase order.",
                 "concept": "Receiving stock records an actual delivery against an order. Partial delivery is recorded using the quantities physically received. Batch, expiry and cost information must be reviewed before confirming.",
-                "open": "Open Inventory → Purchase Orders → All Orders. Select the intended order and use its Receive Stock action. The order-specific receipt page opens from that selected record.",
+                "open": "Open Inventory → Purchase Orders → All Orders and select Create Order. Use Receive Order on the intended eligible order to open Receive stock.",
                 "before": [
-                    "Count the physical delivery and identify the intended purchase order.",
-                    "Have unit cost, expiry, batch information and delivery date available."
+                    "Confirm the destination facility/branch, supplier, stock item and stock unit.",
+                    "Use the existing purchasing, approval and receiving permissions. A job title alone does not grant authority.",
+                    "Count the delivered units and inspect condition, batch, expiry and cost documents before receipt."
                 ],
                 "controls": [
                     {
@@ -3485,30 +3808,76 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     }
                 ],
                 "steps": [
-                    "Open the intended order and confirm the order number and supplier on Receive stock.",
-                    "Review each item and its remaining ordered quantity.",
-                    "Enter the quantity physically received now. Use Receive all remaining only when the remaining delivery is complete.",
-                    "Review unit cost for every selected item and enter its expiry information when applicable.",
-                    "Keep automatic batch generation enabled if a supplied batch number is unavailable. If using a manual batch, enter the batch number.",
-                    "Review any available wholesale/retail pricing choice and apply only the intended price update.",
-                    "Open Additional receiving details and verify the received date, actual condition and notes.",
-                    "Review selected item count and the purchase subtotal before tax or discount.",
-                    "Choose Receive stock and wait for the confirmation.",
-                    "Review the order’s received and remaining quantities and find the new record in Received Items History."
+                    "On Purchase Orders, select Create Order to open Create Purchase Order. Select Supplier and review Supplier Contact. Enter Expected Delivery Date when known.",
+                    "Choose Communication Method only as intended. Do not send a supplier email or SMS during a training exercise. Use Communication Notes and General Notes for relevant order context.",
+                    "In Order Items, use Add Item. Choose Item, enter Qty and review Unit and Cost. Repeat Add Item for the remaining requested items, then review the totals. Select Create Order to save, or Create & receive only if you intend to continue immediately to receiving.",
+                    "Record the saved Order Number and reopen the same order. Review its status and the available Receive Order action. Pending Approvals on this list concerns supplier-payment requests; do not confuse payment approval with stock receipt. Follow any additional facility purchasing approval process.",
+                    "Open Receive stock for that same order. Compare the outstanding ordered quantities with the delivery. Enter Quantity received only for items physically accepted; leave other rows at zero.",
+                    "Review Unit cost, Expiry date and batch for each received row. Keep Automatic batch selected if no supplier batch is provided; otherwise enter Batch number. Review Pricing only if you are authorized to change it.",
+                    "Complete Received date, Condition and Notes. If damaged, expired or missing units exist, stop and follow the relevant rejection/discrepancy procedure; do not assume a descriptive Condition choice adjusts quantities automatically.",
+                    "Select Receive stock once. Reopen Received Items History and the order. Confirm quantities, batch, dates, costs and remaining units.",
+                    "Compare the item’s stock and valuation before and after receipt. A partial delivery must leave the unreceived quantity outstanding.",
+                    "Supplier payment is a separate authorized task. Use an eligible funded account and the actual payment method and amount; receiving stock does not prove payment."
                 ],
                 "after": "The delivery is recorded against the order and its stock and receipt records can be reviewed.",
-                "verify": "The received quantities, costs, batch and expiry information match the actual delivery, and any undelivered balance remains visible.",
-                "recovery": "At least one item needs a positive receive-now quantity. Review unit costs and manual batch requirements. Check receipt history before retrying an uncertain submission.",
+                "verify": "The order’s receipt history identifies the actual item, quantity, batch and cost. Stock increases only by accepted received units. Remaining order quantities and valuation reconcile with the recorded receipt.",
+                "recovery": "After an uncertain response, inspect Received Items History and stock before trying again. For a disabled receipt action, review order status and receiving permission. Resolve damaged/expired stock through the correct exception workflow; do not inflate Quantity received.",
                 "example": {
-                    "situation": "An order has 10 units remaining, but only 6 arrive.",
-                    "action": "Enter 6 as the quantity received for the correct item and review the delivery details before confirming.",
-                    "expected": "The receipt records 6 units and the remaining order quantity reflects the partial delivery."
+                    "situation": "An approved training order requests 10 units at GH₵5.00 each; only 6 acceptable units arrive.",
+                    "action": "Receive 6 at unit cost 5.00 and record the batch and receipt date. Leave undelivered items at zero.",
+                    "expected": "Arithmetic target: 6 units received, 4 outstanding and GH₵30.00 received value before any configured additional costs. This example is illustrative until the live receipt test is completed."
                 },
                 "related": [
                     "purchase-orders",
                     "receive-stock",
                     "funded-payments"
-                ]
+                ],
+                "pilot": {
+                    "reviewedAt": "5 November 2026",
+                    "status": "Source reviewed — live purchase and receipt pending",
+                    "checked": [
+                        "Reviewed Create Purchase Order and Receive stock forms, received quantities, costs, automatic batch and receipt metadata.",
+                        "Opened Create Order and Add Item in the live application; confirmed Create Order and Create & receive buttons. No order was saved."
+                    ],
+                    "pending": [
+                        "Purchase creation, approval and stock receipt have not yet been performed in the current pilot facility. No stock increase is claimed.",
+                        "The purchase-order capture was clipped during browser resizing and was excluded from the manual. A complete screenshot must be captured before this pilot is marked illustrated."
+                    ],
+                    "exercise": "In the training environment, create an order for 10 units. Receive only 6, reopen its receipt history and demonstrate 4 units remaining. Record the order and receipt references, batch and valuation; do not send supplier messages or record a real payment.",
+                    "fields": [
+                        {
+                            "name": "Supplier",
+                            "rule": "Required in Create Purchase Order. Choose the actual approved supplier.",
+                            "mistake": "A similarly named supplier is not necessarily the correct payee."
+                        },
+                        {
+                            "name": "Item / Qty / Unit / Cost",
+                            "rule": "Select the inventory item and check its stock unit and positive ordered quantity; review the unit cost.",
+                            "mistake": "A box and an individual unit are not interchangeable quantities."
+                        },
+                        {
+                            "name": "Quantity received",
+                            "rule": "Enter only actual accepted units for this receipt. Zero skips an item; do not exceed the displayed remaining order quantity.",
+                            "mistake": "Receive all remaining must not be used for a partial delivery."
+                        },
+                        {
+                            "name": "Unit cost",
+                            "rule": "Non-negative, in the item’s displayed unit and company currency.",
+                            "mistake": "A zero training cost is not appropriate for a real purchased item."
+                        },
+                        {
+                            "name": "Automatic batch / Batch number",
+                            "rule": "Keep automatic generation selected when no supplier batch is available; otherwise enter the genuine batch.",
+                            "mistake": "Do not overwrite a genuine manufacturer batch merely for convenience."
+                        },
+                        {
+                            "name": "Received date / Condition / Notes",
+                            "rule": "Record the actual delivery context. Review damaged or expired stock through the relevant exception process.",
+                            "mistake": "Selecting Condition alone is not proof that rejected units were excluded from stock."
+                        }
+                    ],
+                    "screenshots": []
+                }
             }
         ],
         "glossary": [

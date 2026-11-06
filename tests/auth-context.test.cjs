@@ -12,6 +12,7 @@ function handler(body, status = 200) {
     vm.runInNewContext(compiled, {
         exports, URL, Response, console: { error() {} }, process: { env: { DEVELOPMENT_BASEURL: 'http://backend/api/v1/', NODE_ENV: 'development' } },
         require(name) {
+            if (name.endsWith('errorMessage')) return require('./helpers/error-message.cjs');
             if (name.endsWith('serverRequestContext')) return { getServerRequestContext: async () => ({ PLS_SESSION: 'synthetic', PLS_PRIME_TENANT_SESSION: 'synthetic-tenant', tenantId: 42 }) };
             if (name.endsWith('serverBackendAccess')) return { assertBackendTransport: loadBackendTransport(), getBackendAuthorization: () => '' };
             if (name === 'next/server') return { NextResponse: { json(body, options) {
@@ -60,6 +61,7 @@ test('the layout catches failed and incomplete context responses without an unha
     for (const [body, status] of [[{ error: 'Session service unavailable' }, 502], [{ status: true }, 200]]) {
         let shownError = '', checking;
         const context = {
+            errorMessage: require('./helpers/error-message.cjs').errorMessage,
             setChecking: value => { checking = value; }, setContextError: value => { shownError = value; },
             setApplicationSettings: () => assert.fail('An invalid context must not be applied'),
             fetch: async () => new Response(JSON.stringify(body), { status }),
@@ -81,3 +83,13 @@ for (const code of ['SESSION_REPLACED', 'SESSION_EXPIRED', 'SESSION_INVALID']) {
         assert.equal((await response.json()).code, code);
     });
 }
+
+
+for(const code of ['SESSION_REPLACED','SESSION_EXPIRED','SESSION_INVALID'])for(const status of [200,401])test(`structured ${code} (${status}) clears a rejected session without rendering its error object`,async()=>{
+ const response=await handler({success:false,error:{code,message:'Your account was signed in on another device.'}},status);
+ assert.equal(response.status,401);const body=await response.json();assert.equal(body.code,code);assert.equal(body.error,'Your account was signed in on another device.');assert.equal(body.redirect,'/authentications/login');
+ assert(response.headers.get('set-cookie').includes('PLS-SESSION='));
+});
+test('structured role-revision errors retain the recovery response instead of signing out',async()=>{
+ const response=await handler({success:false,error:{code:'SESSION_ROLE_CHANGED',message:'Reload the active role.'}},409);assert.equal(response.status,409);assert.equal((await response.json()).code,'SESSION_ROLE_CHANGED');assert.equal(response.headers.get('set-cookie'),null);
+});

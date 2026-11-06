@@ -2,6 +2,8 @@ import { RiPlayCircleLine, RiStopCircleLine, RiCheckLine } from '@remixicon/reac
 import { useState } from "react";
 import { Spinner } from "react-bootstrap";
 import { customPost } from "../../Auth/customFetch";
+import { toast } from "react-toastify";
+import { errorMessage } from "../../../lib/errorMessage";
 
 export default function ProcessingButtons({ item, employeeid, updateTestCollectionAfterUpdate, BulkTargetTo, action }) {
        const [subStart, setSubmitStart] = useState(false);
@@ -21,13 +23,17 @@ export default function ProcessingButtons({ item, employeeid, updateTestCollecti
 
               action === "start" ? setSubmitStart(true) : setSubmitEnd(true);
 
-              const { status } = await customPost("ascension/collection/update/stage", 'POST', selectedItem);
-
-
-
-              if (status === true) {
+              try {
+                     const result = await customPost("ascension/collection/update/stage", 'POST', selectedItem);
+                     if (result?.status !== true) {
+                            toast.error(errorMessage(result?.error || result?.message, 'The processing stage was not updated. Reload and review the current workflow prerequisites.'));
+                            return;
+                     }
+                     updateTestCollectionAfterUpdate(ascensionid, { ...item, [stage]: value });
+              } catch (error) {
+                     toast.error(errorMessage(error, 'Unable to update processing. Reload the test before retrying.'));
+              } finally {
                      action === "start" ? setSubmitStart(false) : setSubmitEnd(false);
-                     updateTestCollectionAfterUpdate(ascensionid, { ...item, [stage]: value })
               }
 
        }
@@ -41,14 +47,14 @@ export default function ProcessingButtons({ item, employeeid, updateTestCollecti
        return (
               <div>
                      <button
-                            disabled={item.processingStartDate}
+                            disabled={Boolean(item.processingStartDate) || subStart || subStop}
                             onClick={(ev) => { handleProcessing(item, 'start') }}
                             className="btn btn-success btn-sm">
                             {(subStart || (BulkTargetTo == item.ascensionid && action === "start")) && <Spinner size="sm" />}
                             <RiPlayCircleLine size={16} className="me-1" /> Start
                      </button>
                      <button
-                            disabled={item.processingEndDate}
+                            disabled={!item.processingStartDate || Boolean(item.processingEndDate) || subStart || subStop}
                             onClick={(ev) => { handleProcessing(item, 'stop') }}
                             className="mx-2 btn btn-danger btn-sm">
                             {(subStop || (BulkTargetTo == item.ascensionid && action === "stop")) && <Spinner size="sm" />}

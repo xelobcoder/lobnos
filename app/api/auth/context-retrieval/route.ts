@@ -1,3 +1,4 @@
+import { errorMessage } from '../../../../lib/errorMessage';
 import { NextRequest, NextResponse } from 'next/server';
 import {getServerRequestContext as getRequestContext} from '../../../../lib/serverRequestContext';
 import {getBackendAuthorization, assertBackendTransport} from '../../../../lib/serverBackendAccess';
@@ -49,12 +50,14 @@ export async function GET(request: NextRequest) {
           });
 
           const data = await response.json()
-          const { message, statusCode, status } = data;
-          if (data.code === 'SESSION_ROLE_CHANGED') return Response.json({error:data.message,code:data.code},{status:409});
+          const { statusCode, status } = data;
+          const code = typeof data.code === 'string' ? data.code : typeof data.error?.code === 'string' ? data.error.code : undefined;
+          const message = errorMessage(data.error || data.message, 'Unable to validate the session.');
+          if (code === 'SESSION_ROLE_CHANGED') return Response.json({error:message,code},{status:409});
           if (response.status >= 500) return Response.json({ error: 'The session service is temporarily unavailable. Please try again.' }, { status: 502 });
           if (status != true) {
-               const denied = response.status === 401 || response.status === 403 || statusCode === 401 || statusCode === 403 || data.isExpired === true;
-               if (denied) return rejectedSession(message || 'Your session has ended. Please sign in again.', data.code);
+               const denied = response.status === 401 || response.status === 403 || statusCode === 401 || statusCode === 403 || data.isExpired === true || ['SESSION_REPLACED','SESSION_EXPIRED','SESSION_INVALID','TENANT_MISMATCH','DEVICE_MISMATCH'].includes(code || '');
+               if (denied) return rejectedSession(message || 'Your session has ended. Please sign in again.', code);
                return new Response(
                     JSON.stringify({ error: message || 'Unable to validate the session.' }),
                     {

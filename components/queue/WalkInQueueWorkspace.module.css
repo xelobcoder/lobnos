@@ -200,3 +200,8 @@
     .ticketBody { padding: 16px; }
 }
 @media (prefers-reduced-motion: reduce) { .metric { transition: none; } }
+
+/* Refresh is the primary header action; keep the same sizing as its neighbours. */
+.heroPrimaryButton { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:40px; padding:8px 12px; border:1px solid var(--queue-accent); border-radius:5px; background:var(--queue-accent); color:#fff; font:inherit; font-size:.85rem; font-weight:500; }
+.heroPrimaryButton:hover:not(:disabled) { background:color-mix(in srgb,var(--queue-accent) 85%,black); }
+@media(max-width:700px) { .heroPrimaryButton { min-height:44px; } }

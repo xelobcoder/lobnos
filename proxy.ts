@@ -25,6 +25,12 @@ export async function verifyPrimeToken(token: string) {
 }
 
 export async function proxy(request: NextRequest) {
+    const publicRoutes = ["/", "/about", "/solutions", "/features", "/website/analytics", "/product-tour", "/pricing", "/industries", "/marketplace", "/join-facility", "/facilities", "/resources", "/contact", "/request-demo", "/terms", "/privacy-policy", "/facility-login", "/patient-portal", "/facility-dashboard", "/booking-status"];
+    const pathname = request.nextUrl.pathname;
+    if (publicRoutes.some(route => pathname === route || (route !== '/' && pathname.startsWith(route + '/')))) {
+        const { publicSiteProxy } = await import('./website/publicSiteProxy');
+        return publicSiteProxy(request);
+    }
     const response = await routeRequest(request);
     response.headers.set('Cache-Control', 'private, no-store, max-age=0');
     response.headers.set('CDN-Cache-Control', 'no-store');
@@ -64,6 +70,7 @@ async function routeRequest(request: NextRequest) {
             const tenantToken = request.cookies.get('pls-prime-tenant-session')?.value;
             const tenantId = Number(payload.tenantId);
             if (!tenantToken || !Number.isSafeInteger(tenantId) || tenantId <= 0) return clearSession();
+            let verifiedConfiguration: unknown;
             try {
                 const base = process.env.NODE_ENV === 'development' ? process.env.DEVELOPMENT_BASEURL : process.env.PRODUCTION_BASEURL;
                 if (!base) throw new Error('Backend URL is not configured');
@@ -77,6 +84,7 @@ async function routeRequest(request: NextRequest) {
                     signal: AbortSignal.timeout(5000),
                 });
                 const session = await validation.json();
+                verifiedConfiguration = session.moduleConfiguration || session.settings?.moduleConfiguration;
                 if (validation.status === 401 || validation.status === 403 || session.isExpired === true) return clearSession();
                 // A changed role is recovered by the workspace, but an outage must not cause a redirect loop.
                 if (!(validation.ok && session.status === true) && session.code !== 'SESSION_ROLE_CHANGED') return NextResponse.next();
@@ -84,18 +92,12 @@ async function routeRequest(request: NextRequest) {
                 console.error('Unable to confirm the session before leaving login:', error);
                 return NextResponse.next();
             }
-            const role = payload.user?.role?.toLowerCase?.() || '';
-            const returnTo = new URL(request.url).searchParams.get('returnTo');
-            if (['admin', 'manager','super-admin'].includes(role) && returnTo && /^\/patient-portal-admin(?:\/(?:access|settings))?$/.test(returnTo)) {
-                return NextResponse.redirect(new URL(returnTo, request.url));
-            }
-            if (role.replace(/[\s_-]/g, '') === 'superadmin') return NextResponse.redirect(new URL('/settings/facilities', request.url));
-            if (['doctor','medicalofficer','consultant','nurse','pharmacydoctor','pharmacynurse'].includes(role.replace(/[\s_-]/g,''))) return NextResponse.redirect(new URL('/doctor', request.url));
-            if (role === 'clinician') return NextResponse.redirect(new URL('/doctor', request.url));
-            if (role === 'patient') return NextResponse.redirect(new URL('/patientportal', request.url));
-            if (role.replace(/[\s_-]/g,'').startsWith('pharmacy')||role==='pharmacist') return NextResponse.redirect(new URL('/pharmacy', request.url));
-            if (role === 'marketer') return NextResponse.redirect(new URL('/crm/acquisition', request.url));
-            return NextResponse.redirect(new URL('/', request.url));
+            const { loginDestination } = await import('./lib/workspaceDestination');
+            return NextResponse.redirect(new URL(loginDestination(
+                payload.user?.role || '',
+                verifiedConfiguration,
+                new URL(request.url).searchParams.get('returnTo'),
+            ), request.url));
         }
 
         if (isValid && payload && !isLoginPage) {
@@ -166,6 +168,27 @@ async function routeRequest(request: NextRequest) {
 
 export const config = {
     matcher: [
+        '/',
+        '/about/:path*',
+        '/solutions/:path*',
+        '/features/:path*',
+        '/website/analytics/:path*',
+        '/product-tour/:path*',
+        '/pricing/:path*',
+        '/industries/:path*',
+        '/marketplace/:path*',
+        '/join-facility/:path*',
+        '/facilities/:path*',
+        '/resources/:path*',
+        '/contact/:path*',
+        '/request-demo/:path*',
+        '/terms/:path*',
+        '/privacy-policy/:path*',
+        '/facility-login/:path*',
+        '/patient-portal/:path*',
+        '/facility-dashboard/:path*',
+        '/booking-status/:path*',
+
         '/account/:path*',
         '/pharmacy/:path*',
         '/accounting/:path*',

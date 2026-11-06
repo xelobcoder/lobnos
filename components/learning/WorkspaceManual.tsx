@@ -6,7 +6,9 @@ import { RiBookOpenLine, RiPrinterLine } from '@remixicon/react';
 import { manualIntroductions } from '../../lib/workspaceManual';
 import type { WorkspaceArticle, WorkspaceLearningModule } from '../../lib/workspaceLearning';
 import WorkspaceWorkflowFigure from './WorkspaceWorkflowFigure';
+import WorkspacePilotGuide from './WorkspacePilotGuide';
 import ManualPdfDownload from './ManualPdfDownload';
+import SoftwareManualIntroduction from './SoftwareManualIntroduction';
 import styles from './WorkspaceManual.module.css';
 
 export default function WorkspaceManual({ module, articles, role }: {
@@ -59,7 +61,7 @@ export default function WorkspaceManual({ module, articles, role }: {
                 <div id="manual-contents-links" className={contentsOpen ? undefined : styles.mobileCollapsed}>
                 <label>Find a section<input className="form-control" type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search tasks and fields"/></label>
                 <nav>
-                    <a href="#manual-introduction">About this manual</a>
+                    <a href="#manual-software">Understanding PLS</a><a href="#manual-introduction">About this module</a>
                     <a href="#manual-roles">Roles and responsibilities</a>
                     <a href="#manual-start">Before you start</a>
                     <a href="#manual-controls">Rules and controls</a>
@@ -75,17 +77,19 @@ export default function WorkspaceManual({ module, articles, role }: {
             </aside>
             <div ref={documentRef} className={styles.document} id="manual-document">
                 <header className={styles.cover}>
-                    <p className={styles.brand}>PRIME LABORATORY SYSTEM</p>
+                    <p className={styles.brand}>PRIME LABORATORY SOFTWARE (PLS)</p>
                     <p>User and training documentation</p>
                     <h1>{module.title}<br/>User Manual</h1>
                     <p>{module.description}</p>
-                    <dl><div><dt>Audience</dt><dd>{intro.audience}</dd></div><div><dt>Active-role edition</dt><dd>{role} · {articles.length} procedures available</dd></div><div><dt>Source review</dt><dd>4 November 2026</dd></div></dl>
+                    <dl><div><dt>Audience</dt><dd>{intro.audience}</dd></div><div><dt>Active-role edition</dt><dd>{role} · {articles.length} procedures available</dd></div><div><dt>Source review</dt><dd>5 November 2026</dd></div></dl>
                 </header>
+                <SoftwareManualIntroduction/>
                 <section id="manual-introduction">
                     <h2>About this manual</h2><p>{intro.overview}</p>
                     <h3>How to use the manual</h3>
                     <p>Read the operating sequence first, then work through the relevant numbered chapter. Each procedure explains the purpose, access path, controls, required preparation, actions, expected outcome and recovery. Worked examples illustrate how to apply the procedure. Use the task-page link when you are ready to perform the authorized task.</p>
                     <p>This edition includes procedures available to the active role and enabled facility modules. A colleague with a different role may see a different set of procedures. The application checks record scope, action permissions and financial controls again when work is performed.</p>
+                    {intro.sections?.map(section => <section key={section.title}><h3>{section.title}</h3>{section.paragraphs.map((text,i)=><p key={i}>{text}</p>)}<h4>Staff check</h4><ul>{section.checklist.map((text,i)=><li key={i}>{text}</li>)}</ul></section>)}
                     <h3>Learning objectives</h3><ul>{intro.objectives.map(item => <li key={item}>{item}</li>)}</ul>
                 </section>
                 <section id="manual-roles"><h2>Roles and responsibilities</h2><dl>{intro.roles.map(([name, meaning]) => <div key={name}><dt>{name}</dt><dd>{meaning}</dd></div>)}</dl></section>
@@ -98,8 +102,9 @@ export default function WorkspaceManual({ module, articles, role }: {
                         <h3>{chapterIndex + 1}.{procedureIndex + 1} {article.title}</h3>
                         <p>{article.concept}</p>
                         <div data-manual-tools className={styles.procedureTools}><Link href={article.route}>Open task page</Link><Link href={href(article.slug)}>Open this procedure separately</Link></div>
-                        <h4>Where to open it</h4><p>{article.kind === 'workflow' ? 'The task-page link opens a stage available to your current role. Review each handoff through the related task guides.' : article.open}</p><code>{article.route}</code>
+                        <h4>Where to open it</h4><p>{article.open}</p>
                         {article.kind === 'workflow' && <WorkspaceWorkflowFigure slug={article.slug} hrefForArticle={href} availableSlugs={articles.map(item => item.slug)}/>}
+                        {article.pilot && <WorkspacePilotGuide pilot={article.pilot}/>}
                         <h4>Before you begin</h4><ul>{article.before.map(item => <li key={item}>{item}</li>)}</ul>
                         <h4>Controls and fields</h4><dl>{article.controls.map((control, index) => <div key={`${article.slug}-control-${index}`}><dt>{control.name}</dt><dd>{control.description}</dd></div>)}</dl>
                         <h4>Step-by-step procedure</h4><ol>{article.steps.map(step => <li key={step}>{step}</li>)}</ol>

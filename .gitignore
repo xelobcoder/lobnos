@@ -5,6 +5,7 @@
 /.pnp
 .pnp.js
 /.next-critique-verification/
+/.next-login-verification
 
 # testing
 /coverage

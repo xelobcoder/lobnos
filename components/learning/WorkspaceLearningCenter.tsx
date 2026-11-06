@@ -13,6 +13,7 @@ import LearningCenterHome from '../../app/pharmacy/guide/LearningCenterHome';
 import LearningArticleContent from '../../app/pharmacy/guide/LearningArticleContent';
 import WorkspaceWorkflowFigure from './WorkspaceWorkflowFigure';
 import WorkspaceManual from './WorkspaceManual';
+import WorkspacePilotGuide from './WorkspacePilotGuide';
 import ManualPdfDownload from './ManualPdfDownload';
 import guide from '../../app/pharmacy/guide/page.module.css';
 import articleStyles from '../../app/pharmacy/guide/LearningCenterArticle.module.css';
@@ -82,7 +83,7 @@ function LearningWorkspace({ moduleId, slug, view = 'manual' }: { moduleId: Lear
         manual: {
             kind: item.kind === 'workflow' ? 'workflow' as const : undefined,
             route: item.route,
-            open: item.kind === 'workflow' ? 'Use Open the task page to reach a stage available to your active role. Read the linked task guides for each team’s part of the workflow.' : item.open,
+            open: item.open,
             controls: item.controls.map(control => [control.name, control.description] as const),
             operations: [
                 { id: 'complete', title: item.title, steps: [...item.before, ...item.steps], result: item.after, verify: item.verify },
@@ -170,6 +171,7 @@ function LearningWorkspace({ moduleId, slug, view = 'manual' }: { moduleId: Lear
                             <Link href={`/${moduleId}/guide`}>Browse available guides</Link>
                         </>}
                         {article && <>
+                            {article.pilot && <WorkspacePilotGuide pilot={article.pilot}/>}
                             {articleView && <LearningArticleContent article={articleView} available={homeArticles} hrefForArticle={href} illustration={article.kind === 'workflow' ? <WorkspaceWorkflowFigure slug={article.slug} hrefForArticle={href} availableSlugs={available.map(item => item.slug)}/> : undefined}/>}
                             <div className={`${guide.progress} ${articleStyles.progress}`}>
                                 <button className="btn btn-outline-secondary" aria-pressed={read.includes(article.slug)} onClick={markRead}>{read.includes(article.slug) ? 'Mark as unread' : 'Mark as read'}</button>

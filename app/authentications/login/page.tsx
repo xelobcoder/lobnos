@@ -1,5 +1,6 @@
 'use client'
-import {workspaceDestination} from '../../../lib/workspaceDestination';
+import { errorMessage } from '../../../lib/errorMessage';
+import {loginDestination} from '../../../lib/workspaceDestination';
 import styles from './login.module.css';
 import { RiShieldCrossFill, RiUserLine, RiLockLine, RiEyeLine, RiEyeOffLine, RiHospitalLine, RiStethoscopeLine, RiUserHeartLine } from '@remixicon/react';
 import { useEffect, useState } from 'react';
@@ -40,13 +41,14 @@ export default function PrimeLabLoginPage() {
 	const router = useRouter();
 	useEffect(()=>{const params=new URLSearchParams(window.location.search);if(params.get('mode')==='doctor')setLoginMode('doctor');const username=params.get('username');if(username&&/^[A-Za-z][A-Za-z0-9]{2,80}$/.test(username))setUserInformation(previous=>({...previous,username}));},[]);
 	const loginModes = [
-		{ key: 'center' as const, label: 'Center Login', icon: RiHospitalLine, description: 'For laboratory and administrative teams' },
+		{ key: 'center' as const, label: 'Staff Login', icon: RiHospitalLine, description: 'For laboratory, imaging, pharmacy and administrative teams' },
 		{ key: 'doctor' as const, label: 'Doctor Login', icon: RiStethoscopeLine, description: 'For doctors and clinical partners' },
 		{ key: 'patient' as const, label: 'Patient Login', icon: RiUserHeartLine, description: 'Access your results and care information' },
 	];
 	const activeLoginMode = loginModes.find((mode) => mode.key === loginMode)!;
 
 	const handleLoginBind = async () => {
+		if (isSubmitting) return;
 		try {
 			setSubmitting(true);
 			setLoginStatus('idle');
@@ -67,6 +69,14 @@ export default function PrimeLabLoginPage() {
 				setSubmitting(false);
 				return;
 			}
+
+            const accountType = usernameParts[2].toUpperCase();
+            if ((loginMode === 'center' && accountType !== 'S') || (loginMode === 'doctor' && accountType !== 'C')) {
+                setLoginStatus('error');
+                setMessage(accountType === 'P' ? 'This is a patient username. Choose Patient Login.' : accountType === 'C' ? 'This is a practitioner username. Choose Doctor Login.' : 'This is a staff username. Choose Staff Login.');
+                setSubmitting(false);
+                return;
+            }
 
 			let browserInfo = {};
 			if (typeof window !== 'undefined') {
@@ -118,7 +128,7 @@ export default function PrimeLabLoginPage() {
 
 			if (!status || status == false || status === 'error') {
 				setLoginStatus('error');
-				setMessage(backendResponse.error || backendResponse.message || 'Login failed');
+				setMessage(errorMessage(backendResponse.error || backendResponse.message, 'Login failed'));
 				setSubmitting(false);
 				return;
 			}
@@ -155,11 +165,12 @@ export default function PrimeLabLoginPage() {
 
 			if (!cookieResponse.ok || !cookieResult.status) {
 				setLoginStatus('error');
-				setMessage(cookieResult.error || 'Failed to set session');
+				setMessage(errorMessage(cookieResult.error, 'Failed to set session'));
 				setSubmitting(false);
 				return;
 			}
 
+			let verifiedConfiguration: unknown;
 			if (typeof window !== 'undefined') {
 				const contextResponse = await fetch('/api/auth/context-retrieval', {
 					method: 'GET',
@@ -170,8 +181,9 @@ export default function PrimeLabLoginPage() {
 				});
 				const contextData = await contextResponse.json();
 				if (!contextResponse.ok || !contextData?.user || Number(contextData.tenantId) !== resolvedTenantId) {
-					throw new Error(contextData?.error || 'Your browser did not retain the login session. Please try again.');
+					throw new Error(errorMessage(contextData?.error, 'Your browser did not retain the login session. Please try again.'));
 				}
+				verifiedConfiguration = contextData.moduleConfiguration || contextData.settings?.moduleConfiguration;
 				try {
 					localStorage.setItem('applicationsettings', JSON.stringify({
 						user: contextData.user,
@@ -186,32 +198,8 @@ export default function PrimeLabLoginPage() {
 			setLoginStatus('success');
 			setMessage('Login successful. Redirecting...');
 			const { role } = cookieResult;
-			const destinations: Record<string, string> = {
-				cashier:'/billing/cash-collection',
-                pharmacy_cashier: '/pharmacy/sell',
-				pharmacy_manager: '/pharmacy',
-				pharmacy_storekeeper: '/pharmacy/inventory',
-				pharmacy_dispensary_officer: '/pharmacy/prescriptions',
-				pharmacy_accountant: '/pharmacy/finance',
-				marketer: '/crm/acquisition',
-				patient: '/patientportal',
-				clinician: '/doctor',
-                doctor:'/doctor',medical_officer:'/doctor',consultant:'/doctor',nurse:'/doctor',pharmacy_doctor:'/doctor',pharmacy_nurse:'/doctor',
-				'customer service representative': '/crm/overview',
-				admin: '/analytics',
-				manager: '/',
-				sonographer: '/operations/imaging/ultrasound',
-                head_of_laboratory:'/operations/laboratory/requisitions',head_of_imaging:'/operations/imaging/ultrasound/requisitions',
-				scientist: '/operations/laboratory',
-				storekeeper: '/inventory',
-				accountant: '/accounting',
-			};
-			const returnTo = typeof window !== 'undefined' && window.location.search ? new URLSearchParams(window.location.search).get('returnTo') : null;
-			const destination = ['admin', 'manager'].includes(role) && returnTo && /^\/patient-portal-admin(?:\/(?:access|settings))?$/.test(returnTo)
-				? returnTo
-				: String(role || '').toLowerCase().replace(/[\s_-]/g, '') === 'superadmin'
-				? '/settings/facilities'
-				: ['admin','manager','pharmacist'].includes(role) ? workspaceDestination(role,backendResponse.moduleConfiguration||backendResponse.settings?.moduleConfiguration) : destinations[role] || '/';
+			const returnTo = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('returnTo') : null;
+			const destination = loginDestination(role, verifiedConfiguration, returnTo);
 			// Reload the authenticated shell rather than reusing the anonymous router cache.
 			window.location.replace(destination);
 
@@ -244,7 +232,7 @@ export default function PrimeLabLoginPage() {
 			}
 			setRecoveryStep('verify');
 			setLoginStatus('success');
-			setMessage(result.message || 'If the account and email address are registered, verification instructions will be sent.');
+			setMessage(errorMessage(result.message, 'If the account and email address are registered, verification instructions will be sent.'));
 		} catch (error) {
 			setLoginStatus('error');
 			setMessage(error instanceof Error ? error.message : 'Could not request a verification code. Please try again.');
@@ -352,6 +340,7 @@ export default function PrimeLabLoginPage() {
 			{/* Right side - Login Form */}
 			<div className={styles.formSide}>
 				<div className={styles.formContainer}>
+					<nav className={styles.entryLinks} aria-label="Sign-in navigation"><Link href="/">← Website</Link><Link href="/facility-login">Login options</Link></nav>
 					<div className={styles.loginHeader}>
 						<h2 className={styles.welcomeTitle}>Welcome back</h2>
 						<p className={styles.welcomeSubtitle}>{activeLoginMode.description}</p>
@@ -368,7 +357,7 @@ export default function PrimeLabLoginPage() {
 									aria-selected={loginMode === mode.key}
 									className={`${styles.loginModeButton} ${loginMode === mode.key ? styles.activeLoginMode : ''}`}
 									disabled={isSubmitting || recoveryBusy || recoveryStep !== null}
-									onClick={() => mode.key === 'patient' ? router.push('/patient-access/login') : setLoginMode(mode.key)}
+									onClick={() => { if (mode.key === 'patient') { router.push('/patient-access/login'); return; } if (mode.key !== loginMode) { setLoginMode(mode.key); setUserInformation(previous => ({ ...previous, password: '' })); setLoginStatus('idle'); setMessage(''); } }}
 								>
 									<ModeIcon size={18} />
 									<span>{mode.label}</span>
@@ -377,9 +366,9 @@ export default function PrimeLabLoginPage() {
 						})}
 					</div>
 					{loginStatus !== 'idle' && (
-						<Alert variant={loginStatus === 'error' ? "danger" : "success"} className="mb-4 border-0 shadow-sm">
+						<Alert role="alert" variant={loginStatus === 'error' ? "danger" : "success"} className="mb-4 border-0 shadow-sm">
 							<div className='text-sm font-medium'>
-								{message}
+								{errorMessage(message, 'Unable to complete sign-in. Please try again.')}
 							</div>
 						</Alert>
 					)}
@@ -482,7 +471,8 @@ export default function PrimeLabLoginPage() {
 							</button>
 						</form>
 					) : (
-					<form className={styles.loginForm} onSubmit={(event) => { event.preventDefault(); void handleLoginBind(); }}>
+					<form className={styles.loginForm} aria-busy={isSubmitting} onSubmit={(event) => { event.preventDefault(); void handleLoginBind(); }}>
+                        <p id="facility-username-help" className={styles.recoveryInstructions}>Use your full facility username. Its organization prefix selects your facility automatically; you do not need to choose a laboratory first.</p>
 						<div className={styles.formGroup}>
 							<label htmlFor="username" className={styles.formLabel}>
 								Username
@@ -491,6 +481,10 @@ export default function PrimeLabLoginPage() {
 								{loginMode === 'patient' ? <RiUserHeartLine size={20} className={styles.inputIcon} /> : <RiUserLine size={20} className={styles.inputIcon} />}
 								<input
 									id="username"
+                                    aria-describedby="facility-username-help"
+                                    autoCapitalize="none"
+                                    spellCheck={false}
+                                    disabled={isSubmitting}
 									name="username"
 									type="text"
 									value={userInformation.username}
@@ -518,6 +512,7 @@ export default function PrimeLabLoginPage() {
 								<RiLockLine size={20} className={styles.inputIcon} />
 								<input
 									id="password"
+                                    disabled={isSubmitting}
 									name="password"
 									type={showPassword ? "text" : "password"}
 									className={styles.formInput}

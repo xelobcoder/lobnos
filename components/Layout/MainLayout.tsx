@@ -1,5 +1,6 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react';
+import { errorMessage } from '../../lib/errorMessage';
 import { useApplicationSettings } from '../Auth/useApplicationContext';
 
 
@@ -25,7 +26,7 @@ export default function MAIN_LAYOUT({ children }: {children?: React.ReactNode}) 
                if(data?.code==='SESSION_ROLE_CHANGED') {
                     const recovery=await fetch('/api/auth/refresh-role-session',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}',credentials:'include',cache:'no-store',signal});
                     const recoveryData=await recovery.json();
-                    if(!recovery.ok||recoveryData?.status!==true)throw new Error(recoveryData?.error||'Your workspace session could not be restored. Sign out and sign in again.');
+                    if(!recovery.ok||recoveryData?.status!==true)throw new Error(errorMessage(recoveryData?.error,'Your workspace session could not be restored. Sign out and sign in again.'));
                     retrieveContext=await fetch('/api/auth/context-retrieval',{headers:{'Content-Type':'application/json'},credentials:'include',cache:'no-store',signal});
                     data=await retrieveContext.json();
                     if(data?.code==='SESSION_ROLE_CHANGED')throw new Error('Your active role could not be confirmed. Sign out and sign in again.');
@@ -38,7 +39,7 @@ export default function MAIN_LAYOUT({ children }: {children?: React.ReactNode}) 
                     window.location.replace('/authentication/logout');
                     return null;
                }
-               if (!retrieveContext.ok || error) throw new Error(typeof error === 'string' ? error : data.message || 'Unable to verify your session. Please try again.');
+               if (!retrieveContext.ok || error) throw new Error(errorMessage(error || data.message, 'Unable to verify your session. Please try again.'));
                if (!authenticatedUser) throw new Error('Your account details could not be loaded. Please retry or sign in again.');
                if (!authenticatedUser.role) throw new Error('The server returned incomplete account details. Please try again.');
                const freshSettings = {
@@ -51,7 +52,7 @@ export default function MAIN_LAYOUT({ children }: {children?: React.ReactNode}) 
                     try { localStorage.setItem('applicationsettings', JSON.stringify(freshSettings)); } catch { /* A blocked cache must not prevent sign-in. */ }
                }
           } catch (error: any) {
-               if (!signal.aborted) setContextError(error instanceof SyntaxError ? 'The session service returned an invalid response. Please try again.' : error?.message || 'Unable to connect to the session service.');
+               if (!signal.aborted) setContextError(error instanceof SyntaxError ? 'The session service returned an invalid response. Please try again.' : errorMessage(error, 'Unable to connect to the session service.'));
           } finally {
                if (!signal.aborted) setChecking(false);
           }

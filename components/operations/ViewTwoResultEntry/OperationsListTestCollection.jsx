@@ -12,6 +12,7 @@ export default function OperationsListTestCollection({ operations }) {
 	const [selectedTests, setSelectedTests] = useState([]);
 	const [multiMode, setMultiMode] = useState(false);
 	const [loaded, setLoaded] = useState(false);
+    const [pendingSingleTest, setPendingSingleTest] = useState(null);
 	const [showAccessRequest, setShowAccessRequest] = useState(false);
 	const [selectedTestForAccess, setSelectedTestForAccess] = useState(null);
 	const [globalPin, setGlobalPin] = useState("");
@@ -30,11 +31,14 @@ export default function OperationsListTestCollection({ operations }) {
 		});
 	};
 
-	const handleTestCollectionSingle = (item) => {
-		const confirmation = confirm("Do you want to enter test results for this test? This action will log the time.");
-		if (!confirmation) return;
-		window.scrollTo(0, 0);
-	};
+	const handleTestCollectionSingle = (item) => setPendingSingleTest(item);
+    const confirmSingleEntry = () => {
+        if (!pendingSingleTest) return;
+        setSelectedTests([pendingSingleTest]);
+        setLoaded(true);
+        setPendingSingleTest(null);
+        window.scrollTo(0, 0);
+    };
 
 	const handleLoadAll = () => {
 		setSelectedTests(testList);
@@ -101,6 +105,7 @@ export default function OperationsListTestCollection({ operations }) {
 									<button
 										type="button"
 										className={`btn btn-sm btn-outline-primary`}
+                                        aria-label={`Enter results for ${item.name}`}
 										onClick={(e) => {
 											e.stopPropagation();
 											if (multiMode) {
@@ -121,7 +126,7 @@ export default function OperationsListTestCollection({ operations }) {
 					);
 				})}
 			</div>
-			{multiMode && loaded && selectedTests.length > 0 && (
+			{loaded && selectedTests.length > 0 && (
 				<div>
 					{
 						pinOnResultEntry && (
@@ -142,6 +147,11 @@ export default function OperationsListTestCollection({ operations }) {
 				</div>
 			)}
 
+            <Modal show={Boolean(pendingSingleTest)} onHide={() => setPendingSingleTest(null)} centered>
+                <Modal.Header closeButton><Modal.Title>Confirm result entry</Modal.Title></Modal.Header>
+                <Modal.Body><p>Open <strong>{pendingSingleTest?.name}</strong> for <strong>{patientInfo?.fullname || patientInfo?.fullpatientid || `Patient ${patientid}`}</strong>?</p><p className="mb-0">Review the patient and test before continuing. Opening the result form records the entry time; it does not save or validate a result.</p></Modal.Body>
+                <Modal.Footer><button type="button" className="btn btn-outline-secondary" onClick={() => setPendingSingleTest(null)}>Cancel entry</button><button type="button" className="btn btn-primary" onClick={confirmSingleEntry}>Open result form</button></Modal.Footer>
+            </Modal>
 			<Modal show={showAccessRequest} onHide={() => { setShowAccessRequest(false); setSelectedTestForAccess(null); }} size="lg">
 				<Modal.Header closeButton>
 					<Modal.Title>Request Access - {selectedTestForAccess?.name}</Modal.Title>

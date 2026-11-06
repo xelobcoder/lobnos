@@ -3,7 +3,7 @@
   display: flex;
   min-height: 100vh;
   width: 100%;
-  font-family: Candara, 'Segoe UI', sans-serif;
+  font-family: var(--theme-font-family, 'Segoe UI', sans-serif);
   background-color: #fff;
 }
 
@@ -403,3 +403,7 @@
     font-size: 0.68rem;
   }
 }
+.entryLinks { display:flex; justify-content:space-between; gap:16px; margin-bottom:24px; font-size:14px; }
+.entryLinks a { color:#246b39; text-decoration:none; }
+.entryLinks a:hover { text-decoration:underline; }
+.entryLinks a:focus-visible { outline:2px solid #287d40; outline-offset:4px; }

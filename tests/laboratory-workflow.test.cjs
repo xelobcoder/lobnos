@@ -19,7 +19,7 @@ function load(file, mocks) {
     });
     return exports;
 }
-const helper = load('lib/laboratoryWorkflow.ts', name => { throw new Error(name); });
+const helper = load('lib/laboratoryWorkflow.ts', name => { if(name==='./resultPaymentPolicy')return load('lib/resultPaymentPolicy.ts',()=>{throw Error('Unexpected dependency');}); throw new Error(name); });
 const nodes = (tree, predicate) => !tree || typeof tree !== 'object' ? [] : Array.isArray(tree)
     ? tree.flatMap(child => nodes(child, predicate))
     : [...(predicate(tree) ? [tree] : []), ...nodes(tree.props?.children, predicate)];
@@ -28,7 +28,7 @@ const text = tree => tree == null ? '' : typeof tree !== 'object' ? String(tree)
 const ResultForm = () => null;
 const noop = () => null;
 const base = {
-    ascension_id: 1, testid: 2, billingid: 3, test_name: 'Test',
+    ascension_id: 1, testid: 2, billingid: 3, test_name: 'Test', paymentstatus:'paid',
     workflow: {
         collection: 'bypassed', sampleValidation: 'bypassed', processing: 'bypassed',
         canCollect: false, canValidateSample: false, canProcess: false, canEnterResults: true, blockedReason: null,

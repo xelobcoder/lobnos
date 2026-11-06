@@ -1,0 +1,1 @@
+const fs=require('fs'),vm=require('vm'),path=require('path'),ts=require('typescript');const output={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'../../lib/errorMessage.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,{exports:output});module.exports=output;

@@ -534,7 +534,8 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
                 }
             }
             if (status == false) {
-                return toast.error(message || "Failed to submit billing data");
+                toast.error(message || "Failed to submit billing data");
+                return response;
             }
             return response;
 
@@ -584,7 +585,7 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
                 billingdata?.billingid ? Number(billingdata.billingid) : (billingid ? Number(billingid) : undefined);
             const completed = await completeBillingSubmission(billingdata, writeOffConfirmed,
                 buildDefaultDeliveryPreferences(billingdata.cart || [], employeeid, resolvedBillingId), resolvedBillingId);
-            return { status: completed };
+            return { status: completed, ...(!completed ? { message: submissionFailureMessage.current } : {}) };
         }
 
         // Initialize test delivery preferences
@@ -650,6 +651,8 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
         }
     };
 
+    const submissionFailureMessage = useRef('');
+
     const completeBillingSubmission = async (billingdata: MultiBillingData, writeOffConfirmed: boolean,
         preferencesPayload: any[], resolvedBillingId?: number): Promise<boolean> => {
         const resultDeliveryPayload = {
@@ -658,12 +661,14 @@ function MultiBillingLayoutContent({modern=false,layoutGuardRef}:{modern?:boolea
             employeeid,
         };
 
+        submissionFailureMessage.current = '';
         const submitResponse: any = await submitBillingInternal(
             { ...billingdata, result_delivery: resultDeliveryPayload },
             writeOffConfirmed
         );
         const submittedBillingId = submitResponse?.billingid || submitResponse?.data?.billingid;
         if (!submittedBillingId) {
+            submissionFailureMessage.current = typeof submitResponse?.message === 'string' ? submitResponse.message : 'The bill was not saved. Review the saved history before retrying.';
             if (submitResponse) toast.error(submitResponse?.message || 'Billing submission failed');
             return false;
         }

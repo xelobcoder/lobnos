@@ -27,7 +27,7 @@ test('logout renders without mounting the session-required workspace layout', ()
                 if (name.endsWith('PrimeLayout')) return { default: 'PrimeLayout' };
                 if (name.endsWith('ApplicationSettingsLinks')) return { ApplicationSettingsLinks: [] };
                 if (name.endsWith('.css')) return {};
-                throw Error(name);
+                if(name.endsWith('workspaceDestination'))return require('./helpers/workspace-destination.cjs');throw Error(name);
             },
         });
         const rendered = exports.default({ children: child });
@@ -48,7 +48,7 @@ function proxyFixture({ revoked = false, outage = false, missingBackend = false,
             if (name === 'jose') return { jwtVerify: async () => ({ payload }) };
             if (name.endsWith('serverBackendAccess')) return { assertBackendTransport: loadBackendTransport(env), getBackendAuthorization: () => undefined };
             if (name.endsWith('roleNavigationPolicy')) return { roleWorkspace: role => role, isMasterPlatformPath: () => false, canAccessRolePage: () => true };
-            throw Error(name);
+            if(name.endsWith('workspaceDestination'))return require('./helpers/workspace-destination.cjs');throw Error(name);
         },
         fetch: async (url, options) => {
             calls.push({ url: String(url), options });
@@ -72,7 +72,7 @@ test('replaced device remains on login while the active device is redirected int
     assert.equal(oldDevice.calls[0].options.headers['pls-prime-tenant-session'], 'backend-token');
     assert.equal(oldDevice.calls[0].options.cache, 'no-store');
     const activeDevice = proxyFixture();
-    assert.equal((await activeDevice.run()).location, '/');
+    assert.equal((await activeDevice.run()).location, '/analytics');
 });
 
 test('backend outage does not bounce login into a protected page or erase credentials', async () => {

@@ -496,3 +496,14 @@ test('Patient entry honors the saved facility layout before mounting the billing
   h.application.settings={billingLayout:preference};const tree=h.render();assert.match(text(tree),/configured billing layout/);await h.flush();assert.ok(h.redirects.some(url=>url.includes('/'+segment+'/1?')&&url.includes('suspendedDraftId=7')&&url.includes('adjustmentReason=A%26B')));
  }
 });
+
+test('an unsaved bill retains the actual rejection reason and can be retried without losing its draft', async () => {
+    let attempt=0;
+    const h=harness({submit:async()=>++attempt===1?{status:false,message:'Open the sales session before billing'}:{status:true,billingid:120}});
+    h.render();await h.flush();h.render();await h.flush();h.setData({showsummary:true,patientid:101,additionalInfo:'Retain this draft'});
+    const summary=nodes(h.render(),node=>typeof node.props?.handlesubmit==='function')[0];
+    const failed=await summary.props.handlesubmit(h.data);
+    assert.equal(failed.status,false);assert.equal(failed.message,'Open the sales session before billing');assert.equal(h.data.additionalInfo,'Retain this draft');
+    const saved=await summary.props.handlesubmit(h.data);assert.equal(saved.status,true);assert.equal(h.calls.filter(call=>Array.isArray(call)&&call[0]==='SALE_SAVE').length,2);
+    await summary.props.handlesubmit(h.data);assert.equal(h.calls.filter(call=>Array.isArray(call)&&call[0]==='SALE_SAVE').length,2);
+});

@@ -3,9 +3,9 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
-    RiCheckboxCircleLine, RiComputerLine, RiExternalLinkLine, RiGroupLine,
+    RiComputerLine, RiExternalLinkLine, RiGroupLine,
     RiMapPinLine, RiRefreshLine, RiSearchLine, RiSettings3Line, RiTimeLine,
-    RiUserAddLine, RiUserLine, RiVolumeUpLine,
+    RiUserAddLine, RiUserLine,
 } from '@remixicon/react';
 import { customFetch, customFetchMutation } from '../Auth/customFetch';
 import { useApplicationSettings } from '../Auth/useApplicationContext';
@@ -176,20 +176,20 @@ export default function WalkInQueueWorkspace() {
         || config.settings.ticketPrefix !== settingsDraft.ticketPrefix
     ));
     const metrics = [
-        { label: 'Total clients', caption: 'All check-ins', value: board?.summary.total, filter: 'all', tone: 'total', Icon: RiGroupLine },
-        { label: 'Waiting', caption: 'Waiting to be called', value: board?.summary.waiting, filter: 'waiting', tone: 'waiting', Icon: RiTimeLine },
-        { label: 'Called', caption: 'Called to a desk', value: board?.summary.called, filter: 'called', tone: 'called', Icon: RiVolumeUpLine },
-        { label: 'In service', caption: 'Being assisted', value: board?.summary.serving, filter: 'serving', tone: 'serving', Icon: RiUserLine },
-        { label: 'Finished', caption: 'Visits completed', value: board?.summary.completed, filter: 'completed', tone: 'completed', Icon: RiCheckboxCircleLine },
+        { label: 'Total clients', caption: 'All check-ins', value: board?.summary.total, filter: 'all' },
+        { label: 'Waiting', caption: 'Waiting to be called', value: board?.summary.waiting, filter: 'waiting' },
+        { label: 'Called', caption: 'Called to a desk', value: board?.summary.called, filter: 'called' },
+        { label: 'In service', caption: 'Being assisted', value: board?.summary.serving, filter: 'serving' },
+        { label: 'Finished', caption: 'Visits completed', value: board?.summary.completed, filter: 'completed' },
     ] as const;
     const clearFilters = () => { setSearch(''); setFilter('active'); };
 
     return <section className={styles.workspace} aria-labelledby="walk-in-queue-title">
         <header className={styles.hero}>
             <div className={styles.heroCopy}>
-                <div className={styles.eyebrow}>Front desk <span aria-hidden="true">/</span> Operations</div>
+                <div className={styles.eyebrow}>FRONT DESK <span aria-hidden="true">/</span> OPERATIONS</div>
                 <h1 id="walk-in-queue-title">Walk-in queue</h1>
-                <p>Manage arrivals, call clients and track each visit through registration, service and testing.</p>
+                <p>Keep every arrival moving, from check-in and registration to service and test tracking.</p>
                 <div className={styles.heroMeta}>
                     <span><span className={styles.liveDot} aria-hidden="true" /> Auto-refreshes every 15 seconds</span>
                     {facility ? <span><RiMapPinLine size={15} aria-hidden="true" /> {facility.name}</span> : null}
@@ -199,7 +199,7 @@ export default function WalkInQueueWorkspace() {
                 {canConfigure ? <button type="button" className={styles.heroButton} disabled={!config} onClick={() => setSettingsOpen(value => !value)} aria-expanded={settingsOpen} aria-controls="queue-settings-panel">
                     <RiSettings3Line size={16} aria-hidden="true" /><span>Queue settings</span>
                 </button> : null}
-                <button type="button" className={styles.primaryButton} disabled={loading || busyId !== null || settingsBusy} onClick={() => { void refresh(); void loadSettings(); }}>
+                <button type="button" className={styles.heroPrimaryButton} disabled={loading || busyId !== null || settingsBusy} onClick={() => { void refresh(); void loadSettings(); }}>
                     <RiRefreshLine size={16} aria-hidden="true" /><span>Refresh</span>
                 </button>
             </div>
@@ -242,17 +242,16 @@ export default function WalkInQueueWorkspace() {
         <section className={styles.overview} aria-labelledby="queue-overview-title">
             <h2 id="queue-overview-title" className="visually-hidden">Queue overview</h2>
             <div className={styles.metrics} role="group" aria-label="Queue summary filters">
-                {metrics.map(({ label, caption, value, filter: metricFilter, tone, Icon }) => <button
+                {metrics.map(({ label, caption, value, filter: metricFilter }) => <button
                     key={label}
                     type="button"
                     className={styles.metric}
-                    data-tone={tone}
                     aria-label={`Filter: ${label} (${value ?? 'not loaded'})`}
                     aria-pressed={filter === metricFilter}
                     disabled={!board}
                     onClick={() => setFilter(metricFilter)}
                 >
-                    <span className={styles.metricTop}><span>{label}</span><span className={styles.metricIcon}><Icon size={18} aria-hidden="true" /></span></span>
+                    <span className={styles.metricTop}>{label}</span>
                     <strong>{value ?? '—'}</strong>
                     <small>{caption}</small>
                 </button>)}

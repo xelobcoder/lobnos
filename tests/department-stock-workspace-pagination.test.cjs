@@ -1,8 +1,9 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),ts=require('typescript'),React=require('react');
 const root=path.resolve(__dirname,'..');
-function fixture({stores=false,basket=false}={}){
+function fixture({stores=false,basket=false,issue=false}={}){
  const records=Array.from({length:26},(_,index)=>({id:`request-${index}`,item_id:`item-${index}`,item_name:`Item ${index}`,unit:'BOX',quantity:1,status:'received',remaining:1,received_quantity:1,unreceived_quantity:0}));
- const data={requests:records,events:records.map((row,index)=>({id:`event-${index}`,request_id:row.id,action:'consume',quantity:1,created_at:'2026-11-01T00:00:00Z',performed_by:index,actor_name:`Staff ${index}`})),access:records.map((row,index)=>({id:row.id,employeeid:index,employee_name:`Staff ${index}`})),analytics:[],can_request:true,can_receive:true,can_consume:true,can_manage_access:true};
+ if(issue)Object.assign(records[0],{quantity:4,approved_quantity:6,issued_quantity:0,status:'approved'});
+ const data={can_issue:issue,requests:records,events:records.map((row,index)=>({id:`event-${index}`,request_id:row.id,action:'consume',quantity:1,created_at:'2026-11-01T00:00:00Z',performed_by:index,actor_name:`Staff ${index}`})),access:records.map((row,index)=>({id:row.id,employeeid:index,employee_name:`Staff ${index}`})),analytics:[],can_request:true,can_receive:true,can_consume:true,can_manage_access:true};
  const state=[];let cursor=0,branch=1;const posts=[];
  const react={...React,useEffect(){},useRef:value=>({current:value}),useState:initial=>{
   const index=cursor++;
@@ -32,7 +33,7 @@ function fixture({stores=false,basket=false}={}){
  return {posts,render:()=>{cursor=0;return component({fixedDepartment:stores?undefined:'imaging'});},setBranch:value=>{branch=value;}};
 }
 function nodes(value){if(Array.isArray(value))return value.flatMap(nodes);return value&&typeof value==='object'?[value,...nodes(value.props?.children)]:[];}
-function text(node){if(typeof node==='string')return node;if(Array.isArray(node))return node.map(text).join('');return node?.props?text(node.props.children):'';}
+function text(node){if(typeof node==='string'||typeof node==='number')return String(node);if(Array.isArray(node))return node.map(text).join('');return node?.props?text(node.props.children):'';}
 function control(tree,label){return nodes(tree).find(node=>node.props?.label===label&&node.props?.table);}
 function countRows(tree){return nodes(tree).filter(node=>node.type==='tbody').map(body=>nodes(body.props.children).filter(node=>node.type==='tr').length);}
 for(const [view,label,stores] of [['requests','Department requests',false],['history','Movement history',false],['access','Staff permissions',true]]){
@@ -60,4 +61,15 @@ test('draft basket paging preserves edits and submits every page, not only the v
  await send.props.onClick();
  assert.equal(f.posts.length,1);assert.equal(f.posts[0].payload.items.length,26);
  assert.equal(f.posts[0].payload.items[0].quantity,3);assert.equal(f.posts[0].payload.department,'imaging');
+});
+
+
+test('issue review displays the approved issue quantity when it differs from the request',()=>{
+ const f=fixture({stores:true,issue:true});let tree=f.render();
+ nodes(tree).find(node=>node.type==='button'&&text(node)==='Issue').props.onClick();tree=f.render();
+ const summary=nodes(tree).find(node=>node.type==='dl');
+ assert(summary);
+ const entries=nodes(summary.props.children).filter(node=>node.type==='dt'||node.type==='dd');
+ const values=new Map();for(let i=0;i<entries.length;i+=2)values.set(text(entries[i]),text(entries[i+1]));
+ assert.equal(values.get('Requested'),'4');assert.equal(values.get('Approved'),'6');assert.equal(values.get('Quantity to issue'),'6 BOX');
 });
