@@ -1,4 +1,4 @@
-import moment from "moment";
+import { laboratoryDate } from "../../../lib/laboratoryPresentation";
 import { fnTiming } from "./Lib"; 
 
 
@@ -38,10 +38,10 @@ export const getValidationColumns = (handleViewResult, ActionDropdown,openModal)
           Cell: ({ row }) => (
                <div className="list-group p-0 bg-secondary-subtle">
                     <span className="list-group-item p-0" key={`start-${row.original.patientid}`}>
-                         {moment(row.original.resultEntryStart).format("LLLL")}
+                         {laboratoryDate(row.original.resultEntryStart)}
                     </span>
                     <span className="list-group-item p-0" key={`end-${row.original.patientid}`}>
-                         {moment(row.original.resultEntryEnd).format("LLLL")}
+                         {laboratoryDate(row.original.resultEntryEnd)}
                     </span>
                </div>
           ),

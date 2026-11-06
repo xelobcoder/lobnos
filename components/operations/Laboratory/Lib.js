@@ -1,4 +1,4 @@
-import moment from "moment";
+import { processingDates } from "../../../lib/laboratoryPresentation";
 import { customFetch } from "../../Auth/customFetch";
 import { RiPlayFill, RiStopFill } from '@remixicon/react';
 
@@ -55,9 +55,7 @@ export async function getAscensionData(ascension_stage, setCollection, queryPara
 
 
 export const fnTiming = (item) => {
-       const { processingEndDate, processingStartDate } = item;
-       const parsedStart = processingStartDate ? moment(processingStartDate).format("LLLL") : '';
-       const parsedEnd = processingEndDate ? moment(processingEndDate).format('LLLL') : ''
+       const { start: parsedStart, end: parsedEnd } = processingDates(item);
        return (
               <div className="bg-light d-block br-5">
                      {parsedStart && <span> <RiPlayFill color="green" />{parsedStart}</span>}

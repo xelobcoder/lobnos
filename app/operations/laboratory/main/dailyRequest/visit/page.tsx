@@ -2,7 +2,7 @@
 import OutsourceAssignment from '../../../../../../components/operations/OutsourceAssignment';
 import { useSearchParams } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
-import { LaboratoryWorkflow, workflowFor } from '../../../../../../lib/laboratoryWorkflow';
+import { LaboratoryWorkflow, workflowFor, isResultApproved, canValidateResult, resultApprovalLabel } from '../../../../../../lib/laboratoryWorkflow';
 
 import PreviewPatientInformation from '../../../../../../components/petientsComponent/PreviewPatientInformation'
 import { customFetch } from '../../../../../../components/Auth/customFetch'
@@ -24,6 +24,7 @@ import BulkWorkFlowResultDeliveryModal from '../../../../../../components/operat
 function formatFullDate(dateString?: string) {
      if (!dateString) return "N/A";
      const date = new Date(dateString);
+     if (Number.isNaN(date.getTime())) return 'Unavailable';
      const dayOfWeek = date.toLocaleDateString(undefined, { weekday: "short" });
      const day = date.getDate();
      const month = date.toLocaleDateString(undefined, { month: "short" });
@@ -75,6 +76,8 @@ interface TestAscension {
      sample_validation_stage?: string;
      result_approval_id?: number;
      isapproved?: number;
+     requires_revalidation?: number;
+     paymentstatus?: string;
      approvedBy?: string;
      printCount?: number;
      minvalidation?: number;
@@ -86,10 +89,10 @@ interface TestAscension {
 
 const getStageBadgeClass = (stage?: string) => {
      const normalized = (stage || '').trim().toLowerCase();
-     if (normalized.includes('pending')) return 'badge bg-warning text-dark';
-     if (normalized.includes('completed') || normalized.includes('paid') || normalized.includes('done')) return 'badge bg-success';
+     if (normalized.includes('pending') || normalized.includes('revalidation')) return 'badge bg-warning text-dark';
      if (normalized.includes('partial')) return 'badge bg-info text-dark';
-     if (normalized.includes('cancel') || normalized.includes('rejected') || normalized.includes('failed')) return 'badge bg-danger';
+     if (normalized.includes('cancel') || normalized.includes('rejected') || normalized.includes('failed') || normalized === 'unpaid') return 'badge bg-danger';
+     if (['completed', 'processing done', 'paid', 'done', 'approved', 'validated'].includes(normalized)) return 'badge bg-success';
      return 'badge bg-secondary';
 };
 
@@ -121,9 +124,7 @@ export default function ClientVisit() {
           Array.isArray(testAscensions) &&
           testAscensions.length > 0 &&
           testAscensions.every((item) =>
-               item.isapproved === 1 ||
-               (item.result_validation_stage || '').toLowerCase().includes('validated') ||
-               (item.result_validation_stage || '').toLowerCase().includes('approved')
+               isResultApproved(item)
           );
 
      const validatedAscensionIds =
@@ -431,7 +432,7 @@ export default function ClientVisit() {
                                                             const isSelected = item.ascension_id === selectedAscensionId;
                                                             const isChecked = selectedAscensionIds.includes(item.ascension_id);
                                                             const isCompleted = Boolean(item.resultEntryEnd);
-                                                            const isValidated = item.isapproved === 1 || (item.result_validation_stage || '').toLowerCase().includes('validated') || (item.result_validation_stage || '').toLowerCase().includes('approved');
+                                                            const isValidated = isResultApproved(item);
                                                             const isLocked = !workflowFor(item, applicationsettings?.settings).canEnterResults;
                                                             const badgeClass = isValidated ? 'bg-success' : isCompleted ? 'bg-primary' : item.samplevalidatedon ? 'bg-warning text-dark' : 'bg-secondary';
                                                             return (
@@ -461,7 +462,7 @@ export default function ClientVisit() {
                                                                            )}
                                                                       </div>
                                                                       <span className={`badge ${badgeClass}`} style={{ height: 'fit-content' }}>
-                                                                           {isValidated ? 'Validated' : isCompleted ? 'Entered' : item.samplevalidatedon ? 'In Lab' : 'Pending'}
+                                                                           {Number(item.requires_revalidation) === 1 ? 'Revalidation required' : isValidated ? 'Validated' : isCompleted ? 'Entered' : item.samplevalidatedon ? 'In Lab' : 'Pending'}
                                                                       </span>
 
                                                                  </button>
@@ -599,9 +600,9 @@ export default function ClientVisit() {
                                                                            },
                                                                            {
                                                                                 label: 'Result Validation',
-                                                                                when: selectedItem.result_validation_stage ?? 'N/A',
+                                                                                when: resultApprovalLabel(selectedItem),
                                                                                 extra: selectedItem.lastupdatedon ? `Last Updated: ${formatFullDate(selectedItem.lastupdatedon)}` : null,
-                                                                                status: selectedItem.isapproved === 1 ? 'done' : (selectedItem.resultEntryEnd ? 'current' : 'blocked'),
+                                                                                status: isResultApproved(selectedItem) ? 'done' : (selectedItem.resultEntryEnd ? 'current' : 'blocked'),
                                                                            },
 
                                                                       ] as Array<{ label: string; when: string; extra?: string | null; status: 'done' | 'current' | 'blocked' | 'pending' }>;
@@ -663,10 +664,10 @@ export default function ClientVisit() {
                                                                                 : 'Processing Completed'}
                                                                  </button>
 
-                                                                 {selectedItem.isapproved !== 1 ? (
+                                                                 {!isResultApproved(selectedItem) ? (
                                                                       <button
                                                                            className="btn btn-sm btn-outline-success"
-                                                                           disabled={!(workflowFor(selectedItem, applicationsettings?.settings).canEnterResults && selectedItem.resultEntryEnd)}
+                                                                           disabled={!(canValidateResult(selectedItem, applicationsettings?.settings))}
                                                                            onClick={() => setWorkflow('resultValidation')}
                                                                       >
                                                                            Validate Result
@@ -678,7 +679,7 @@ export default function ClientVisit() {
                                                                  )}
 
                                                                  {
-                                                                      selectedItem.isapproved == 1 ? (
+                                                                      isResultApproved(selectedItem) ? (
                                                                            <>
                                                                                 <button
                                                                                      className="btn btn-sm btn-outline-primary"
@@ -775,7 +776,7 @@ export default function ClientVisit() {
                     onHide={() => { setWorkflow(null); }}
                     onSuccess={(shouldClose = true) => { loadTestTransactions(true); if (shouldClose) setWorkflow(null); }}
                     employeeid={Number(employeeid)}
-                    items={testAscensions.filter(t => t.isapproved === 1 || (t.result_validation_stage || '').toLowerCase().includes('validated'))}
+                    items={testAscensions.filter(t => isResultApproved(t))}
                />
                <BulkResultValidationWorkflowModal
                     show={workflow === 'bulkResultValidation'}
@@ -784,7 +785,7 @@ export default function ClientVisit() {
                     billingid={Number(billingid)}
                     patientid={patientid || ''}
                     tests={testAscensions
-                         .filter(t => Boolean(t.resultEntryEnd) && t.isapproved !== 1)
+                         .filter(t => canValidateResult(t, applicationsettings?.settings))
                          .map(t => ({ ascensionid: t.ascension_id, testid: t.testid, testname: t.test_name }))}
                />
                <style jsx>{`

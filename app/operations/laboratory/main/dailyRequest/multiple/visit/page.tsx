@@ -2,7 +2,7 @@
 import OutsourceAssignment from '../../../../../../../components/operations/OutsourceAssignment';
 
 import React, { useEffect, useState } from 'react';
-import { LaboratoryWorkflow, workflowFor } from '../../../../../../../lib/laboratoryWorkflow';
+import { LaboratoryWorkflow, workflowFor, isResultApproved, canValidateResult, resultApprovalLabel } from '../../../../../../../lib/laboratoryWorkflow';
 import { useSearchParams } from 'next/navigation';
 import { customFetch } from '../../../../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../../../../components/Auth/useApplicationContext';
@@ -40,6 +40,8 @@ interface TestAscension {
      processingStartDate?: string;
      processingEndDate?: string;
      isapproved?: number;
+     requires_revalidation?: number;
+     paymentstatus?: string;
      result_validation_stage?: string;
      lastupdatedon?: string;
      requested_mode?: string | null;
@@ -176,7 +178,7 @@ export default function MultipleClientVisit() {
           if (value.includes('immun')) return 'text-bg-info';
           return 'text-bg-secondary';
      };
-     const testStatus = (test: TestAscension) => test.isapproved === 1 ? 'Validated' : test.resultEntryEnd ? 'Entered' : test.samplevalidatedon ? 'In Lab' : 'Pending';
+     const testStatus = (test: TestAscension) => Number(test.requires_revalidation) === 1 ? 'Revalidation required' : isResultApproved(test) ? 'Validated' : test.resultEntryEnd ? 'Entered' : test.samplevalidatedon ? 'In Lab' : 'Pending';
      const handleSendSMS = () => {
           if (!activeTest || !activePatient) return;
           window.open(`/communications/sms/laboratory-lifecycle-events/sends?testid=${activeTest.testid}&patientid=${activePatient.patient.patientid}&ascensionid=${activeTest.ascension_id}&billingid=${activeTest.billingid}`, '_blank', 'noopener,noreferrer');
@@ -202,8 +204,8 @@ export default function MultipleClientVisit() {
           window.open(url, '_blank', 'noopener,noreferrer');
      };
 
-     const validatedTests = activePatient?.tests.filter((test) => test.isapproved === 1 || (test.result_validation_stage || '').toLowerCase().includes('validated')) || [];
-     const completedTests = activePatient?.tests.filter((test) => Boolean(test.resultEntryEnd)) || [];
+     const validatedTests = activePatient?.tests.filter((test) => isResultApproved(test)) || [];
+     const completedTests = activePatient?.tests.filter((test) => canValidateResult(test, applicationsettings?.settings)) || [];
 
      return (
           <div className="container-fluid py-2">
@@ -256,7 +258,7 @@ export default function MultipleClientVisit() {
                                                                       <button key={test.ascension_id} type="button" className={`list-group-item list-group-item-action px-3 py-2 ${test.ascension_id === activeTestId ? 'active' : ''}`} onClick={() => { activatePatient(index); selectTest(test, item.patient); }}>
                                                                            <div className="d-flex align-items-center gap-1">
                                                                                 <div className="small fw-bold text-truncate flex-grow-1" style={{ fontWeight: 800 }}>{test.test_name}</div>
-                                                                                <span className={`badge fw-bold ${test.isapproved === 1 ? 'text-bg-success' : test.resultEntryEnd ? 'text-bg-primary' : test.samplevalidatedon ? 'text-bg-warning' : 'text-bg-secondary'}`} style={{ fontSize: '0.65rem' }}>{testStatus(test)}</span>
+                                                                                <span className={`badge fw-bold ${isResultApproved(test) ? 'text-bg-success' : test.resultEntryEnd ? 'text-bg-primary' : test.samplevalidatedon ? 'text-bg-warning' : 'text-bg-secondary'}`} style={{ fontSize: '0.65rem' }}>{testStatus(test)}</span>
                                                                            </div>
                                                                            {test.department ? <small className="fw-bold"><span className={`badge fw-bold ${departmentClass(test.department)}`} style={{ fontSize: '0.62rem' }}>{test.department}</span></small> : null}
                                                                       </button>
@@ -312,7 +314,7 @@ export default function MultipleClientVisit() {
                                                        { label: 'Sample Validation', when: workflowFor(activeTest, applicationsettings?.settings).sampleValidation === 'bypassed' ? 'Bypassed by configuration' : activeTest.samplevalidatedon ? formatWhen(activeTest.samplevalidatedon) : 'Not validated', status: workflowFor(activeTest, applicationsettings?.settings).sampleValidation !== 'pending' ? 'done' : workflowFor(activeTest, applicationsettings?.settings).canValidateSample ? 'current' : 'blocked' },
                                                        { label: 'Processing', when: workflowFor(activeTest, applicationsettings?.settings).processing === 'bypassed' ? 'Bypassed by configuration' : activeTest.processingStartDate ? `Start: ${formatWhen(activeTest.processingStartDate)}` : 'Not started', extra: activeTest.processingEndDate ? `End: ${formatWhen(activeTest.processingEndDate)}` : null, status: workflowFor(activeTest, applicationsettings?.settings).processing !== 'pending' ? 'done' : workflowFor(activeTest, applicationsettings?.settings).canProcess ? 'current' : 'blocked' },
                                                        { label: 'Result Entry', when: activeTest.resultEntryStart ? `Start: ${formatWhen(activeTest.resultEntryStart)}` : 'Not started', extra: activeTest.resultEntryEnd ? `End: ${formatWhen(activeTest.resultEntryEnd)}` : null, status: activeTest.resultEntryEnd ? 'done' : workflowFor(activeTest, applicationsettings?.settings).canEnterResults ? 'current' : 'blocked' },
-                                                       { label: 'Result Validation', when: activeTest.result_validation_stage || 'Not validated', extra: activeTest.lastupdatedon ? `Last Updated: ${formatWhen(activeTest.lastupdatedon)}` : null, status: activeTest.isapproved === 1 ? 'done' : activeTest.resultEntryEnd ? 'current' : 'blocked' }
+                                                       { label: 'Result Validation', when: resultApprovalLabel(activeTest), extra: activeTest.lastupdatedon ? `Last Updated: ${formatWhen(activeTest.lastupdatedon)}` : null, status: isResultApproved(activeTest) ? 'done' : activeTest.resultEntryEnd ? 'current' : 'blocked' }
                                                   ].map((step) => (
                                                        <div className="visitTimelineItem" key={step.label}>
                                                             <div className={`visitTimelineDot visitTimelineDot${step.status.charAt(0).toUpperCase()}${step.status.slice(1)}`} />
@@ -337,11 +339,11 @@ export default function MultipleClientVisit() {
                                                   <button className="btn btn-sm btn-outline-primary" disabled={!workflowFor(activeTest, applicationsettings?.settings).canProcess} onClick={() => setWorkflow('processing')}>
                                                        {workflowFor(activeTest, applicationsettings?.settings).processing === 'bypassed' ? 'Processing Bypassed' : !activeTest.processingStartDate ? 'Start Processing' : activeTest.processingEndDate ? 'Processing Completed' : 'Complete Processing'}
                                                   </button>
-                                                  <button className="btn btn-sm btn-outline-success" disabled={activeTest.isapproved === 1 || !activeTest.resultEntryEnd} onClick={() => setWorkflow('resultValidation')}>
-                                                       {activeTest.isapproved === 1 ? 'Result Validated' : 'Validate Result'}
+                                                  <button className="btn btn-sm btn-outline-success" disabled={!canValidateResult(activeTest, applicationsettings?.settings)} onClick={() => setWorkflow('resultValidation')}>
+                                                       {isResultApproved(activeTest) ? 'Result Validated' : 'Validate Result'}
                                                   </button>
-                                                  <button className="btn btn-sm btn-outline-primary" disabled={activeTest.isapproved !== 1} onClick={() => setWorkflow('resultDelivery')}>Record Result Delivery</button>
-                                                  <button className="btn btn-sm btn-outline-info" disabled={activeTest.isapproved !== 1} onClick={handleSendSMS}><RiSendPlaneLine size={16} /> Send Completed SMS</button>
+                                                  <button className="btn btn-sm btn-outline-primary" disabled={!isResultApproved(activeTest)} onClick={() => setWorkflow('resultDelivery')}>Record Result Delivery</button>
+                                                  <button className="btn btn-sm btn-outline-info" disabled={!isResultApproved(activeTest)} onClick={handleSendSMS}><RiSendPlaneLine size={16} /> Send Completed SMS</button>
                                              </div>
                                         </>
                                    )}
@@ -365,7 +367,7 @@ export default function MultipleClientVisit() {
                          <SingleTestProcessingWorkflowModal show={workflow === 'processing'} onHide={() => setWorkflow(null)} onSuccess={workflowSuccess} test={{ billingid: activeTest.billingid, patientid: String(activePatient.patient.patientid), ascensionid: activeTest.ascension_id, testid: activeTest.testid, testname: activeTest.test_name, ascensionDate: activeTest.ascension_date, processingStartDate: activeTest.processingStartDate, processingEndDate: activeTest.processingEndDate }} />
                          <SingleTestResultValidationWorkflowModal show={workflow === 'resultValidation'} onHide={() => setWorkflow(null)} onSuccess={workflowSuccess} test={{ billingid: activeTest.billingid, patientid: String(activePatient.patient.patientid), ascensionid: activeTest.ascension_id, testid: activeTest.testid, testname: activeTest.test_name, ascensionDate: activeTest.ascension_date, resultEntryStart: activeTest.resultEntryStart, resultEntryEnd: activeTest.resultEntryEnd, isapproved: activeTest.isapproved }} />
                          <SingleWorkFlowResultDeliveryModal item={activeTest} employeeid={employeeid} workflow="resultDelivery" show={workflow === 'resultDelivery'} onHide={() => setWorkflow(null)} onSuccess={workflowSuccess} />
-                         <BulkResultValidationWorkflowModal show={workflow === 'bulkResultValidation'} onHide={() => setWorkflow(null)} onSuccess={workflowSuccess} billingid={Number(activePatient.patient.billingid)} patientid={String(activePatient.patient.patientid)} tests={completedTests.filter((test) => test.isapproved !== 1).map((test) => ({ ascensionid: test.ascension_id, testid: test.testid, testname: test.test_name }))} />
+                         <BulkResultValidationWorkflowModal show={workflow === 'bulkResultValidation'} onHide={() => setWorkflow(null)} onSuccess={workflowSuccess} billingid={Number(activePatient.patient.billingid)} patientid={String(activePatient.patient.patientid)} tests={completedTests.filter((test) => canValidateResult(test, applicationsettings?.settings)).map((test) => ({ ascensionid: test.ascension_id, testid: test.testid, testname: test.test_name }))} />
                          <BulkWorkFlowResultDeliveryModal show={workflow === 'bulkResultDelivery'} onHide={() => setWorkflow(null)} onSuccess={workflowSuccess} employeeid={Number(employeeid)} items={validatedTests} />
                     </>
                ) : null}

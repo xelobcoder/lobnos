@@ -8,7 +8,7 @@ import { RiCheckboxMultipleLine } from '@remixicon/react';
 import ValidationModal from "./ValidationModal";
 import PrimeTable from "../../accessories/Datatables/PrimeTable";
 import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
-import moment from "moment";
+import { laboratoryDate, processingDates } from "../../../lib/laboratoryPresentation";
 import { useApplication } from "../../Auth/useApplicationContext";
 import { Tabs, Tab } from 'react-bootstrap';
 
@@ -144,10 +144,10 @@ export default function ValidationAscensionTable({ employeeid }) {
 			Cell: ({ row }) => (
 				<div className="list-group p-0 bg-secondary-subtle">
 					<span className="list-group-item p-0" key={`proc-start-${row.original.patientid}`}>
-						{moment(row.original.processingStartDate).format("LLLL")}
+						{processingDates(row.original, settings).start}
 					</span>
 					<span className="list-group-item p-0" key={`proc-end-${row.original.patientid}`}>
-						{moment(row.original.processingEndDate).format("LLLL")}
+						{processingDates(row.original, settings).end}
 					</span>
 				</div>
 			)
@@ -170,10 +170,10 @@ export default function ValidationAscensionTable({ employeeid }) {
 			Cell: ({ row }) => (
 				<div className="list-group p-0 bg-secondary-subtle">
 					<span className="list-group-item p-0" key={`start-${row.original.patientid}`}>
-						{moment(row.original.resultEntryStart).format("LLLL")}
+						{laboratoryDate(row.original.resultEntryStart)}
 					</span>
 					<span className="list-group-item p-0" key={`end-${row.original.patientid}`}>
-						{moment(row.original.resultEntryEnd).format("LLLL")}
+						{laboratoryDate(row.original.resultEntryEnd)}
 					</span>
 				</div>
 			),

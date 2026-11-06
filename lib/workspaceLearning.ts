@@ -349,13 +349,16 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "steps": [
                     "Locate the patient and test by Patient ID, Billing ID or Ascension ID. Laboratory Workbench shows the current eligibility and any payment, sample or QC blockers. Do not assume an older stage-list row proves that a processing action is required.",
                     "Where processing is required, use Start and Stop in Processing stage for the actual test work, then Proceed to Result Entry or Completed stage. If the server reports Processing is already completed or bypassed, review the configured workflow and use the eligible result-entry stage; do not change settings to force processing. In Completed stage choose Enter result and verify the patient, test, units and reference information.",
-                    "Enter every required value in the actual test form. Review decimal placement, units, flags and comments. Use fictional values only on the designated training record.",
-                    "Use the save action offered by that test form once. Wait for confirmation, reopen the service and compare every saved value with the source worksheet. A blocked unpaid service must remain blocked when its settings require payment.",
+                    "On the patient’s result-entry page, select Enter results for the intended test. Check the patient/test in Confirm result entry, then choose Open result form. Load Multiple is a separate workflow: select only the tests you intend to complete.",
+                    "Review the configured Parameter, Value, Unit, Reference, Mode and Constraints columns. For the demonstration WIDAL form, Typhi H and Typhi O are dropdowns; other tests can use different fields. Complete comments as appropriate. Never treat example training values as a clinical recommendation.",
+                    "Review every required value, units and comments. If Enter pin here appears, enter your own secure PIN only in the application. Use Save changes once. Verify the saved outcome before resubmitting. A blocked unpaid service must remain blocked when settings require payment.",
+                    "After a successful save, Result Validation may ask whether to continue. Continue proceeds to review the selected result. Validate All concerns the available set and requires review of every included result. Cancel closes this prompt; it does not undo the saved result. If initial validation is configured to be bypassed, the first result may already be approved, but amendments still require revalidation.",
                     "For validation, open the current results and select Reload latest results after any stale-revision warning. Review patient, service, values, comments and any revalidation notice.",
                     "Confirm I have reviewed the patient details and current results. If Your secure PIN appears, enter your own PIN and use Verify PIN.",
                     "Select Record approval, or the permitted bulk action only after reviewing each included result. Check whether further validators are required before final release.",
                     "If a result changes after approval, reopen the latest revision and repeat the required review. Previous approvals do not apply to the changed revision.",
-                    "Print or deliver only when the configured validation, payment, critical-value and release requirements are satisfied. Review the patient and final version in the preview."
+                    "Print or deliver only when the configured validation, payment, critical-value and release requirements are satisfied. Review the patient and final version in the preview.",
+                    "Read the approval state after a save: Pending approval means review remains outstanding; Revalidation required means an earlier approval no longer applies. These labels do not themselves record delivery or grant permission to release the report."
                 ],
                 "verify": "Reopened values match the saved worksheet. Each approval names the signed-in validator and current revision. A changed result requires the applicable new approvals, and a service blocked by settings cannot be saved, validated or printed through an alternative path.",
                 "recovery": "For “The result has changed”, reload and review the latest revision before approving. For a payment, sample or QC block, resolve the underlying prerequisite through the responsible team. If save returns an uncertain error, reopen the current result before resubmitting.",
@@ -381,9 +384,9 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     }
                 ],
                 "example": {
-                    "situation": "A fictional test result is saved and approved, then an authorized correction changes a value.",
-                    "action": "Reopen the result, inspect the changed value and revalidation notice, and have the required validators approve the current revision.",
-                    "expected": "The original approval remains historical evidence and does not release the new revision. This lifecycle still requires a successful live pilot."
+                    "situation": "A fictional WIDAL request on paid Bill #67 is saved, then one demonstration dropdown value is changed.",
+                    "action": "The user completed the PIN-protected initial save and amendment. No real specimen was tested. The software recorded the two parameter rows and revised the approval state.",
+                    "expected": "Live verified: revision 2 was unapproved and required revalidation despite initial validation bypass. Final reapproval is a separate task; it is not claimed merely because the save succeeded."
                 },
                 "after": "Saving records the result revision. Final release still follows validation and application settings.",
                 "related": [
@@ -392,13 +395,17 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 ],
                 "open": "Open Operations → Laboratory Operations Lifecycle → Completed stage, then Enter result for the intended test. Processing stage is required only when the facility workflow has not configured it to be bypassed.",
                 "pilot": {
-                    "reviewedAt": "5 November 2026",
-                    "status": "Source reviewed — live save and validation pending",
+                    "reviewedAt": "6 November 2026",
+                    "status": "Live entry and amendment invalidation verified; final reapproval pending",
                     "checked": [
-                        "Reviewed current-revision validation, payment warnings, review confirmation and conditional secure-PIN controls."
+                        "Opened the paid fictional WIDAL request (ascension 171) through Completed stage, selected the single test and confirmed Open result form.",
+                        "The user entered their own PIN and saved the two demonstration parameter values with an explicit training-only comment. The save recorded result-entry completion and initial approval under the configured validation bypass.",
+                        "The user saved an amendment. Database verification showed revision 2, isapproved = 0 and requires_revalidation = 1: the earlier approval no longer releases the changed result. No PIN was copied into diagnostics."
                     ],
                     "pending": [
-                        "The training visit has not reached a saved bill and accepted specimen, so live result save, revision invalidation and final release remain unverified."
+                        "Final approval of the amended revision, physical printing and report delivery still need live acceptance.",
+                        "The values in this training screenshot are fictional interface examples, not clinical findings, expected results or reference ranges.",
+                        "Automated regression verifies amendment → blocked delivery → all current-revision approvals → permitted delivery. This does not replace the pending live facility reapproval and physical-delivery acceptance test."
                     ],
                     "exercise": "Use a fictional test visit with authorized training values. Save a result, reopen it, have an authorized validator review the current revision, then change a value through the permitted correction workflow and demonstrate that earlier approval does not validate the new revision.",
                     "fields": [
@@ -428,7 +435,13 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                             "mistake": "Saving and approving are different actions; one approval may not release the result."
                         }
                     ],
-                    "screenshots": []
+                    "screenshots": [
+                        {
+                            "file": "result-entry-demo.jpg",
+                            "caption": "The actual WIDAL form for a fictional training visit, with demonstration-only comments. Enter your own PIN in the software when required; do not copy training values into a real patient result.",
+                            "callouts": []
+                        }
+                    ]
                 }
             },
             {
@@ -442,7 +455,8 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     "Open a pending result and review its patient, test and current values.",
                     "If the result changed, reload the latest results and review the replacement revision.",
                     "Record your validation through the available approval action.",
-                    "The approval belongs to the current revision and the signed-in validator."
+                    "The approval belongs to the current revision and the signed-in validator.",
+                    "If the result says Revalidation required, review the amended values and obtain every required approval again. An earlier revision, an initial validation bypass or one of several required approvals does not release this amendment."
                 ],
                 "verify": "The approval belongs to the current revision and the signed-in validator.",
                 "recovery": "A changed result requires another review. Required validators and release settings determine final release.",
@@ -450,7 +464,8 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "concept": "An approval applies to the revision the validator reviewed. A later edit makes the old approval insufficient for the changed result.",
                 "before": [
                     "Load the latest result values.",
-                    "Confirm you are an authorized validator for the service."
+                    "Confirm you are an authorized validator for the service.",
+                    "Result entry, validation and printing have separate unpaid-service settings. Permission to enter an unpaid result does not authorize its validation or printing. A permitted validator must still review the current revision and complete any required PIN."
                 ],
                 "controls": [
                     {
@@ -464,6 +479,10 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     {
                         "name": "Validation action",
                         "description": "Record approval as the signed-in validator after reviewing the current values."
+                    },
+                    {
+                        "name": "Processing and result timestamps",
+                        "description": "Bypassed by configuration means no physical processing event was required by the configured workflow. Not started, In progress and Not recorded describe distinct missing events; Unavailable means the stored date cannot be displayed reliably. Do not invent timestamps to remove a warning."
                     }
                 ],
                 "example": {
@@ -489,7 +508,8 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     "Search the undelivered list and confirm the patient and visit.",
                     "Review the released report and available delivery actions.",
                     "Use the authorized delivery action and check the updated record.",
-                    "The delivery record matches the intended report and recipient."
+                    "The delivery record matches the intended report and recipient.",
+                    "The undelivered list contains completed approved results awaiting delivery. An amended result awaiting revalidation belongs in Validation, not in the releasable-results list. Refresh the current result before acting."
                 ],
                 "verify": "The delivery record matches the intended report and recipient.",
                 "recovery": "Check release, payment and delivery permissions when an action is unavailable.",
@@ -497,7 +517,8 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                 "concept": "A result can be complete without having been delivered. Delivery tracking records the report handoff after the relevant release checks.",
                 "before": [
                     "Identify the correct patient and visit.",
-                    "Check report release and delivery eligibility."
+                    "Check report release and delivery eligibility.",
+                    "Confirm the current result is approved and does not require revalidation. Changed results must complete reapproval before recording delivery; an old approved label does not authorize release."
                 ],
                 "controls": [
                     {

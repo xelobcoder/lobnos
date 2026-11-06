@@ -149,7 +149,7 @@ export default function OperationsListTestCollection({ operations }) {
 
             <Modal show={Boolean(pendingSingleTest)} onHide={() => setPendingSingleTest(null)} centered>
                 <Modal.Header closeButton><Modal.Title>Confirm result entry</Modal.Title></Modal.Header>
-                <Modal.Body><p>Open <strong>{pendingSingleTest?.name}</strong> for <strong>{patientInfo?.fullname || patientInfo?.fullpatientid || `Patient ${patientid}`}</strong>?</p><p className="mb-0">Review the patient and test before continuing. Opening the result form records the entry time; it does not save or validate a result.</p></Modal.Body>
+                <Modal.Body><p>Open <strong>{pendingSingleTest?.name}</strong> for <strong>{patientInfo?.fullname || patientInfo?.fullpatientid || `Patient ${patientid}`}</strong>?</p><p className="mb-0">Review the patient and test before continuing. Opening the form does not save or validate a result. Complete the required fields and save through the authorized workflow.</p></Modal.Body>
                 <Modal.Footer><button type="button" className="btn btn-outline-secondary" onClick={() => setPendingSingleTest(null)}>Cancel entry</button><button type="button" className="btn btn-primary" onClick={confirmSingleEntry}>Open result form</button></Modal.Footer>
             </Modal>
 			<Modal show={showAccessRequest} onHide={() => { setShowAccessRequest(false); setSelectedTestForAccess(null); }} size="lg">

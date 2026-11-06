@@ -38,7 +38,7 @@ const files = [
     'app/operations/laboratory/main/dailyRequest/visit/page.tsx',
     'app/operations/laboratory/main/dailyRequest/multiple/visit/page.tsx',
 ];
-function render(file, item) {
+function render(file, item, settings) {
     const isMultiple = file.includes('/multiple/');
     const states = isMultiple
         ? [[{ patient: { patientid: 4, billingid: 3 }, tests: [item], loading: false }], 0, 1, { 1: { csvid: 'token', ptid: 'token' } }, new Set([3]), '', null]
@@ -47,7 +47,7 @@ function render(file, item) {
     const component = load(file, name => {
         if (name === 'react') return { ...React, useState: () => [states[index++], noop], useEffect: noop };
         if (name === 'next/navigation') return { useSearchParams: () => new URLSearchParams('billingid=3&patientid=4') };
-        if (name.endsWith('useApplicationContext')) return { useApplicationSettings: () => ({ applicationsettings: { user: { employeeid: 5 } } }) };
+        if (name.endsWith('useApplicationContext')) return { useApplicationSettings: () => ({ applicationsettings: { user: { employeeid: 5 }, settings } }) };
         if (name.endsWith('laboratoryWorkflow')) return helper;
         if (name.endsWith('ResultEntryComponent')) return { __esModule: true, default: ResultForm };
         return new Proxy({ __esModule: true, default: noop }, { get: (target, key) => key in target ? target[key] : noop });
@@ -62,6 +62,19 @@ test('workflow helper fails closed for missing server eligibility rather than in
     assert.equal(helper.workflowFor(base), base.workflow);
 });
 for (const file of files) {
+    test(`${file}: unpaid validation follows its own setting, and revalidation never unlocks delivery`, () => {
+        const item = { ...base, paymentstatus: 'unpaid', resultEntryEnd: '2026-11-06', isapproved: 0, requires_revalidation: 1, result_validation_stage: 'Unapproved' };
+        for (const allow of [0, 1]) {
+            const tree = render(file, item, { allowResultEnteringUpaid: 0, allowValidationUpaid: allow });
+            const validate = nodes(tree, node => node.type === 'button' && text(node).trim() === 'Validate Result');
+            assert.equal(validate.length, 1);
+            assert.equal(validate[0].props.disabled, !allow);
+            const delivery = nodes(tree, node => node.type === 'button' && text(node).trim() === 'Record Result Delivery');
+            assert.equal(delivery.length, 1);
+            assert.equal(delivery[0].props.disabled, true);
+            assert.match(text(tree), /Revalidation required/);
+        }
+    });
     test(`${file}: all bypasses show result entry without an enabled validation modal action`, () => {
         const tree = render(file, base);
         assert.equal(nodes(tree, node => node.type === ResultForm).length, 1);
@@ -97,3 +110,29 @@ for (const file of files) {
         }
     });
 }
+
+test('approval checks reject negative display labels, explicit unapproved state and amended approvals', () => {
+    for (const stage of ['Unapproved', 'Not approved', 'Not validated', 'Pending approval', 'Changed - revalidation required']) {
+        assert.equal(helper.isResultApproved({ result_validation_stage: stage }), false);
+    }
+    assert.equal(helper.isResultApproved({ isapproved: 0, result_validation_stage: 'Approved' }), false);
+    assert.equal(helper.isResultApproved({ isapproved: 1, requires_revalidation: 1 }), false);
+    assert.equal(helper.isResultApproved({ isapproved: '1', requires_revalidation: 0 }), true);
+    assert.equal(helper.isResultApproved({ result_validation_stage: 'Approved' }), true);
+    assert.equal(helper.isResultApproved(), false);
+    assert.equal(helper.resultApprovalLabel({ isapproved: 0, resultEntryEnd: '2026-11-06', result_validation_stage: 'Approved' }), 'Pending approval');
+    assert.equal(helper.resultApprovalLabel({ isapproved: 1, requires_revalidation: 1 }), 'Revalidation required');
+});
+
+test('paid, partial and unpaid validation/entry settings stay independent and missing metadata fails closed', () => {
+    for (const paymentstatus of ['paid', 'partial', 'unpaid', undefined]) {
+        for (const entry of [0, 1]) for (const validation of [0, 1]) {
+            const item = { ...base, paymentstatus, resultEntryEnd: '2026-11-06', isapproved: 0 };
+            const settings = { allowResultEnteringUpaid: entry, allowValidationUpaid: validation };
+            assert.equal(helper.workflowFor(item, settings).canEnterResults, paymentstatus === 'paid' || entry === 1);
+            assert.equal(helper.canValidateResult(item, settings), paymentstatus === 'paid' || validation === 1);
+            assert.equal(helper.canValidateResult({ ...item, workflow: undefined }, settings), false);
+            assert.equal(helper.canValidateResult({ ...item, resultEntryEnd: null }, settings), false);
+        }
+    }
+});
