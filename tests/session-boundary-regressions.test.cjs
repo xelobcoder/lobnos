@@ -14,8 +14,9 @@ test('invalid or absent page credentials never forward raw backend cookies', asy
 for (const endpoint of ['../private', '%2e%2e/private', '%252e%252e/private', 'https://evil.example.test/x', 'safe/%2f../private', 'safe\\private'])
     test('backend target rejects ' + endpoint, () => { const f = fixture(); assert.throws(() => f.load('lib/serverBackendRequest.ts').backendTarget(endpoint, 'https://backend.example.test/api/v1/')); });
 test('public sign-in and marketplace retain their tenancy semantics', async () => { const f = fixture(); const { serverBackendRequest } = f.load('lib/serverBackendRequest.ts'); await serverBackendRequest('prime/login', { method: 'POST', body: '{}' }, true, 42); assert.equal(f.calls[0].url.searchParams.get('tenantId'), '42'); assert.equal(f.calls[0].options.headers.has('pls-session'), false); await serverBackendRequest('marketplace/platform/facilities'); assert.equal(f.calls[1].url.searchParams.has('tenantId'), false); });
-test('logout revokes the backend session before clearing browser cookies and failure remains retryable', async () => { const f = fixture(); const result = await f.load('app/api/auth/logout/route.ts').POST(f.request); assert.equal(result.status, 200); assert.equal(f.calls[0].url.pathname, '/api/v1/logins/logout'); assert.equal(f.calls[0].url.searchParams.get('tenantId'), '7'); assert.equal(f.deleted.length, 3); const failed = fixture({ upstreamStatus: 503 }); assert.equal((await failed.load('app/api/auth/logout/route.ts').POST(failed.request)).status, 502); assert.equal(failed.deleted.length, 0); });
+test('logout clears browser cookies even when backend session revocation fails', async () => { const f = fixture(); const result = await f.load('app/api/auth/logout/route.ts').POST(f.request); assert.equal(result.status, 200); assert.equal(f.calls[0].url.pathname, '/api/v1/logins/logout'); assert.equal(f.calls[0].url.searchParams.get('tenantId'), '7'); assert.equal(result.body.revocationConfirmed, true); assert.equal(f.deleted.length, 3); const failed = fixture({ upstreamStatus: 503 }); const failedResult = await failed.load('app/api/auth/logout/route.ts').POST(failed.request); assert.equal(failedResult.status, 200); assert.equal(failedResult.body.revocationConfirmed, false); assert.equal(failed.deleted.length, 3); });
 test('logout rejects cross-origin requests before revoking a session', async () => { const f = fixture(); f.request.headers.set('origin', 'https://evil.example.test'); assert.equal((await f.load('app/api/auth/logout/route.ts').POST(f.request)).status, 403); assert.equal(f.calls.length, 0); });
+test('logout recognizes the public HTTPS origin behind a TLS-terminating proxy', async () => { const f = fixture({ scheme: 'http' }); f.request.headers.set('origin', 'https://app.example.test'); f.request.headers.set('x-forwarded-proto', 'https'); f.request.headers.set('x-forwarded-host', 'app.example.test'); const result = await f.load('app/api/auth/logout/route.ts').POST(f.request); assert.equal(result.status, 200); assert.equal(f.deleted.length, 3); });
 for (const [url, env, expected] of [['https://app.example.test', {}, true], ['http://app.example.test', {}, true], ['http://127.0.0.1:2377', {}, false], ['http://facility.local', { PLS_FACILITY_ALLOW_HTTP: 'true' }, false]])
     test('session cookie transport ' + url, () => { const f = fixture({ env }); assert.equal(f.load('lib/sessionCookies.ts').secureSessionCookies({ url, headers: new Headers() }), expected); });
 for (const endpoint of ['prime/refresh-role-session', 'PRIME/switch-role/', 'p%72ime/refresh-role-session', 'prime%2fswitch-role'])
@@ -57,12 +58,13 @@ test('encrypted backend transport rejects a global certificate-verification bypa
     assert.equal(f.calls.length, 0);
 });
 
-test('dedicated logout rejects plaintext upstream transport and retains the session for a safe retry', async () => {
+test('dedicated logout rejects plaintext upstream transport but still clears local session cookies', async () => {
     const f = fixture({ env: { HTTPS_REQUIRED: 'true', PRODUCTION_BASEURL: 'http://backend.example.test/api/v1/' } });
     const result = await f.load('app/api/auth/logout/route.ts').POST(f.request);
-    assert.equal(result.status, 502);
+    assert.equal(result.status, 200);
     assert.equal(f.calls.length, 0);
-    assert.equal(f.deleted.length, 0);
+    assert.equal(result.body.revocationConfirmed, false);
+    assert.equal(f.deleted.length, 3);
 });
 
 for (const file of [
