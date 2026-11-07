@@ -5,6 +5,7 @@ import { customPost, customFetch } from "../../Auth/customFetch";
 import { toast } from "react-toastify";
 import { useApplication } from "../../Auth/useApplicationContext";
 import { RiAddCircleLine, RiDeleteBinLine } from "@remixicon/react";
+import styles from "../../inventory/limsConnection/stockManagement.module.css";
 
 const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
      const user = useApplication()?.user;
@@ -230,7 +231,7 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
 
 
      return (
-          <Modal show={showModal} onHide={handleCloseModal} size="lg" backdrop="static">
+          <Modal show={showModal} onHide={handleCloseModal} size="lg" backdrop="static" className={styles.deductionModal}>
                <Modal.Header closeButton>
                     <Modal.Title className="fw-bold" style={{ fontSize: '1.1rem' }}>
                          <span >Inventory Deduction Template</span>
@@ -281,7 +282,7 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
                                         <div className="d-flex justify-content-between align-items-start mb-2">
                                              <div>
                                                   <h6 className="mb-1 fw-bold" style={{ fontSize: '1rem' }}>{templateData.name}</h6>
-                                                  <small className="text-muted">Test ID: <code className="bg-white px-2 py-1 rounded">{templateData.testId}</code></small>
+                                                  <small className="text-muted">Test ID: <code className={styles.itemCode}>{templateData.testId}</code></small>
                                              </div>
                                              <span className="badge bg-primary" style={{ fontSize: '0.85rem', padding: '6px 12px' }}>
                                                   {templateData.items_count} Items
@@ -428,11 +429,11 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
                                              <table className="table table-sm table-hover mb-0" style={{ fontSize: '0.88rem' }}>
                                                   <thead>
                                                        <tr>
-                                                            <th style={{ padding: '10px 12px', fontWeight: '600', borderBottom: '2px solid #dee2e6' }}>Item Name</th>
-                                                            <th style={{ padding: '10px 12px', fontWeight: '600', borderBottom: '2px solid #dee2e6' }}>SKU</th>
-                                                            <th style={{ padding: '10px 12px', fontWeight: '600', borderBottom: '2px solid #dee2e6', textAlign: 'right' }}>Quantity Used</th>
-                                                            <th style={{ padding: '10px 12px', fontWeight: '600', borderBottom: '2px solid #dee2e6' }}>Unit</th>
-                                                            <th style={{ padding: '10px 12px', fontWeight: '600', borderBottom: '2px solid #dee2e6' }}>
+                                                            <th style={{ padding: '10px 12px', fontWeight: '600', borderBottom: '2px solid var(--bs-border-color)' }}>Item Name</th>
+                                                            <th style={{ padding: '10px 12px', fontWeight: '600', borderBottom: '2px solid var(--bs-border-color)' }}>SKU</th>
+                                                            <th style={{ padding: '10px 12px', fontWeight: '600', borderBottom: '2px solid var(--bs-border-color)', textAlign: 'right' }}>Quantity Used</th>
+                                                            <th style={{ padding: '10px 12px', fontWeight: '600', borderBottom: '2px solid var(--bs-border-color)' }}>Unit</th>
+                                                            <th style={{ padding: '10px 12px', fontWeight: '600', borderBottom: '2px solid var(--bs-border-color)' }}>
                                                                  Consumed
                                                             </th>
                                                        </tr>
@@ -442,15 +443,14 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
                                                             <tr key={item.id}>
                                                                  <td style={{ padding: '10px 12px', fontWeight: '500' }}>{item.item_name}</td>
                                                                  <td style={{ padding: '10px 12px' }}>
-                                                                      <code style={{ backgroundColor: '#e7f3ff', color: '#0066cc', padding: '2px 7px', borderRadius: '4px', fontSize: '0.82rem' }}>
+                                                                      <code className={styles.itemCode}>
                                                                            {item.item_sku}
                                                                       </code>
                                                                  </td>
                                                                  <td style={{ padding: '10px 12px', textAlign: 'right' }}>
                                                                       <input
                                                                            type="number"
-                                                                           className="form-control form-control-sm"
-                                                                           style={{ width: '80px', textAlign: 'right', fontWeight: '600', color: '#198754' }}
+                                                                           className={`form-control form-control-sm ${styles.quantityValue}`}
                                                                            value={quantities[item.id] || 0}
                                                                            onChange={(e) => handleQuantityChange(item.id, e.target.value)}
                                                                            min="0"
@@ -458,8 +458,8 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
                                                                            disabled={item.is_consumed === true || item.quantity_remaining <= 0}
                                                                       />
                                                                  </td>
-                                                                 <td style={{ padding: '10px 12px', color: '#6c757d' }}>{item.unit}</td>
-                                                                 <td style={{ padding: '10px 12px', color: '#6c757d' }}>{item.is_consumed == true ? 'Yes' : 'No'}</td>
+                                                                 <td className={styles.mutedCell} style={{ padding: '10px 12px' }}>{item.unit}</td>
+                                                                 <td className={styles.mutedCell} style={{ padding: '10px 12px' }}>{item.is_consumed == true ? 'Yes' : 'No'}</td>
                                                                  <td style={{ padding: '10px 12px', textAlign: 'center' }}>
                                                                       {item.is_consumed === true ? null : (
                                                                            <button

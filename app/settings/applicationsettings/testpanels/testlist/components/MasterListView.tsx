@@ -30,6 +30,7 @@ interface Column {
 
 interface MasterListViewProps {
      isVisible: boolean;
+     canManage: boolean;
 }
 
 interface TestRule {
@@ -63,7 +64,7 @@ interface TestRule {
      lowerLimitNeonates?: string | null;
 }
 
-export default function MasterListView({ isVisible }: MasterListViewProps) {
+export default function MasterListView({ isVisible, canManage }: MasterListViewProps) {
      const [masterListData, setMasterListData] = useState<TestPanel[]>([]);
      const [isLoading, setIsLoading] = useState<boolean>(false);
      const [selectedTest, setSelectedTest] = useState<TestPanel | null>(null);
@@ -81,8 +82,9 @@ export default function MasterListView({ isVisible }: MasterListViewProps) {
                accessor: 'name',
                Cell: ({ row, value }: { row: { original: TestPanel }, value: string }) => (
                     <div className="d-flex align-items-center gap-2">
-                         <input
+                         {canManage && <input
                               type="checkbox"
+                              aria-label={`Select ${value} for import`}
                               checked={selectedTestIds.has(row.original.id)}
                               onChange={(e) => {
                                    const newSelected = new Set(selectedTestIds);
@@ -93,7 +95,7 @@ export default function MasterListView({ isVisible }: MasterListViewProps) {
                                    }
                                    setSelectedTestIds(newSelected);
                               }}
-                         />
+                         />}
                          <span>{value} {row.original.shorttext ? `(${row.original.shorttext})` : ""}</span>
                     </div>
                )
@@ -130,7 +132,7 @@ export default function MasterListView({ isVisible }: MasterListViewProps) {
      const loadMasterListData = async () => {
           setIsLoading(true);
           try {
-               const masterRes = await customFetch('testpanel/list/bulk?grouping=master').catch(() => ({ data: [] }));
+               const masterRes = await customFetch('testpanel/management/list?grouping=master').catch(() => ({ data: [] }));
                setMasterListData(masterRes?.data || []);
           } catch (error) {
                console.error('Error loading master list data:', error);
@@ -228,6 +230,7 @@ export default function MasterListView({ isVisible }: MasterListViewProps) {
      if (isLoading) return <Loader />;
 
      const handleImport = () => {
+          if (!canManage) return;
           if (selectedTestIds.size === 0) {
                alert('Please select at least one test to import');
                return;
@@ -245,6 +248,7 @@ export default function MasterListView({ isVisible }: MasterListViewProps) {
      };
 
      const confirmImport = async () => {
+          if (!canManage) return;
           const selectedTests = masterListData.filter(t => selectedTestIds.has(t.id));
           if (selectedTests.length === 0) {
                alert('No tests selected for import');
@@ -276,7 +280,7 @@ export default function MasterListView({ isVisible }: MasterListViewProps) {
 
      return (
           <div>
-               {masterListData.length > 0 && (
+               {canManage && masterListData.length > 0 && (
                     <div className="d-flex justify-content-end gap-2 mb-3">
                          <button
                               onClick={handleToggleSelectAll}

@@ -3,13 +3,14 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const root=path.resolve(__dirname,'..'),cache=new Map();
 let sessionUser={role:'scientist',employeeid:7,branch:1};
 let stockAccessQuery=null;
+let panelAccessResponse={success:true,employeeid:7,tenantId:2,branchid:1,can_view:true,can_manage:true,can_delegate:true};
 function load(file){
  if(cache.has(file))return cache.get(file);
  const exports={};cache.set(file,exports);
  vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,jsx:ts.JsxEmit.React}}).outputText,{
   exports,React:{createElement:(type,props,...children)=>({type,props:{...props,children}})},TextEncoder,URL,AbortSignal,console,
   process:{env:{NODE_ENV:'development',DEVELOPMENT_BASEURL:'https://backend.example.test/api/v1/',JWT_SECRET_KEY:'fixture'}},
-  fetch:async()=>({ok:true,json:async()=>({success:true,employeeid:7,tenantId:2,branchid:1,can_manage:true,data:[{department:'laboratory',can_request:true},{department:'imaging',can_receive:true}]})}),
+  fetch:async()=>({ok:true,json:async()=>({...panelAccessResponse,data:[{department:'laboratory',can_request:true},{department:'imaging',can_receive:true}]})}),
   require:name=>{
    if(name.endsWith('.module.css'))return {default:new Proxy({},{get:(_,key)=>String(key)}),__esModule:true};
    if(name==='next/server'){const response=type=>({type,headers:new Headers(),cookies:{delete(){}}});return {NextResponse:{next:()=>response('next'),redirect:url=>({...response('redirect'),url:String(url)})}};}
@@ -33,6 +34,7 @@ const sidebars=load(path.join(root,'components/Layout/links/RoleSidebars.tsx'));
 const settings={allowScientistToRegisterClient:1,departmentStock:['laboratory','imaging'],testPanelsManagement:true};
 const {proxy}=load(path.join(root,'proxy.ts'));
 function flatten(items){return items.flatMap(item=>[...(item.link?[item.link]:[]),...flatten(item.children||[])]);}
+function flattenTitles(items){return items.flatMap(item=>[item.title,...flattenTitles(item.children||[])]);}
 function pageExists(href){const directory=path.join(root,'app',href.split(/[?#]/)[0]);return ['page.tsx','page.jsx','page.js'].some(file=>fs.existsSync(path.join(directory,file)));}
 for(const role of ['scientist','labscientist','sonographer','phelobotomist','phlebotomist','customer service representative','crm','frontdesk','cashier','billing','marketer','storekeeper','accountant','head_of_laboratory','head_of_imaging','doctor','medical_officer','consultant','nurse','nursing','pharmacy_doctor','pharmacy_nurse','pharmacy_manager','pharmacy_accountant','pharmacy_storekeeper','pharmacy_cashier','pharmacy_dispensary_officer','pharmacist']){
  test(role+' exposes only accessible, existing workspace links',async()=>{
@@ -56,9 +58,24 @@ test('laboratory panel entry is shown only with explicit permission',()=>{
  assert.equal(policy.canAccessRolePage('scientist',panel),false);
  assert.equal(policy.canAccessRolePage('scientist',panel,settings),true);
  assert.equal(policy.canAccessRolePage('sonographer',panel,settings),false);
+ const viewOnly={testPanelsView:true,testPanelsManagement:false};
+ assert.equal(policy.canAccessRolePage('scientist',panel,viewOnly),true);
+ assert.ok(flattenTitles(sidebars.filterRoleSidebar(sidebars.roleSidebarSource('scientist',[]),'scientist',viewOnly)).includes('View test panels'));
+ assert.ok(!flattenTitles(sidebars.filterRoleSidebar(sidebars.roleSidebarSource('scientist',[]),'scientist',viewOnly)).includes('Manage test panels'));
  const without=flatten(sidebars.filterRoleSidebar(sidebars.roleSidebarSource('scientist',[]),'scientist',{}));
  assert.ok(!without.includes(panel));
  assert.ok(flatten(sidebars.filterRoleSidebar(sidebars.roleSidebarSource('scientist',[]),'scientist',settings)).includes(panel));
+});
+test('manager can open staff delegation without test-list or editor rights',async()=>{
+ sessionUser={role:'manager',employeeid:7,branch:1};
+ panelAccessResponse={success:true,employeeid:7,tenantId:2,branchid:1,can_view:false,can_manage:false,can_delegate:true};
+ const pathname='/operations/laboratory/test-panels/testlist';
+ assert.equal((await proxy({url:'https://app.example.test'+pathname,nextUrl:{pathname},cookies:{get:()=>({value:'fixture-token'})}})).type,'next');
+ const editor='/operations/laboratory/test-panels/testlist/12';
+ assert.equal((await proxy({url:'https://app.example.test'+editor,nextUrl:{pathname:editor},cookies:{get:()=>({value:'fixture-token'})}})).type,'redirect');
+ const links=sidebars.roleWorkspaceSidebar('manager',[],{testPanelsDelegation:true},'/operations/laboratory');
+ assert.ok(flattenTitles(links).includes('Manage test-panel access'));
+ panelAccessResponse={success:true,employeeid:7,tenantId:2,branchid:1,can_view:true,can_manage:true,can_delegate:true};
 });
 test('imaging sidebars exclude laboratory supplies and panels even with both grants and panel authority',()=>{
  const supplied=[
@@ -91,16 +108,38 @@ test('laboratory sidebars retain delegated panels and their own supplies but nev
   assert.equal(links.filter(href=>href==='/operations/laboratory/test-panels/testlist').length,1);
  }
 });
-test('department sidebar scoping leaves administrator application switching and oversight intact',()=>{
- for(const workspace of ['', '/inventory/department-stock']){
+test('department tools appear only in their matching operations sidebars and shortcuts',()=>{
+ const cases=[
+  {workspace:'/operations/laboratory',visible:['/operations/laboratory/requisitions','/operations/laboratory/test-panels/testlist'],hidden:['/operations/imaging/ultrasound/requisitions']},
+  {workspace:'/operations/laboratory/test-panels/testlist',visible:['/operations/laboratory/requisitions','/operations/laboratory/test-panels/testlist'],hidden:['/operations/imaging/ultrasound/requisitions']},
+  {workspace:'/operations/imaging',visible:['/operations/imaging/ultrasound/requisitions'],hidden:['/operations/laboratory/requisitions','/operations/laboratory/test-panels/testlist']},
+  {workspace:'/operations/imaging/ultrasound',visible:['/operations/imaging/ultrasound/requisitions'],hidden:['/operations/laboratory/requisitions','/operations/laboratory/test-panels/testlist']},
+  {workspace:'/accounting',visible:[],hidden:['/operations/laboratory/requisitions','/operations/imaging/ultrasound/requisitions','/operations/laboratory/test-panels/testlist']},
+  {workspace:'/pharmacy',visible:[],hidden:['/operations/laboratory/requisitions','/operations/imaging/ultrasound/requisitions','/operations/laboratory/test-panels/testlist']},
+ ];
+ for(const {workspace,visible,hidden} of cases){
   const links=flatten(sidebars.roleWorkspaceSidebar('admin',[],settings,workspace));
-  assert.ok(links.includes('/operations/laboratory/requisitions'));
-  assert.ok(links.includes('/operations/imaging/ultrasound/requisitions'));
-  assert.ok(links.includes('/operations/laboratory/test-panels/testlist'));
+  for(const href of visible)assert.ok(links.includes(href),`${workspace} should show ${href}`);
+  for(const href of hidden)assert.ok(!links.includes(href),`${workspace} should hide ${href}`);
+  const shortcuts=sidebars.roleSidebarQuickLinks('scientist',[],settings,workspace).map(item=>item.href);
+  assert.equal(shortcuts.includes('/operations/laboratory/test-panels/testlist'),workspace.startsWith('/operations/laboratory'),`${workspace} panel shortcut`);
  }
  const layout=fs.readFileSync(path.join(root,'components/Layout/PrimeLayout.tsx'),'utf8');
  assert.match(layout,/roleWorkspaceSidebar\(user\?\.role,suppliedLinks,navigationSettings,modulePath/);
+ assert.match(layout,/roleSidebarQuickLinks\(user\?\.role,suppliedLinks,navigationSettings,modulePath/);
  assert.match(layout,/RibbonNavigation links=\{visibleLinks\}/);
+});
+test('department supply links use their operation-specific names',()=>{
+ const laboratory=flattenTitles(sidebars.roleWorkspaceSidebar('scientist',[],settings,'/operations/laboratory'));
+ const imaging=flattenTitles(sidebars.roleWorkspaceSidebar('sonographer',[],settings,'/operations/imaging'));
+ assert.ok(laboratory.includes('Laboratory supplies'));
+ assert.ok(laboratory.includes('Manage test panels'));
+ assert.ok(!laboratory.includes('Imaging supplies'));
+ assert.ok(!laboratory.includes('Stock requisitions'));
+ assert.ok(imaging.includes('Imaging supplies'));
+ assert.ok(!imaging.includes('Laboratory supplies'));
+ assert.ok(!imaging.includes('Manage test panels'));
+ assert.ok(!imaging.includes('Stock requisitions'));
 });
 test('accounting and pharmacy sidebars omit laboratory supplies, imaging supplies and test panels without revoking access',()=>{
  const hidden=[

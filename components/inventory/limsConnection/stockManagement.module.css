@@ -1,0 +1,53 @@
+.page {
+	color: var(--bs-body-color);
+}
+
+.recordCard {
+	border-color: var(--bs-border-color) !important;
+	background: var(--bs-body-bg);
+	color: var(--bs-body-color);
+}
+
+.timeline {
+	background: var(--bs-border-color);
+}
+
+.deductionModal :global(.modal-content) {
+	border-color: var(--bs-border-color);
+	background: var(--bs-body-bg);
+	color: var(--bs-body-color);
+}
+
+.deductionModal :global(.modal-header),
+.deductionModal :global(.modal-footer) {
+	border-color: var(--bs-border-color);
+}
+
+.deductionModal :global(.bg-light) {
+	background-color: var(--bs-tertiary-bg) !important;
+	color: var(--bs-body-color);
+}
+
+.itemCode {
+	padding: 2px 7px;
+	border-radius: 4px;
+	background: var(--bs-info-bg-subtle);
+	color: var(--bs-info-text-emphasis);
+	font-size: 0.82rem;
+}
+
+.quantityValue {
+	width: 80px;
+	color: var(--bs-success);
+	font-weight: 600;
+	text-align: right;
+}
+
+.mutedCell {
+	color: var(--bs-secondary-color) !important;
+}
+
+:global([data-bs-theme="dark"]) .deductionModal :global(.bg-white) {
+	background-color: var(--bs-tertiary-bg) !important;
+	color: var(--bs-body-color);
+}

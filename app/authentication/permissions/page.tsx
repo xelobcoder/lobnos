@@ -70,11 +70,18 @@ export default function PermissionsOfUsers() {
 		const { name, checked } = ev.target;
 		if (name.includes('.')) {
 			const [group, permission] = name.split('.');
+			if (group === 'testPanels') {
+				const updatedGroupPermissions = { ...target.testPanels, [permission]: checked };
+				if (permission === 'manage' && checked) updatedGroupPermissions.view = true;
+				if (permission === 'view' && !checked) updatedGroupPermissions.manage = false;
+				setTarget({ ...target, testPanels: updatedGroupPermissions });
+				return;
+			}
             const groupPermissions = target[group as keyof LabPermissions];
 			setTarget({
 				...target,
 				[group]: {
-					...(typeof groupPermissions === "object" ? groupPermissions : {}),
+					...(typeof groupPermissions === "object" && groupPermissions !== null ? groupPermissions : {}),
 					[permission]: checked
 				}
 			});

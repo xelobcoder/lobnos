@@ -47,12 +47,14 @@ interface PrimeLayoutProps {
 const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLinks }) => {
     const { company, user, branchid, tenantId, daysToExpiration, settings } = useApplicationSettings().applicationsettings;
     const [stockAccess,setStockAccess]=useState<string[]>([]);
-    const [panelAccess,setPanelAccess]=useState(false);
-    useEffect(()=>{let active=true;setStockAccess([]);setPanelAccess(false);if(!user?.employeeid)return;
+    const [panelViewAccess,setPanelViewAccess]=useState(false);
+    const [panelManageAccess,setPanelManageAccess]=useState(false);
+    const [panelDelegationAccess,setPanelDelegationAccess]=useState(false);
+    useEffect(()=>{let active=true;setStockAccess([]);setPanelViewAccess(false);setPanelManageAccess(false);setPanelDelegationAccess(false);if(!user?.employeeid)return;
         customFetch('inventory/department-stock/my-access').then(r=>{if(active&&r?.success)setStockAccess((r.data||[]).filter((a:any)=>a.can_request||a.can_receive||a.can_consume).map((a:any)=>a.department));}).catch(error=>console.error('Unable to load department navigation:',error));
-        if(['admin','superadmin','manager','scientist','headoflaboratory'].includes(roleWorkspace(user.role)))customFetch('testpanel/my-access').then(r=>{if(active&&r?.success)setPanelAccess(r.can_manage===true);}).catch(error=>console.error('Unable to load test-panel navigation:',error));
+        if(['admin','superadmin','manager','scientist','headoflaboratory'].includes(roleWorkspace(user.role)))customFetch('testpanel/my-access').then(r=>{if(active&&r?.success){setPanelViewAccess(r.can_view===true);setPanelManageAccess(r.can_manage===true);setPanelDelegationAccess(r.can_delegate===true);}}).catch(error=>console.error('Unable to load test-panel navigation:',error));
         return()=>{active=false;};},[user?.employeeid,user?.role,user?.branch,branchid,tenantId]);
-    const navigationSettings={...settings,departmentStock:stockAccess,testPanelsManagement:panelAccess};
+    const navigationSettings={...settings,departmentStock:stockAccess,testPanelsView:panelViewAccess,testPanelsManagement:panelManageAccess,testPanelsDelegation:panelDelegationAccess};
     const { theme, toggleTheme } = useTheme();
     const router = useRouter();
     const modulePath = usePathname();
@@ -96,9 +98,9 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLink
     const isSuperAdmin = normalizedRole.replace(/[\s-]/g, '') === 'superadmin';
     const workspaceRole=roleWorkspace(user?.role);
     const useRoleShortcuts=!['admin','superadmin','manager'].includes(workspaceRole);
-    const roleLinks = (useRoleShortcuts ? roleSidebarQuickLinks(user?.role,suppliedLinks,navigationSettings) : isSuperAdmin ? SuperAdminRoleLinks : (roleViews[workspaceRole] || [])).filter(item =>
+    const roleLinks = (useRoleShortcuts ? roleSidebarQuickLinks(user?.role,suppliedLinks,navigationSettings,modulePath||'') : isSuperAdmin ? SuperAdminRoleLinks : (roleViews[workspaceRole] || [])).filter(item =>
         canAccessRolePage(user?.role,item.href||'',navigationSettings) && (isSuperAdmin||canAccessFacilityModule(item.href||'',settings?.moduleConfiguration,{smsActivated:settings?.smsActivated})));
-    const visibleLinks = useMemo(() => roleWorkspaceSidebar(user?.role,suppliedLinks,navigationSettings,modulePath||''),[suppliedLinks,user?.role,settings,stockAccess,panelAccess,modulePath]);
+    const visibleLinks = useMemo(() => roleWorkspaceSidebar(user?.role,suppliedLinks,navigationSettings,modulePath||''),[suppliedLinks,user?.role,settings,stockAccess,panelViewAccess,panelManageAccess,panelDelegationAccess,modulePath]);
     const canViewNotifications = roleAllowed(user?.role, ['admin', 'manager']);
     const activeNavigationPath = useMemo(() => findActiveNavigationPath(visibleLinks, modulePath || ''), [visibleLinks, modulePath]);
     const employeeid = user?.employeeid || 0;

@@ -98,7 +98,7 @@ export interface LabPermissions {
           history: boolean;
      };
 
-     testPanels?: { manage: boolean };
+     testPanels?: { view?: boolean; manage?: boolean };
      pageAccess: PageAccess;
 }
 export type LabRole = 'admin' | 'manager' | 'labscientist' | 'sonographer' | 'phelobotomist' | 'customer service representative';

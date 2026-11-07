@@ -36,6 +36,24 @@ test('appointment search and workflow filters are accessible and kept with the a
 	assert.match(styles, /@media \(max-width: 600px\)/);
 });
 
+test('appointments calendar and agenda use dark-theme surfaces and readable event colors', () => {
+	const styles = read('app/appointments/appointments.module.css');
+	assert.match(styles, /:global\(\[data-bs-theme="dark"\]\) \.page/);
+	for (const selector of [
+		'\.calendarCanvas :global\(\.rbc-today\)',
+		'\.calendarCanvas :global\(\.rbc-off-range-bg\)',
+		'\.calendarCanvas \.eventShell_consultation',
+		'\.calendarCanvas \.eventShell_laboratory',
+		'\.calendarCanvas \.eventShell_ultrasound',
+		'\.calendarCanvas \.eventShell_follow_up',
+		'\.agendaItemActive',
+		'\.detailCard',
+		'\.loadingOverlay',
+	]) {
+		assert.ok(styles.includes(selector.replaceAll('\\', '')), `Missing dark theme styling for ${selector}`);
+	}
+});
+
 test('booking form carries calendar type/date and supports CRM and diagnostic links', () => {
 	const form = read('components/appointments/newAppointmentModal.jsx');
 	const appointment = read('lib/appointment.ts');

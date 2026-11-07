@@ -15,7 +15,10 @@ export default function PagesAccessView({ data, changeEvent, target, handler, pa
 	const permissionGroups = {
 		"Test Panels": {
 			group: 'testPanels',
-			permissions: [{ key: 'manage', label: 'Manage laboratory test panels, parameters and report settings' }]
+			permissions: [
+				{ key: 'view', label: 'View the laboratory test-panel list' },
+				{ key: 'manage', label: 'Create and edit laboratory test panels and settings' }
+			]
 		},
 		"Patients": {
 			group: 'patients',
@@ -114,7 +117,9 @@ export default function PagesAccessView({ data, changeEvent, target, handler, pa
 						<div className="row">
 							{Array.isArray(groupConfig.permissions) && groupConfig.permissions.length > 0 && groupConfig.permissions.map(permission => {
 								const groupData = data[groupConfig.group as keyof LabPermissions] as any;
-								const permissionValue = groupData ? groupData[permission.key] : false;
+								const permissionValue = groupData
+									? groupData[permission.key] === true || (permission.key === 'view' && groupConfig.group === 'testPanels' && groupData.manage === true)
+									: false;
 
 								return (
 									<div key={permission.key} className="col-12 border p-2 rounded mx-2  col-md-6 col-lg-4 mb-2">
@@ -124,7 +129,6 @@ export default function PagesAccessView({ data, changeEvent, target, handler, pa
 												name={`${groupConfig.group}.${permission.key}`}
 												style={{ fontSize: '16px', marginRight: '8px' }}
 												onChange={(ev) => handler(ev, target, changeEvent)}
-												value={permissionValue}
 												checked={permissionValue || false}
 												className="form-check-input"
 												id={`${groupConfig.group}.${permission.key}`}

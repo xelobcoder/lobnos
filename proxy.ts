@@ -143,7 +143,10 @@ async function routeRequest(request: NextRequest) {
                     assertBackendTransport(url);
                     const response=await fetch(url,{headers:{...(authorization?{Authorization:authorization}:{}),'pls-prime-tenant-session':tenantToken,'pls-session':sessionToken},cache:'no-store',signal:AbortSignal.timeout(5000)});
                     const access=await response.json();
-                    if(response.ok&&access?.success&&access.can_manage===true&&Number(access.employeeid)===Number(user.employeeid)&&Number(access.tenantId)===tenantId&&Number(access.branchid)>0&&(user.branch==null||Number(access.branchid)===Number(user.branch))&&canAccessRolePage(role,currentPath,{...settings,testPanelsManagement:true}))return NextResponse.next();
+                    const panelListRoots=['/operations/laboratory/test-panels','/settings/applicationsettings/testpanels'];
+                    const isPanelEditor=panelListRoots.some(root=>currentPath.startsWith(root+'/testlist/'));
+                    const rolePageSettings={...settings,testPanelsView:access?.can_view===true,testPanelsManagement:access?.can_manage===true,testPanelsDelegation:access?.can_delegate===true};
+                    if(response.ok&&access?.success&&(access.can_view===true||access.can_delegate===true)&&(!isPanelEditor||access.can_manage===true)&&Number(access.employeeid)===Number(user.employeeid)&&Number(access.tenantId)===tenantId&&(access.branchid==null||Number(access.branchid)>0)&&(user.branch==null||Number(access.branchid)===Number(user.branch))&&canAccessRolePage(role,currentPath,rolePageSettings))return NextResponse.next();
                 }catch(error){console.error('Unable to verify test-panel access:',error);}
                 return NextResponse.redirect(new URL('/unauthorized',request.url));
             }

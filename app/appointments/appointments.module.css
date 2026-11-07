@@ -1054,3 +1054,201 @@
 		font-size: 9px;
 	}
 }
+
+:global([data-bs-theme="dark"]) .page {
+	--appointment-ink: #e7edf5;
+	--appointment-muted: #aab5c4;
+	--appointment-border: #3b4655;
+	--appointment-surface: #242c36;
+	--appointment-background: #1a2028;
+}
+
+:global([data-bs-theme="dark"]) .eyebrow,
+:global([data-bs-theme="dark"]) .agendaEyebrow,
+:global([data-bs-theme="dark"]) .summaryCard small,
+:global([data-bs-theme="dark"]) .searchBox button,
+:global([data-bs-theme="dark"]) .searchBox input::placeholder,
+:global([data-bs-theme="dark"]) .calendarCanvas :global(.rbc-header),
+:global([data-bs-theme="dark"]) .calendarCanvas :global(.rbc-time-gutter .rbc-timeslot-group),
+:global([data-bs-theme="dark"]) .calendarCanvas :global(.rbc-agenda-table thead > tr > th),
+:global([data-bs-theme="dark"]) .agendaCount,
+:global([data-bs-theme="dark"]) .agendaTime > span,
+:global([data-bs-theme="dark"]) .agendaPatient,
+:global([data-bs-theme="dark"]) .practitioner,
+:global([data-bs-theme="dark"]) .detailTopline,
+:global([data-bs-theme="dark"]) .detailTopline button,
+:global([data-bs-theme="dark"]) .detailCard p,
+:global([data-bs-theme="dark"]) .detailCard > div:not(.detailTopline),
+:global([data-bs-theme="dark"]) .detailCard small,
+:global([data-bs-theme="dark"]) .legend {
+	color: var(--appointment-muted);
+}
+
+:global([data-bs-theme="dark"]) .summaryIcon {
+	background: #263c59;
+	color: #a9c7ff;
+}
+
+:global([data-bs-theme="dark"]) .summaryIconPending {
+	background: #493b26;
+	color: #f0c675;
+}
+
+:global([data-bs-theme="dark"]) .summaryIconNext {
+	background: #23453f;
+	color: #80d3b6;
+}
+
+:global([data-bs-theme="dark"]) .errorBanner {
+	border-color: #754542;
+	background: #3c292b;
+	color: #ffc1ba;
+}
+
+:global([data-bs-theme="dark"]) .filters,
+:global([data-bs-theme="dark"]) .toolbar,
+:global([data-bs-theme="dark"]) .calendarCanvas :global(.rbc-header),
+:global([data-bs-theme="dark"]) .calendarCanvas :global(.rbc-month-row),
+:global([data-bs-theme="dark"]) .calendarCanvas :global(.rbc-day-bg),
+:global([data-bs-theme="dark"]) .calendarCanvas :global(.rbc-time-header-content),
+:global([data-bs-theme="dark"]) .calendarCanvas :global(.rbc-time-content),
+:global([data-bs-theme="dark"]) .calendarCanvas :global(.rbc-timeslot-group),
+:global([data-bs-theme="dark"]) .calendarCanvas :global(.rbc-time-content > * + * > *),
+:global([data-bs-theme="dark"]) .calendarCanvas :global(.rbc-agenda-table thead > tr > th),
+:global([data-bs-theme="dark"]) .calendarCanvas :global(.rbc-agenda-table tbody > tr > td) {
+	border-color: var(--appointment-border);
+}
+
+:global([data-bs-theme="dark"]) .searchBox,
+:global([data-bs-theme="dark"]) .filters select,
+:global([data-bs-theme="dark"]) .iconButton,
+:global([data-bs-theme="dark"]) .todayButton,
+:global([data-bs-theme="dark"]) .viewSwitch .viewActive,
+:global([data-bs-theme="dark"]) .agendaItem,
+:global([data-bs-theme="dark"]) .emptyAgenda button {
+	border-color: var(--appointment-border);
+	background: #202832;
+	color: var(--appointment-ink);
+}
+
+:global([data-bs-theme="dark"]) .periodControls h2,
+:global([data-bs-theme="dark"]) .calendarCanvas :global(.rbc-calendar),
+:global([data-bs-theme="dark"]) .agendaItemContent > strong,
+:global([data-bs-theme="dark"]) .emptyAgenda strong,
+:global([data-bs-theme="dark"]) .detailCard > strong {
+	color: var(--appointment-ink);
+}
+
+:global([data-bs-theme="dark"]) .iconButton:hover,
+:global([data-bs-theme="dark"]) .todayButton:hover,
+:global([data-bs-theme="dark"]) .agendaItem:hover,
+:global([data-bs-theme="dark"]) .agendaItemActive,
+:global([data-bs-theme="dark"]) .emptyAgenda button:hover {
+	border-color: #526985;
+	background: #2b3745;
+	color: #c7d9f5;
+}
+
+:global([data-bs-theme="dark"]) .viewSwitch {
+	border-color: var(--appointment-border);
+	background: #1e252e;
+}
+
+:global([data-bs-theme="dark"]) .viewSwitch button {
+	color: var(--appointment-muted);
+}
+
+:global([data-bs-theme="dark"]) .viewSwitch .viewActive {
+	background: #35465b;
+	color: #d3e2ff;
+}
+
+:global([data-bs-theme="dark"]) .calendarCanvas :global(.rbc-off-range-bg) {
+	background: #202731;
+}
+
+:global([data-bs-theme="dark"]) .calendarCanvas :global(.rbc-date-cell) {
+	color: #b7c1cf;
+}
+
+:global([data-bs-theme="dark"]) .calendarCanvas :global(.rbc-date-cell.rbc-now),
+:global([data-bs-theme="dark"]) .calendarCanvas :global(.rbc-show-more) {
+	color: #9dc0ff;
+}
+
+:global([data-bs-theme="dark"]) .calendarCanvas :global(.rbc-today) {
+	background: #29374a;
+}
+
+:global([data-bs-theme="dark"]) .calendarCanvas :global(.rbc-time-slot) {
+	border-top-color: #303b48;
+}
+
+:global([data-bs-theme="dark"]) .calendarCanvas .eventShell_consultation,
+:global([data-bs-theme="dark"]) .event_consultation {
+	background: #293b56;
+	color: #c0d5ff;
+}
+
+:global([data-bs-theme="dark"]) .calendarCanvas .eventShell_laboratory,
+:global([data-bs-theme="dark"]) .event_laboratory {
+	background: #25443b;
+	color: #a8e3cc;
+}
+
+:global([data-bs-theme="dark"]) .calendarCanvas .eventShell_ultrasound,
+:global([data-bs-theme="dark"]) .event_ultrasound {
+	background: #3d3150;
+	color: #d7c0f6;
+}
+
+:global([data-bs-theme="dark"]) .calendarCanvas .eventShell_follow_up,
+:global([data-bs-theme="dark"]) .event_follow_up {
+	background: #493a27;
+	color: #f1d09a;
+}
+
+:global([data-bs-theme="dark"]) .statusTag {
+	background: #343e4a;
+	color: #c0cad6;
+}
+
+:global([data-bs-theme="dark"]) .status_confirmed {
+	background: #25443b;
+	color: #a8e3cc;
+}
+
+:global([data-bs-theme="dark"]) .status_pending,
+:global([data-bs-theme="dark"]) .status_scheduled {
+	background: #493a27;
+	color: #f1d09a;
+}
+
+:global([data-bs-theme="dark"]) .status_cancelled,
+:global([data-bs-theme="dark"]) .status_canceled {
+	background: #4a3030;
+	color: #ffc1ba;
+}
+
+:global([data-bs-theme="dark"]) .emptyIcon,
+:global([data-bs-theme="dark"]) .detailCard {
+	border-color: var(--appointment-border);
+	background: #202832;
+}
+
+:global([data-bs-theme="dark"]) .emptyIcon {
+	color: #aab8ca;
+}
+
+:global([data-bs-theme="dark"]) .workflowLink {
+	color: #a9c7ff;
+}
+
+:global([data-bs-theme="dark"]) .workflowLink:hover {
+	color: #d0e0ff;
+}
+
+:global([data-bs-theme="dark"]) .loadingOverlay {
+	background: rgb(26 32 40 / 82%);
+	color: var(--appointment-ink);
+}

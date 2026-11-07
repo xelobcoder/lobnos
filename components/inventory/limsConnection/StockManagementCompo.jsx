@@ -8,6 +8,8 @@ import { RiEyeLine } from '@remixicon/react';
 import dayjs from 'dayjs';
 import { customFetch } from "../../Auth/customFetch";
 import PrimeTable from "../../accessories/Datatables/PrimeTable";
+import DateFilterReusable from "../../operations/Laboratory/ResuableFilter/DateFilterReusable";
+import styles from './stockManagement.module.css';
 
 
 
@@ -16,7 +18,8 @@ export default function StockManagementCompo() {
 	const { user } = useApplicationSettings().applicationsettings;
 	const [data, setData] = useState([]);
 	const [dateFrom, setDateFrom] = useState(dayjs().startOf('year').format('YYYY-MM-DD'));
-	const [dateEnd, setDateEnd] = useState(dayjs().endOf('year').format('YYYY-MM-DD'));
+	const [dateEnd, setDateEnd] = useState(dayjs().format('YYYY-MM-DD'));
+	const [dateFilter, setDateFilter] = useState('This Year');
 	const employeeid = user?.employeeid;
 
 
@@ -68,7 +71,7 @@ export default function StockManagementCompo() {
 
 	const [showModal, setShowModal] = useState(false);
 	const [selectedDoc, setSelectedDoc] = useState(null);
-	const [viewMode, setViewMode] = useState('list');
+	const [viewMode, setViewMode] = useState('table');
 
 	const columns = [
 				{ Header: 'Patient', accessor: 'fullname' ,Cell: ({ value, row }) => (
@@ -111,7 +114,7 @@ export default function StockManagementCompo() {
 
 
 	return (
-		<div>
+		<div className={styles.page}>
 			<div className='d-flex justify-content-between align-items-center mb-3'>
 				<div>
 					<h5 className="mb-0">Stock Management</h5>
@@ -133,22 +136,13 @@ export default function StockManagementCompo() {
 							Table
 						</button>
 					</div>
-					<div className="d-flex gap-2 align-items-center">
-						<label className="form-label mb-0 small">From:</label>
-						<input
-							id="date-from-picker"
-							type="date"
-							className='form-control-sm form-control'
-							value={dateFrom}
-							onChange={e => setDateFrom(e.target.value)}
-						/>
-						<label className="form-label mb-0 small">To:</label>
-						<input
-							id="date-end-picker"
-							type="date"
-							className='form-control-sm form-control'
-							value={dateEnd}
-							onChange={e => setDateEnd(e.target.value)}
+					<div style={{ minWidth: '240px' }}>
+						<DateFilterReusable
+							value={dateFilter}
+							onChange={setDateFilter}
+							onDateRangeChange={(start, end) => { setDateFrom(start); setDateEnd(end); }}
+							label="Date range"
+							className="w-100"
 						/>
 					</div>
 					<button className="btn btn-primary btn-sm" onClick={() => fetchData({ page: 1, count: 10 })}>
@@ -167,20 +161,19 @@ export default function StockManagementCompo() {
 						</div>
 					) : (
 						<>
-							<div
+							<div className={styles.timeline}
 								style={{
 									position: 'absolute',
 									left: '20px',
 									top: '0',
 									bottom: '0',
-									width: '2px',
-									background: 'linear-gradient(to bottom, #dee2e6 0%, #dee2e6 100%)'
+									width: '2px'
 								}}
 							/>
 
 							{Array.isArray(data) && data.length > 0 && data.map((item, index) => (
 								<div key={item.ascensionid || index} className="mb-2 position-relative">
-									<div
+									<div className={styles.statusMarker}
 										style={{
 											position: 'absolute',
 											left: '-28px',
@@ -189,12 +182,12 @@ export default function StockManagementCompo() {
 											height: '12px',
 											borderRadius: '50%',
 											backgroundColor: item.consumption_status === 'completed' ? '#198754' : item.consumption_status === 'pending' ? '#ffc107' : item.consumption_status === 'unknown-template' ? '#dc3545' : '#6c757d',
-											border: '2px solid white',
+											border: '2px solid var(--bs-body-bg)',
 											zIndex: 1
 										}}
 									/>
 
-									<div className="bg-white border rounded p-2">
+									<div className={`${styles.recordCard} border rounded p-2`}>
 										<div className="d-flex justify-content-between align-items-start mb-1">
 											<div>
 												<h6 className="mb-0 fw-bold" style={{ fontSize: '0.95rem' }}>{item.fullname} - {item.fullpatientid}</h6>

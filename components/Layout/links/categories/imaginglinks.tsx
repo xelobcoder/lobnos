@@ -13,7 +13,7 @@ import {
 export const ImagingLinks: Link[] = [
     {title:"Learning Center",link:"/operations/guide",icon:<RiBookOpenLine/>},
     {title:'Imaging Operations',link:'/operations/imaging',icon:<RiUserFollowLine/>},
-    {title:"Stock requisitions",link:"/operations/imaging/ultrasound/requisitions",icon:<RiFileListLine/>},
+    {title:"Imaging supplies",link:"/operations/imaging/ultrasound/requisitions",icon:<RiFileListLine/>},
     { title: 'Waiting List', link: '/operations/imaging/ultrasound', icon: <RiUserFollowLine /> },
     { title: 'Processed List', link: '/operations/imaging/ultrasound/processedlist', icon: <RiListCheck2 /> },
     { title: 'Create Templates', link: '/operations/imaging/ultrasound/templates', icon: <RiFileAddLine /> },

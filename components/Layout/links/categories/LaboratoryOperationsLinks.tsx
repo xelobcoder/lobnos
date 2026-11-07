@@ -20,7 +20,7 @@ import {
 export const LaboratoryOperationsLinks: Link[] = [
     {title:"Learning Center",link:"/operations/guide",icon:<RiBookOpenLine/>},
     {title:"Manage test panels",link:"/operations/laboratory/test-panels/testlist",icon:<RiTestTubeLine/>},
-    {title:"Stock requisitions",link:"/operations/laboratory/requisitions",icon:<RiFileListLine/>},
+    {title:"Laboratory supplies",link:"/operations/laboratory/requisitions",icon:<RiFileListLine/>},
     {
         title: "Laboratory Operations Lifecycle",
         link: "",
@@ -76,5 +76,4 @@ export const LaboratoryOperationsLinks: Link[] = [
         ]
     },
 ];
-
 

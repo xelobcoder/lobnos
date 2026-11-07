@@ -2,6 +2,8 @@ import { normalizeRole, isSuperAdminRole } from "../components/Auth/roles";
 export type NavigationSettings = {
      departmentStock?: string[];
      testPanelsManagement?: boolean;
+     testPanelsView?: boolean;
+     testPanelsDelegation?: boolean;
      allowScientistToRegisterClient?: number | boolean | null;
 };
 export function roleWorkspace(role: unknown) {
@@ -88,9 +90,10 @@ export function canAccessRolePage(role: unknown, value: string, settings: Naviga
           );
      }
      if (within(p, "/operations/laboratory/test-panels"))
-          return ["scientist", "headoflaboratory", "manager"].includes(key) && settings.testPanelsManagement === true;
+          return ["scientist", "headoflaboratory", "manager"].includes(key)
+               && (settings.testPanelsView === true || settings.testPanelsManagement === true || settings.testPanelsDelegation === true);
      if (within(p, "/settings/applicationsettings/testpanels"))
-          return key === "manager" && settings.testPanelsManagement === true;
+          return key === "manager" && (settings.testPanelsView === true || settings.testPanelsManagement === true || settings.testPanelsDelegation === true);
      if (within(p, "/communications/sms/contact-groups")) return key === "manager";
      if (within(p, "/communications/sms/provider")) return false;
      if (
