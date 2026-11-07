@@ -7,6 +7,7 @@ import { manualIntroductions } from '../../lib/workspaceManual';
 import type { WorkspaceArticle, WorkspaceLearningModule } from '../../lib/workspaceLearning';
 import WorkspaceWorkflowFigure from './WorkspaceWorkflowFigure';
 import WorkspacePilotGuide from './WorkspacePilotGuide';
+import TestPanelProcedureDetails from './TestPanelProcedureDetails';
 import ManualPdfDownload from './ManualPdfDownload';
 import SoftwareManualIntroduction from './SoftwareManualIntroduction';
 import styles from './WorkspaceManual.module.css';
@@ -21,7 +22,19 @@ export default function WorkspaceManual({ module, articles, role }: {
     const documentRef = useRef<HTMLDivElement>(null);
     const topics = Array.from(new Set(articles.map(article => article.category)));
     const href = (slug: string) => `/${module.id}/guide/${slug}`;
-    const matching = articles.filter(article => [article.title, article.category, article.concept, ...article.steps, ...article.controls.flatMap(control => [control.name, control.description])].join(' ').toLowerCase().includes(search.trim().toLowerCase()));
+    const matching = articles.filter(article => [
+        article.title, article.category, article.concept, ...article.steps,
+        ...article.controls.flatMap(control => [control.name, control.description]),
+        ...(article.sections || []).flatMap(section => [section.title, ...section.paragraphs, ...(section.steps || []), ...(section.tables || []).flatMap(table => [table.caption, ...table.headers, ...table.rows.flat()]), ...(section.checklist || [])]),
+        ...(article.procedure ? [
+            article.procedure.id, article.procedure.expectedResult,
+            ...article.procedure.roles.flatMap(row => [row.role, row.permissions]),
+            ...article.procedure.fields.flatMap(row => Object.values(row)),
+            ...article.procedure.warnings, ...article.procedure.alternatives,
+            ...article.procedure.commonErrors.flatMap(error => Object.values(error)),
+            ...article.procedure.screenshotsPending.flatMap(row => Object.values(row)),
+        ] : []),
+    ].join(' ').toLowerCase().includes(search.trim().toLowerCase()));
 
     function printManual() {
         const content = documentRef.current;
@@ -31,7 +44,7 @@ export default function WorkspaceManual({ module, articles, role }: {
         setPrintError('');
         printWindow.document.title = `${module.title} User Manual`;
         const css = printWindow.document.createElement('style');
-        css.textContent = '@page{size:A4;margin:18mm}body{font:11pt/1.65 Arial,sans-serif;color:#15271b;margin:0}h1{font-size:26pt;color:#1b5e20}h2{font-size:18pt;break-after:avoid}h3{font-size:14pt;break-after:avoid}h4{font-size:11pt;break-after:avoid}section{margin:22px 0}article{break-before:page}a{color:#1b5e20}dl>div{margin:12px 0}dt{font-weight:700}dd{margin:4px 0}li{margin:7px 0}svg{max-width:100%;height:auto}figure{break-inside:avoid}button,[data-manual-tools]{display:none}code{overflow-wrap:anywhere}';
+        css.textContent = '@page{size:A4;margin:18mm}body{font:11pt/1.65 Arial,sans-serif;color:#15271b;margin:0}h1{font-size:26pt;color:#1b5e20}h2{font-size:18pt;break-after:avoid}h3{font-size:14pt;break-after:avoid}h4{font-size:11pt;break-after:avoid}section{margin:22px 0}article{break-before:page}a{color:#1b5e20}dl>div{margin:12px 0}dt{font-weight:700}dd{margin:4px 0}li{margin:7px 0}svg,img{max-width:100%;height:auto}figure{break-inside:avoid}button,[data-manual-tools]{display:none}code{overflow-wrap:anywhere}';
         printWindow.document.head.appendChild(css);
         const copy = printWindow.document.importNode(content, true);
         const originals = content.querySelectorAll('svg, svg *');
@@ -81,7 +94,7 @@ export default function WorkspaceManual({ module, articles, role }: {
                     <p>User and training documentation</p>
                     <h1>{module.title}<br/>User Manual</h1>
                     <p>{module.description}</p>
-                    <dl><div><dt>Audience</dt><dd>{intro.audience}</dd></div><div><dt>Active-role edition</dt><dd>{role} · {articles.length} procedures available</dd></div><div><dt>Source review</dt><dd>5 November 2026</dd></div></dl>
+                    <dl><div><dt>Audience</dt><dd>{intro.audience}</dd></div><div><dt>Active-role edition</dt><dd>{role} · {articles.length} procedures available</dd></div><div><dt>Application version</dt><dd>1.0.0</dd></div></dl>
                 </header>
                 <SoftwareManualIntroduction/>
                 <section id="manual-introduction">
@@ -100,16 +113,33 @@ export default function WorkspaceManual({ module, articles, role }: {
                     <h2 className={styles.chapter}>Chapter {chapterIndex + 1}<br/>{topic}</h2>
                     {articles.filter(article => article.category === topic).map((article, procedureIndex) => <section key={article.slug} id={`procedure-${article.slug}`} className={styles.procedure}>
                         <h3>{chapterIndex + 1}.{procedureIndex + 1} {article.title}</h3>
-                        <p>{article.concept}</p>
+                        {!article.procedure && <p>{article.concept}</p>}
                         <div data-manual-tools className={styles.procedureTools}><Link href={article.route}>Open task page</Link><Link href={href(article.slug)}>Open this procedure separately</Link></div>
-                        <h4>Where to open it</h4><p>{article.open}</p>
+                        {!article.procedure && <><h4>Where to open it</h4><p>{article.open}</p></>}
                         {article.kind === 'workflow' && <WorkspaceWorkflowFigure slug={article.slug} hrefForArticle={href} availableSlugs={articles.map(item => item.slug)}/>}
                         {article.pilot && <WorkspacePilotGuide pilot={article.pilot}/>}
-                        <h4>Before you begin</h4><ul>{article.before.map(item => <li key={item}>{item}</li>)}</ul>
-                        <h4>Controls and fields</h4><dl>{article.controls.map((control, index) => <div key={`${article.slug}-control-${index}`}><dt>{control.name}</dt><dd>{control.description}</dd></div>)}</dl>
-                        <h4>Step-by-step procedure</h4><ol>{article.steps.map(step => <li key={step}>{step}</li>)}</ol>
-                        <h4>Expected outcome and verification</h4><p>{article.after}</p><p>{article.verify}</p>
-                        <h4>Worked example</h4><div className={styles.example}><p><strong>Situation</strong> {article.example.situation}</p><p><strong>Action</strong> {article.example.action}</p><p><strong>Expected outcome</strong> {article.example.expected}</p></div>
+                        {article.procedure ? <>
+                            <TestPanelProcedureDetails
+                                procedure={article.procedure}
+                                purpose={article.purpose}
+                                navigation={article.open}
+                                prerequisites={article.before}
+                                steps={article.steps}
+                                expectedResult={article.procedure.expectedResult}
+                                sections={article.sections}
+                            />
+                        </> : <>
+                            <h4>Before you begin</h4><ul>{article.before.map(item => <li key={item}>{item}</li>)}</ul>
+                            <h4>Controls and fields</h4><dl>{article.controls.map((control, index) => <div key={`${article.slug}-control-${index}`}><dt>{control.name}</dt><dd>{control.description}</dd></div>)}</dl>
+                            <h4>Step-by-step procedure</h4><ol>{article.steps.map(step => <li key={step}>{step}</li>)}</ol>
+                            {article.sections?.map(section => <section key={section.title}>
+                                <h4>{section.title}</h4>
+                                {section.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+                                {!!section.checklist?.length && <ul>{section.checklist.map((item, index) => <li key={index}>{item}</li>)}</ul>}
+                            </section>)}
+                            <h4>Expected outcome and verification</h4><p>{article.after}</p><p>{article.verify}</p>
+                            <h4>Worked example</h4><div className={styles.example}><p><strong>Situation</strong> {article.example.situation}</p><p><strong>Action</strong> {article.example.action}</p><p><strong>Expected outcome</strong> {article.example.expected}</p></div>
+                        </>}
                         <h4>Troubleshooting and recovery</h4><p>{article.recovery}</p>
                     </section>)}
                 </article>)}

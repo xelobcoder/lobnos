@@ -33,15 +33,97 @@ test('guides obey existing task permissions and do not grant operational access'
  assert(!canAccessRolePage('cashier','/billing/billing-strategy/strategies'));
  assert.equal(availableWorkspaceArticles(billing,'patient').length,0);
  assert.equal(availableWorkspaceArticles(billing,'scientist').length,0);
- assert.deepEqual(Array.from(availableWorkspaceArticles(operations,'nurse').map(a=>a.slug)),['vital-signs']);
+ assert.deepEqual(Array.from(availableWorkspaceArticles(operations,'nurse').map(a=>a.slug)),['test-panel-setup','vital-signs']);
  assert(!availableWorkspaceArticles(operations,'scientist').some(a=>a.slug==='lab-stock'));
  assert(availableWorkspaceArticles(operations,'scientist',{departmentStock:['laboratory']}).some(a=>a.slug==='lab-stock'));
- assert.deepEqual(Array.from(availableWorkspaceArticles(operations,'head of imaging').map(a=>a.slug)),['imaging-stock']);
+ assert.deepEqual(Array.from(availableWorkspaceArticles(operations,'head of imaging').map(a=>a.slug)),['test-panel-setup','imaging-stock']);
 });
 test('disabled facility modules hide their task guides',()=>{
  const inventory=workspaceLearning.find(m=>m.id==='inventory');
  assert.equal(availableWorkspaceArticles(inventory,'storekeeper',{moduleConfiguration:{modules:{inventory:{enabled:false}}}}).length,0);
  assert(availableWorkspaceArticles(inventory,'storekeeper',{moduleConfiguration:{modules:{inventory:{enabled:true}}}}).length>0);
+});
+
+test('test-panel setup is documented without widening page access',()=>{
+ const operations=workspaceLearning.find(module=>module.id==='operations');
+ const setup=operations.articles.find(article=>article.slug==='test-panel-setup');
+ const {manualIntroductions}=load('lib/workspaceManual.ts');
+ assert.ok(setup);
+ assert.match(setup.title,/test panel.*parameters.*references/i);
+ assert.match(setup.steps.join(' '),/new test/i);
+ assert.match(setup.steps.join(' '),/Test Fields/);
+ assert.match(setup.sections.flatMap(section=>(section.tables||[]).flatMap(table=>table.rows.flat())).join(' '),/Range \(M\/F\/Child\/Neonate\)/);
+ assert.match(setup.steps.join(' '),/approved.*source/);
+ assert.match(manualIntroductions.operations.rules.join(' '),/panel deletion is restricted to super-admins/);
+ assert.match(manualIntroductions.operations.rules.join(' '),/This manual does not supply clinical ranges/);
+ const scientistGuide=availableWorkspaceArticles(operations,'scientist').find(article=>article.slug==='test-panel-setup');
+ assert.equal(scientistGuide.route,'/operations/guide');
+ assert.equal(canAccessRolePage('scientist','/operations/laboratory/test-panels/testlist'),false);
+ const delegatedManager=availableWorkspaceArticles(operations,'manager',{testPanelsDelegation:true}).find(article=>article.slug==='test-panel-setup');
+ assert.equal(delegatedManager.route,'/operations/laboratory/test-panels/testlist');
+ assert.equal(canAccessRolePage('manager','/operations/laboratory/test-panels/testlist'),false);
+ assert.equal(canAccessRolePage('manager','/operations/laboratory/test-panels/testlist',{testPanelsDelegation:true}),true);
+ assert.match(setup.before.join(' '),/multiple roles must switch to an assigned scientist role/);
+ assert.match(setup.before.join(' '),/super-admin/);
+});
+
+test('test-panel procedure follows the evidence and verification standard',()=>{
+ const operations=workspaceLearning.find(module=>module.id==='operations');
+ const setup=operations.articles.find(article=>article.slug==='test-panel-setup');
+ const sections=setup.sections||[];
+ const sectionText=sections.flatMap(section=>[
+  section.title,...section.paragraphs,...(section.steps||[]),
+  ...(section.tables||[]).flatMap(table=>[table.caption,...table.headers,...table.rows.flat()]),
+  ...(section.checklist||[])
+ ]).join(' ');
+ for(const required of [
+  'Create the catalogue entry','Complete Test Details','Add the result fields',
+  'Arrange and save parameter order','Set up an optional calculation',
+  'Add procedure and literature information','Customize the report','Review outsourcing settings',
+  'Review critical-value actions','Review the completed test'
+ ])assert(sections.some(section=>section.title.includes(required)),required);
+ assert.match(sectionText,/fictional.*non-clinical/i);
+ assert.match(sectionText,/approved laboratory source/i);
+ assert.match(sectionText,/Apply order.*Save All Changes/i);
+ assert.match(sectionText,/GHS/);
+ assert.match(sectionText,/print hold does not prevent urgent communication with the clinician/i);
+ assert.match(sectionText,/Only a Super Administrator can delete a test/i);
+ assert.match(sectionText,/Test Fields plans: purpose, configuration, and safe example/);
+ assert.match(sectionText,/Fetal Biometry \(Hadlock\)/);
+ assert.match(sectionText,/Legacy means the older single-range setup: one lower and upper limit shared by everyone/i);
+ assert.match(sectionText,/live system.*PLS system staff use for real patient work/i);
+ assert.match(sectionText,/previewing calculates a sample result but does not save a patient result/i);
+ assert.match(sectionText,/Saving a formula changes the test configuration and can affect real results/i);
+ assert.match(sectionText,/Active means in use now, Scheduled means set to start later, Historical means its effective period has passed, and Inactive means it has been turned off/i);
+ assert.match(sectionText,/Require supervisor clearance/);
+ assert.match(sectionText,/Save actions for this rule/);
+ assert.equal(setup.procedure.id,'P-OPS-001');
+ assert(setup.procedure.roles.length>=4);
+ assert(setup.procedure.fields.length>=7);
+ assert(setup.procedure.screenshotsPending.length>=2);
+ assert.match(setup.procedure.commonErrors.map(error=>error.symptom).join(' '),/Field name is required/);
+ assert.match(setup.procedure.commonErrors.map(error=>error.symptom).join(' '),/Please select a field type/);
+ assert.match(setup.procedure.warnings.join(' '),/approved laboratory source/);
+ assert.equal(setup.procedure.related.length,0);
+ assert.match(setup.procedure.screenshotsPending.map(figure=>figure.figure).join(' '),/Figure 1/);
+ assert.equal('illustrations' in setup,false);
+ const readerText=[
+  setup.purpose,setup.concept,...setup.before,...setup.steps,
+  ...setup.procedure.roles.flatMap(row=>[row.role,row.permissions]),
+  ...setup.procedure.fields.flatMap(row=>Object.values(row)),
+  ...setup.procedure.warnings,...setup.procedure.alternatives,
+  ...setup.procedure.commonErrors.flatMap(error=>Object.values(error)),
+  ...setup.procedure.screenshotsPending.flatMap(figure=>Object.values(figure)),
+  ...sections.flatMap(section=>[
+   section.title,...section.paragraphs,...(section.steps||[]),
+   ...(section.tables||[]).flatMap(table=>[table.caption,...table.headers,...table.rows.flat()]),
+   ...(section.checklist||[])
+  ])
+ ].join(' ');
+ const technicalLeakage=readerText.match(/Verified \(source\)|source-only review|backend|endpoint|Evidence register|server-side enforcement|\.tsx\b|\/operations\/laboratory\/test-panels\/testlist/gi)||[];
+ assert.deepEqual(technicalLeakage,[]);
+ assert.equal('evidence' in setup.procedure,false);
+ assert.equal('gaps' in setup.procedure,false);
 });
 
 test('every guide teaches controls, prerequisites, outcomes and a worked example',()=>{
@@ -86,6 +168,10 @@ test('search finds concepts, actual field names, examples and recovery instructi
  const {searchWorkspaceArticles}=load('lib/workspaceLearning.ts');
  const operations=workspaceLearning.find(module=>module.id==='operations');
  assert(searchWorkspaceArticles(operations.articles,'Action limit (SD)').some(article=>article.slug==='quality-control'));
+ assert(searchWorkspaceArticles(operations.articles,'P-OPS-001').some(article=>article.slug==='test-panel-setup'));
+ assert(searchWorkspaceArticles(operations.articles,'Field name is required').some(article=>article.slug==='test-panel-setup'));
+ assert(searchWorkspaceArticles(operations.articles,'Figure 3').some(article=>article.slug==='test-panel-setup'));
+ assert(searchWorkspaceArticles(operations.articles,'Select Manage tests').some(article=>article.slug==='test-panel-setup'));
  const inventory=workspaceLearning.find(module=>module.id==='inventory');
  assert(searchWorkspaceArticles(inventory.articles,'committed').some(article=>article.slug==='funded-payments'));
  assert(searchWorkspaceArticles(inventory.articles,'unreceived').some(article=>article.slug==='department-stock'));

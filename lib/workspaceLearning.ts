@@ -9,6 +9,18 @@ export interface WorkspacePilot {
 }
 export interface WorkspaceArticle {
     pilot?: WorkspacePilot;
+    procedure?: {
+        id: string;
+        roles: { role: string; permissions: string }[];
+        fields: { field: string; required: string; entry: string; validation: string }[];
+        expectedResult: string;
+        alternatives: string[];
+        related: string[];
+        warnings: string[];
+        commonErrors: { symptom: string; cause: string; fix: string }[];
+        screenshotsPending: { figure: string; screen: string; state: string; dataNeeded: string }[];
+    };
+    sections?: { title: string; paragraphs: string[]; steps?: string[]; tables?: { caption: string; headers: string[]; rows: string[][] }[]; checklist?: string[] }[];
     slug: string;
     title: string;
     category: string;
@@ -105,6 +117,496 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     "/operations/laboratory/validation",
                     "/operations/laboratory/undelivered"
                 ]
+            },
+            {
+                "slug": "test-panel-setup",
+                "title": "Create a test panel, parameters and references",
+                "category": "Test setup and configuration",
+                "route": "/operations/laboratory/test-panels/testlist",
+                "entryRoutes": [
+                    "/operations/laboratory/test-panels/testlist",
+                    "/operations/guide"
+                ],
+                "purpose": "Create a laboratory test in the catalogue and configure its result parameters, units and reference information.",
+                "kind": "page",
+                "concept": "A test panel is the catalogue definition used by billing and laboratory result entry. Its test details and ordered parameter fields determine what staff see and record. Reference information is clinical configuration: it must come from an approved laboratory source and be checked before the panel is used for patient work.",
+                "procedure": {
+                    "id": "P-OPS-001",
+                    "roles": [
+                        {
+                            "role": "Super-admin",
+                            "permissions": "Can view and manage test panels, delegate staff access and delete a test."
+                        },
+                        {
+                            "role": "Administrator",
+                            "permissions": "Can view and manage test panels and delegate staff access. Cannot delete a test."
+                        },
+                        {
+                            "role": "Manager",
+                            "permissions": "Can delegate access to eligible scientists in the manager's branch. Viewing and managing panels require panel access."
+                        },
+                        {
+                            "role": "Scientist / lab scientist / head of laboratory",
+                            "permissions": "Can view or manage when access has been granted and an assigned scientist role is active. Switching to another role turns off delegated panel access."
+                        },
+                        {
+                            "role": "Other staff",
+                            "permissions": "Cannot view or manage test panels unless an eligible role is assigned."
+                        }
+                    ],
+                    "fields": [
+                        {
+                            "field": "Test Name",
+                            "required": "Yes",
+                            "entry": "Enter the approved catalogue name.",
+                            "validation": "The creation form rejects an empty name with “Test names cannot be empty”."
+                        },
+                        {
+                            "field": "Category; Sample Type",
+                            "required": "Yes (form marks both required)",
+                            "entry": "Select the approved department/category and specimen type.",
+                            "validation": "Choose a configured category and sample type. Available containers depend on the selected sample type."
+                        },
+                        {
+                            "field": "Sample Container; Unit; Sample Quantity",
+                            "required": "Optional when applicable",
+                            "entry": "Use the approved container, amount unit and quantity when applicable.",
+                            "validation": "Some controls are disabled when the selected sample type has no eligible container."
+                        },
+                        {
+                            "field": "Cost of Test; Test Price; Short Text; Report Title; Method; Instrumentation; Device Interface Mapping; Description",
+                            "required": "No explicit required marker confirmed",
+                            "entry": "Enter only values approved for the catalogue and intended workflow.",
+                            "validation": "Device mapping is optional; use it only when the approved workflow uses an instrument interface."
+                        },
+                        {
+                            "field": "Test Fields: Field Name; Plan; Units; Specific Config; Category; Req?; Order",
+                            "required": "Field Name and Plan are required; Req? is optional.",
+                            "entry": "Define each result item using the appropriate plan and approved source values.",
+                            "validation": "The editor reports “Field name is required” or “Please select a field type” when those values are missing."
+                        },
+                        {
+                            "field": "Range (M/F/Child/Neonate)",
+                            "required": "Only applicable groups in the approved specification",
+                            "entry": "Enter the applicable lower/upper values for Male, Female, Children and Neonate.",
+                            "validation": "A Legacy lower/upper pair is also displayed. Do not copy values across groups to fill blanks."
+                        },
+                        {
+                            "field": "Dropdown options; Reference; Compare; Compare (<=/>=)",
+                            "required": "When required by the selected Plan",
+                            "entry": "Use approved options, a reviewed text reference, or the approved comparison expression.",
+                            "validation": "Dropdown options are comma-separated; comparison plans use the text-reference input."
+                        },
+                        {
+                            "field": "TAT Count; Pre Tat; Tat; Post Tat",
+                            "required": "No explicit required marker confirmed",
+                            "entry": "Follow the facility's documented timing convention and approved values.",
+                            "validation": "Each has a numeric value and a unit selector (min, hours, seconds); exact timing semantics require local confirmation."
+                        }
+                    ],
+                    "expectedResult": "The test and its fields appear in the Test Panels list. When you reopen the test, its details and parameter order match the approved specification.",
+                    "alternatives": [
+                        "Use Add Row on the creation form to enter another test name in the same submission.",
+                        "Use the existing test's Manage Test action to continue an incomplete configuration instead of creating a duplicate.",
+                        "A test may use general report settings or a per-test custom report layout. Configure formulas only for derived output values."
+                    ],
+                    "related": [],
+                    "warnings": [
+                        "Clinical ranges, units, thresholds, dropdown values and formulas must come from an approved laboratory source. Examples in this guide are fictional and do not provide clinical reference values.",
+                        "Add and Apply order update the editor draft. Choose Save All Changes to persist fields and their ordering.",
+                        "The Procedure Manual, Literature and Report Settings have separate save controls. Verify each section independently.",
+                        "Only administrators see the Outsourcing and Critical-value actions tabs in this panel editor. Ask an administrator to confirm that you are authorized before changing these settings.",
+                        "Deleting a test removes associated information. Only a Super Administrator may delete a test. Do not use deletion as a correction method."
+                    ],
+                    "commonErrors": [
+                        {
+                            "symptom": "“Test names cannot be empty”",
+                            "cause": "A test name field is blank when Add Tests is selected.",
+                            "fix": "Enter a name in every row or remove an unused extra row, then choose Add Tests."
+                        },
+                        {
+                            "symptom": "“Field name is required”",
+                            "cause": "The field name is blank when Add is selected.",
+                            "fix": "Enter the approved field name, then select Add."
+                        },
+                        {
+                            "symptom": "“Please select a field type”",
+                            "cause": "No Plan is selected for the field.",
+                            "fix": "Select the appropriate Plan before adding the field."
+                        },
+                        {
+                            "symptom": "“You do not have permission to view test panels.” or management actions are unavailable",
+                            "cause": "You do not have panel access, or your active role is not an assigned scientist role.",
+                            "fix": "Ask an administrator or your branch manager to grant access. If you have multiple roles, switch to your assigned scientist role."
+                        },
+                        {
+                            "symptom": "Parameter order changes but is not present after reopening",
+                            "cause": "Apply order changed only the editor draft and Save All Changes was not completed.",
+                            "fix": "Arrange the parameters again, select Apply order, then Save All Changes and reopen to verify."
+                        },
+                        {
+                            "symptom": "“Please select a parameter”",
+                            "cause": "Create a Validator was selected before choosing a result parameter.",
+                            "fix": "Choose the intended parameter in Parameter selection, then create the validator."
+                        },
+                        {
+                            "symptom": "“Please select a constraint”",
+                            "cause": "Create a Validator was selected before choosing a constraint type.",
+                            "fix": "Choose the approved constraint in Constraints, then create the validator."
+                        },
+                        {
+                            "symptom": "“Only Numbers allowed”",
+                            "cause": "A Less than value or Greater than value target is blank or not numeric.",
+                            "fix": "Enter the approved numeric target for that condition."
+                        },
+                        {
+                            "symptom": "“Must include - delimeter”",
+                            "cause": "An In range of two values target does not contain two numeric limits separated by a hyphen.",
+                            "fix": "Enter the approved lower and upper values with a hyphen between them."
+                        },
+                        {
+                            "symptom": "“Condition constraints not found”",
+                            "cause": "update Information was selected before at least one validator was added.",
+                            "fix": "Add the approved validator and then choose update Information."
+                        },
+                        {
+                            "symptom": "“This exact validator already exists”",
+                            "cause": "The same parameter, constraint, target, and range setting are already in the condition.",
+                            "fix": "Review the existing validator instead of adding a duplicate."
+                        }
+                    ],
+                    "screenshotsPending": [
+                        {
+                            "figure": "Figure 1",
+                            "screen": "Test Panels list and new test creation form",
+                            "state": "Training test list is open with the new test form ready.",
+                            "dataNeeded": "A training account with permission to manage test panels."
+                        },
+                        {
+                            "figure": "Figure 2",
+                            "screen": "Test Details editor",
+                            "state": "Training panel populated with fictional, non-clinical data.",
+                            "dataNeeded": "A training account and a fictional test panel."
+                        },
+                        {
+                            "figure": "Figure 3",
+                            "screen": "Test Fields table and Arrange test parameters dialog",
+                            "state": "Fictional placeholder fields reordered in an unsaved draft.",
+                            "dataNeeded": "A training account and a fictional test panel."
+                        },
+                        {
+                            "figure": "Figure 4",
+                            "screen": "Staff Access delegation table",
+                            "state": "Demo scientist row with view/manage checkboxes and no personal data beyond a fictional name.",
+                            "dataNeeded": "A training manager or administrator account and a fictional scientist account."
+                        },
+                        {
+                            "figure": "Figure 5",
+                            "screen": "Critical-value actions rule",
+                            "state": "Fictional condition rule with action choices visible and a training-only reason entered before saving.",
+                            "dataNeeded": "A training administrator account and a fictional test with an approved training condition."
+                        },
+                        {
+                            "figure": "Figure 6",
+                            "screen": "Condition rule and validator editor",
+                            "state": "Fictional condition name, selected parameter, constraint type, and placeholder target before saving.",
+                            "dataNeeded": "A training account with panel-management access and a fictional test field."
+                        }
+                    ]
+                },
+                "before": [
+                    "Confirm the active facility, branch and role. A staff member with multiple roles must switch to an assigned scientist role to manage panels.",
+                    "Use an account with test-panel management permission. Ask a manager, administrator or super-admin to grant access if the page or edit actions are unavailable.",
+                    "Have the approved test name, department, specimen type, container, method, units, parameter definitions, reference information and authorization to publish the configuration.",
+                    "Use a training facility and fictional setup for practice. Do not copy illustrative or guessed ranges into a live catalogue."
+                ],
+                "controls": [
+                    {
+                        "name": "New Test / Add Tests",
+                        "description": "Creates one or more custom test names in the catalogue. Add Row supplies another name in a batch; it does not finish the panel configuration."
+                    },
+                    {
+                        "name": "Test Details",
+                        "description": "Stores catalogue details such as category, sample type and container, sample unit and quantity, cost and price, report title, method, instrumentation and description."
+                    },
+                    {
+                        "name": "Test Fields",
+                        "description": "Defines the ordered result parameters, input plan, unit, optional category, required status, specific reference or range configuration and preview."
+                    },
+                    {
+                        "name": "Calculations",
+                        "description": "Defines an optional calculated output from configured parameters, including input mapping, expression, units, precision, effective date and conditions. Use Calculate preview to check examples before saving."
+                    },
+                    {
+                        "name": "Save Changes / Save All Changes",
+                        "description": "Saves test details or the current parameter configuration. Reopen the test after saving to verify the persisted setup."
+                    }
+                ],
+                "steps": [
+                    "Confirm the facility and branch shown in the application.",
+                    "Confirm the active role shown in the application.",
+                    "Switch to the assigned scientist role if you hold multiple roles and are using delegated scientist access.",
+                    "Open Operations → Laboratory → Test Panels.",
+                    "Choose the lowercase “new test” action.",
+                    "Enter the approved name in Test Name.",
+                    "Choose Add Row only when another test name belongs in the same batch.",
+                    "Choose Add Tests to submit the entered test names.",
+                    "Return to the Test Panels list.",
+                    "Choose Manage Test on the catalogue entry you intend to configure.",
+                    "In Test Details, select the approved Category.",
+                    "Select the approved Sample Type.",
+                    "Select the approved Sample Container when applicable.",
+                    "Enter Unit when applicable to the specification.",
+                    "Enter Sample Quantity when applicable to the specification.",
+                    "Enter Short Text when the approved catalogue description requires it.",
+                    "Enter Cost of Test from the approved pricing source.",
+                    "Enter Test Price from the approved pricing source.",
+                    "Enter the approved Report Title.",
+                    "Enter the approved Method.",
+                    "Enter Instrumentation when applicable.",
+                    "Configure Device Interface Mapping only when the approved workflow requires it.",
+                    "Set each Configuration switch to match the approved workflow.",
+                    "Enter TAT Count, Pre Tat, Tat and Post Tat values using the facility's documented timing convention.",
+                    "Choose Save Changes in Test Details.",
+                    "Open Test Fields.",
+                    "Choose Add Field.",
+                    "Enter the approved result-item name in Field Name.",
+                    "Choose the matching Plan.",
+                    "Choose Units when the approved field specification requires a unit.",
+                    "Enter the plan-specific value in Specific Config.",
+                    "Choose Category when the field should be grouped.",
+                    "Set Req? to match the approved requirement for the field.",
+                    "Review the Preview column for the new field.",
+                    "Choose Add to add the field to the editor draft.",
+                    "Repeat the field steps for every approved result item.",
+                    "Choose Arrange parameters after adding at least two fields and finishing any current field edit.",
+                    "Set each parameter's position or move rows to the approved result display order.",
+                    "Choose Apply order to update the editor draft.",
+                    "Choose Save All Changes to persist fields and their ordering.",
+                    "Reopen the panel and confirm the saved parameter sequence.",
+                    "Configure a formula only when an approved result is calculated from other fields.",
+                    "Use Calculate preview with fictional test inputs before saving a formula version.",
+                    "Use each section's save action when updating Procedure Manual, Literature or Report Settings.",
+                    "Compare the reopened configuration with the approved specification before the test is used for patient work."
+                ],
+                "sections": [
+                    {
+                        "title": "Access and prepare",
+                        "paragraphs": [
+                            "Administrators and managers can delegate panel access to scientists. Managers can choose only scientists assigned to their branch. Manage tests includes View page; removing View page also removes Manage tests. Access is assigned to the staff member but works only while they use an assigned scientist role. A person with multiple roles should switch to that scientist role before opening the panel. Delegated access never includes deleting a test; only a Super Administrator can do that.",
+                            "Before creating a live panel, obtain the approved test specification and identify who will review and authorize it. Confirm the facility and branch, exact display name, category, specimen and container, method, instruments, sample requirements, report wording, parameter definitions, units, applicable demographics, references, required status, and any calculation or operational policy. Use the approved laboratory source for clinical values; do not infer missing details from a similar panel."
+                        ],
+                        "steps": [
+                            "Open Test Panels and choose Staff Access.",
+                            "Find the scientist in the staff list.",
+                            "Select View page to allow the scientist to open the panel page.",
+                            "Select Manage tests when the scientist may add or edit tests, parameters, conditions and references.",
+                            "Choose Save.",
+                            "Ask the scientist to switch to their assigned scientist role before opening the page.",
+                            "Confirm the scientist can perform only the access level you assigned."
+                        ],
+                        "checklist": [
+                            "Practice in a training facility using fictional records.",
+                            "Keep the approved source and its effective/review date available.",
+                            "Stop and ask the laboratory lead when a unit, reference, demographic group or clinical rule is unclear."
+                        ]
+                    },
+                    {
+                        "title": "Create the catalogue entry",
+                        "paragraphs": [
+                            "From Operations → Laboratory → Test Panels choose the lowercase new test button. Enter the approved display name. Add Row adds another name to the batch; Add Tests submits the names as catalogue entries. This step does not configure result parameters. Return to the list and choose Manage Test for the entry you intend to configure.",
+                            "Worked example (fictional, non-clinical): a training site is asked to create “Training Panel Alpha”. The trainee adds that name, submits it, finds the resulting row and opens Manage Test. The example deliberately supplies no analyte, reference range or patient-facing result."
+                        ]
+                    },
+                    {
+                        "title": "Complete Test Details",
+                        "paragraphs": [
+                            "In Test Details, confirm Test Name, then choose the approved Category and Sample Type. Choose Sample Container and enter Unit and Sample Quantity when applicable. Complete Short Text, Cost of Test, Test Price, Report Title, Method, Instrumentation and Device Interface Mapping only as specified for the test.",
+                            "Review the Configuration switches: Has Manual, Show Trend, Has Varied Gender, Has Children Limit, Outsourced Test, Use Drugs, Use Literature and Require QC before result entry. Some switches reveal additional fields; for example, Procedure Code appears when Has Manual is selected. Set only those required by the approved workflow.",
+                            "Enter TAT Count, Pre Tat, Tat and Post Tat using your facility's documented timing convention. Each value has a unit selector. Confirm the intended meaning and units with the laboratory lead before saving.",
+                            "Choose Save Changes."
+                        ],
+                        "checklist": [
+                            "Confirm category, specimen and container match the approved request.",
+                            "Check conditional fields after changing a switch.",
+                            "Reopen Test Details after saving and compare it with the approved specification."
+                        ]
+                    },
+                    {
+                        "title": "Add the result fields",
+                        "paragraphs": [
+                            "In Test Fields, choose Add Field. Enter a unique Field Name and select a Plan. Set Units, Specific Config, Category and Req? using the approved test specification. Review the Preview column and choose Add. Add places the field in the editor draft; it does not yet save all fields to the test.",
+                            "Use the plan table to choose the field that matches how a result should be entered or displayed. The table explains every available Plan and what to enter in Specific Config. Select Units only when the approved specification requires a unit.",
+                            "The examples are fictional formatting examples. They show entry shape only and are not clinical recommendations. For every Reference, Range, comparison threshold, dropdown choice, formula or unit, use the exact approved laboratory specification. Do not guess missing values."
+                        ],
+                        "tables": [
+                            {
+                                "caption": "Test Fields plans: purpose, configuration, and safe example",
+                                "headers": ["Plan", "Use this for", "Specific Config and example", "Important check"],
+                                "rows": [
+                                    ["Dropdown", "A result selected from a fixed list.", "Enter choices separated by commas. Example: Training status → Option A, Option B.", "Use the approved options and exact wording. Avoid commas inside a choice because commas separate choices."],
+                                    ["Text", "A short, single-line value typed by the user.", "No plan-specific configuration. Example field: Reviewer initials.", "Choose a suitable Units value only when the approved specification requires one."],
+                                    ["Reference", "Reference information displayed with the result field.", "Enter the approved reference text in Specific Config. Separate display lines with semicolons. Do not put guessed clinical values in this field.", "Copy the approved wording and demographic labels exactly."],
+                                    ["Range (M/F/Child/Neonate)", "Numeric results with separate limits for applicable demographic groups.", "Enter Min and Max for each applicable Male, Female, Children, or Neonate group. Example shape only: Male Min [approved lower] / Max [approved upper]. The editor also shows a row labeled Legacy with Min and Max. Legacy means the older single-range setup: one lower and upper limit shared by everyone, instead of separate group limits. Use that row only when the approved specification gives one shared range; use the demographic rows when it gives group-specific ranges."],
+                                    ["Fetal Biometry (Hadlock)", "The fetal-biometry result workflow.", "The result entry uses BPD, FL, HC, and AC with Hadlock EFW. No sample measurements are provided here.", "Choose only when this is the intended approved workflow."],
+                                    ["Compare", "A result evaluated against a configured comparison expression.", "Enter the approved comparison in Specific Config. Safe example shape: > [approved threshold].", "Confirm the operator, threshold, and units with the approved specification."],
+                                    ["Compare (<=/>=)", "A comparison using the inclusive operators shown by the Plan name.", "Enter the approved <= or >= expression in Specific Config. Safe example shape: <= [approved threshold].", "Do not substitute a threshold or operator based on a similar test."],
+                                    ["Text Area", "A longer, multi-line text result.", "No plan-specific configuration. Example field: Reviewer comment.", "Use when a longer written result is expected, not for a fixed choice list."],
+                                    ["Time", "A time value.", "No plan-specific configuration. Example field: Collection time.", "Confirm the facility's expected time format and time zone conventions."],
+                                    ["Ultrasound", "An ultrasound measurement entry.", "No plan-specific configuration is shown. Example field: Training measurement.", "Confirm the exact measurement workflow with the ultrasound lead."],
+                                    ["Date & Time", "A date and time value.", "No plan-specific configuration. Example field: Review timestamp.", "Confirm whether the workflow expects local time or another documented convention."],
+                                    ["Date", "A date value without a time.", "No plan-specific configuration. Example field: Review date.", "Confirm the required date convention for the report."]
+                                ]
+                            }
+                        ],
+                        "checklist": [
+                            "Check Field Name, Plan, Units, Category, and Req? against the approved specification.",
+                            "Inspect every plan-specific value and the Preview before choosing Add.",
+                            "Compare every reference, option, threshold, and demographic range with its approved source."
+                        ]
+                    },
+                    {
+                        "title": "Arrange and save parameter order",
+                        "paragraphs": [
+                            "The field order controls the order shown in the result and report. Choose Arrange parameters. Enter positions from 1 to the number of fields and press Enter, drag rows, use the up/down buttons, or focus a row handle and press Alt+Arrow Up/Down. Reset order returns to the current draft order.",
+                            "Choose Apply order to return to the field editor. Then choose Save All Changes. Apply order alone does not save to the test. Reopen the test and check that the parameters appear in the approved order."
+                        ],
+                        "checklist": [
+                            "Check the first, middle and last parameter positions.",
+                            "Apply the order, then choose Save All Changes.",
+                            "Reopen the panel to verify the persisted order."
+                        ]
+                    },
+                    {
+                        "title": "Set up an optional calculation",
+                        "paragraphs": [
+                            "Use Calculations only when a result must be derived from other fields. Select the output parameter, assign a unique token to each input field, enter the approved expression, output unit and decimal precision. Add numeric conditions and an effective date only when they are part of the approved calculation. Do not add a formula for a result entered directly by staff.",
+                            "The live system (sometimes called production) is the PLS system staff use for real patient work. Use fictional sample inputs in Calculate preview to check the expression, units, conditions and rounding; previewing calculates a sample result but does not save a patient result. Saving a formula changes the test configuration and can affect real results, so do not save an unapproved formula in the live system. Use a designated training system if available, or follow your facility's approval process.",
+                            "Effective from is the date the saved formula version starts being used. If that date is in the future, the current version stays in use until then. Check Formula History: Active means in use now, Scheduled means set to start later, Historical means its effective period has passed, and Inactive means it has been turned off. Confirm the intended date and status before relying on the formula.",
+                            "Calculation conditions affect the formula. They are separate from field references and the test's other condition rules."
+                        ],
+                        "checklist": [
+                            "Confirm every input token maps to the intended parameter.",
+                            "Use fictional sample values in Calculate preview; do not use patient results as test inputs.",
+                            "Do not save an unapproved formula in the live system.",
+                            "Check Effective from and the Formula History status before relying on a calculation."
+                        ]
+                    },
+                    {
+                        "title": "Add procedure and literature information",
+                        "paragraphs": [
+                            "Procedure Manual and Literature are separate tabs and save separately. Add only current, approved procedure or literature information. Enter enough title and publication details for staff to identify the material, choose the tab's update button, then reopen the tab to confirm the saved content. Literature does not replace the field's reference values or the approved laboratory procedure."
+                        ]
+                    },
+                    {
+                        "title": "Customize the report",
+                        "paragraphs": [
+                            "By default, the test uses general report settings. To customize this test, open Report Settings and review General, Company Info, Report Options, Ultrasound and Comments. The custom settings start from the general report settings. Choose Save Changes to save the test-specific layout. Choose Revert to General to remove the test-specific layout and use the general settings again.",
+                            "Review a training report after changes. Check that the parameter order, units and report headings are clear. Report layout changes do not change the test fields themselves."
+                        ]
+                    },
+                    {
+                        "title": "Review outsourcing settings",
+                        "paragraphs": [
+                            "Only administrators see the Outsourcing tab. If you are not an administrator, ask one to review these settings. The tab lets an authorized administrator choose the partner laboratory and enter the agreed cost in GHS, turnaround time and agreement validity dates. Check each value against the current contract. Changing the panel agreement does not change the saved cost on an already-created outsourced case."
+                        ]
+                    },
+                    {
+                        "title": "Create a condition rule for critical actions",
+                        "paragraphs": [
+                            "Critical-value actions are attached to a condition rule. If no rule exists, open Configure thresholds and condition rules from the Critical-value actions tab. Enter the condition name and choose Create Condition. Confirm Yes when asked whether to continue to constraints.",
+                            "On the constraints page, choose a result parameter, choose a constraint, enter the target, and choose Create a Validator. Review Added Constraints and choose update Information to save the rule. Use only a condition and target approved by the laboratory lead; this manual supplies no clinical thresholds."
+                        ],
+                        "tables": [
+                            {
+                                "caption": "Condition constraints and target format",
+                                "headers": ["Constraint", "What it checks", "Target format", "Validation"],
+                                "rows": [
+                                    ["Less than value", "Checks whether the selected parameter is below one target.", "One numeric target, copied from the approved rule.", "Only numbers are accepted."],
+                                    ["Greater than value", "Checks whether the selected parameter is above one target.", "One numeric target, copied from the approved rule.", "Only numbers are accepted."],
+                                    ["Match value", "Checks whether the selected parameter matches a specified value.", "The exact approved value as text.", "Target value is required."],
+                                    ["Does not match value", "Checks whether the selected parameter differs from a specified value.", "The exact approved value as text.", "Target value is required."],
+                                    ["In range of two values", "Checks whether the selected parameter is within a lower and upper target.", "Two numeric targets separated by a hyphen, for example [approved lower]-[approved upper].", "Both sides must be numeric and the hyphen is required."]
+                                ]
+                            }
+                        ],
+                        "steps": [
+                            "Choose Configure thresholds and condition rules.",
+                            "Enter the approved name in Condition Name.",
+                            "Choose Create Condition.",
+                            "Choose Yes in the confirmation dialog.",
+                            "Choose a parameter in Parameter selection.",
+                            "Choose the approved option in Constraints.",
+                            "Enter the approved target in Value to target.",
+                            "Choose Create a Validator.",
+                            "Review the row under Added Constraints.",
+                            "Choose update Information.",
+                            "Confirm the “Conditions Updated Successfully” message appears.",
+                            "Return to the test's Critical-value actions tab."
+                        ],
+                        "checklist": [
+                            "Use a condition and target approved for this test by the laboratory lead.",
+                            "Check parameter, constraint, and target before saving.",
+                            "Do not enter patient data as a threshold example."
+                        ]
+                    },
+                    {
+                        "title": "Review critical-value actions",
+                        "paragraphs": [
+                            "The Critical-value actions tab is shown to administrators. It configures the response when an existing condition rule matches; it does not create the threshold itself. Review the rule name, parameter, condition, and target before changing its actions. If the page says no condition rules are configured, use Configure thresholds and condition rules and have the laboratory lead approve the rule before setting actions.",
+                            "Fictional, non-clinical example: on a training test, a rule named Training status check can use the Training status field, Match value, and Option A, then require acknowledgement. This example demonstrates the setup only; it is not a clinical rule or threshold.",
+                            "Choose only the actions in the approved laboratory policy. An alert is always recorded. Acknowledgement, a clinician communication record, report-printing holds, electronic-release holds, and supervisor clearance are separate controls. A print hold does not prevent urgent communication with the clinician. These actions are distinct from calculation conditions and field references.",
+                            "Reason for policy change is required and must contain 3 to 2,000 characters. Save actions for each rule separately. The page confirms a successful save with “Critical actions saved.” Changes apply to future result saves; existing findings keep the policy that was active when they were triggered."
+                        ],
+                        "tables": [
+                            {
+                                "caption": "Critical-value actions and what each selection controls",
+                                "headers": ["Action", "What it means", "When to select it"],
+                                "rows": [
+                                    ["Require acknowledgement", "Requires the finding to be acknowledged as part of the response.", "Select only when the approved policy requires staff acknowledgement."],
+                                    ["Require clinician communication record", "Requires a record of communication with the clinician.", "Select when the approved policy requires that communication to be documented."],
+                                    ["Hold final report printing", "Prevents final report printing while the critical hold remains unresolved.", "Select when the approved policy requires a print hold. This does not block urgent clinician communication."],
+                                    ["Hold electronic delivery and portal release", "Prevents electronic delivery and portal release while the hold remains unresolved.", "Select when the approved policy requires an electronic-release hold."],
+                                    ["Require supervisor clearance", "Requires a supervisor to clear the critical hold.", "Select when the approved policy requires supervisor clearance before release."]
+                                ]
+                            }
+                        ],
+                        "steps": [
+                            "Open the test's Critical-value actions tab.",
+                            "Review the condition name, parameter, condition, and target shown for each rule.",
+                            "Open Configure thresholds and condition rules if the page reports that no rules are configured.",
+                            "Select only the action checkboxes required by the approved laboratory policy.",
+                            "Enter the reason in Reason for policy change.",
+                            "Choose Save actions for this rule.",
+                            "Confirm the “Critical actions saved” message appears."
+                        ]
+                    },
+                    {
+                        "title": "Review the completed test",
+                        "paragraphs": [
+                            "Each tab has its own save button. Reopen the test and check Test Details, Test Fields, parameter order, references, required fields, any formula, Procedure Manual, Literature and Report Settings. Ask the laboratory reviewer to compare the finished panel with the approved specification before it is used for patient work.",
+                            "If you created the test name but have not finished the panel, choose Manage Test for that test instead of creating another. If a save times out or shows an error, reopen the test and check whether your changes were saved before trying again. Only a Super Administrator can delete a test; deletion is not a way to correct a panel."
+                        ],
+                        "checklist": [
+                            "All expected fields exist once, in the intended order.",
+                            "Units, ranges, options, required flags, calculations and report display have been reviewed.",
+                            "A designated reviewer has approved the panel before operational use."
+                        ]
+                    }
+                ],
+                "verify": "After reopening the panel, its details and every intended parameter, unit, required flag, reference and calculation match the approved specification. A designated laboratory reviewer has checked the clinical configuration before live use.",
+                "recovery": "If a name was created but the panel is incomplete, find that entry in the test list and continue with Manage Test rather than creating a duplicate. If a save reports an error or times out, reopen the panel or refresh its saved fields before retrying. If the reference source, units or demographic applicability are uncertain, do not proceed with patient use; ask the laboratory lead to confirm the approved configuration.",
+                "after": "The catalogue entry and its saved result configuration are available for the configured downstream workflow, subject to the facility's review and release process.",
+                "example": {
+                    "situation": "A laboratory lead authorizes a new fictional training test and supplies a reviewed specification with its parameter names, units and references.",
+                    "action": "In a training facility, create the test name, complete Test Details, add the specified fields and references, save, reopen and compare the saved configuration with that specification.",
+                    "expected": "The saved training panel matches the supplied specification. No illustrative values from this manual are treated as patient results or clinical reference ranges."
+                },
+                "related": [
+                    "sample-to-report",
+                    "result-entry"
+                ],
+                "open": "Use Operations → Laboratory → Test Panels, then choose New Test or Manage Test. The panel workspace is available only with the active role's required access. If the task-page link opens the Operations Learning Center, request panel access from an authorized manager or administrator."
             },
             {
                 "slug": "vital-signs",
@@ -1243,6 +1745,14 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
         ],
         "glossary": [
             {
+                "term": "Test panel",
+                "meaning": "A test catalogue entry with its operational details and configured result fields."
+            },
+            {
+                "term": "Reference information",
+                "meaning": "Approved interpretation guidance configured for a result parameter; it must match the laboratory's authorized source and applicability."
+            },
+            {
                 "term": "Specimen",
                 "meaning": "Material collected from a patient for a requested test."
             },
@@ -1265,6 +1775,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
         ],
         "startPath": [
             "sample-to-report",
+            "test-panel-setup",
             "vital-signs",
             "sample-collection",
             "sample-validation"
@@ -3952,6 +4463,15 @@ export function searchWorkspaceArticles(articles: WorkspaceArticle[], query: str
     const search = query.trim().toLowerCase();
     return articles.filter(article => [article.title, article.category, article.route, article.purpose, article.concept,
         article.open, ...article.before, ...article.controls.flatMap(control => [control.name, control.description]),
-        ...article.steps, article.after, article.verify, article.recovery, ...Object.values(article.example)]
+        ...article.steps, article.after, article.verify, article.recovery, ...Object.values(article.example),
+        ...(article.sections || []).flatMap(section => [section.title, ...section.paragraphs, ...(section.steps || []), ...(section.tables || []).flatMap(table => [table.caption, ...table.headers, ...table.rows.flat()]), ...(section.checklist || [])]),
+        ...(article.procedure ? [
+            article.procedure.id, article.procedure.expectedResult,
+            ...article.procedure.roles.flatMap(row => [row.role, row.permissions]),
+            ...article.procedure.fields.flatMap(row => Object.values(row)),
+            ...article.procedure.warnings, ...article.procedure.alternatives,
+            ...article.procedure.commonErrors.flatMap(error => Object.values(error)),
+            ...article.procedure.screenshotsPending.flatMap(row => Object.values(row)),
+        ] : [])]
         .join(' ').toLowerCase().includes(search));
 }

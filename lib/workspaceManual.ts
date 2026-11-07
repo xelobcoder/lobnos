@@ -10,10 +10,11 @@ export interface ManualIntroduction {
 }
 export const manualIntroductions: Record<string, ManualIntroduction> = {
     "operations": {
-        "overview": "This manual follows a diagnostic case from the patient visit and specimen through processing, result entry, validation and report delivery. It also explains supporting work such as critical-result communication, quality control, outsourcing, specimen retention, imaging and departmental stock. Staff must identify the same patient, visit and service at every handoff. A row in a worklist is a starting point for review. The service status and application rules determine which action can be performed.",
+        "overview": "This manual follows a diagnostic case from the patient visit and specimen through processing, result entry, validation and report delivery. It also explains how authorized staff create test panels and configure their result parameters and reference information, alongside supporting work such as critical-result communication, quality control, outsourcing, specimen retention, imaging and departmental stock. Staff must identify the same patient, visit and service at every handoff. A row in a worklist is a starting point for review. The service status and application rules determine which action can be performed.",
         "audience": "Laboratory scientists, phlebotomy staff, imaging staff, nurses, department heads, supervisors and authorized report-delivery staff.",
         "objectives": [
             "Locate the correct patient visit and identify its current stage.",
+            "Create and verify test-panel and result-field configuration when authorized.",
             "Record specimen, result and delivery actions against the correct service.",
             "Distinguish result entry, validation, communication and final release.",
             "Investigate rejected samples, missing evidence and outsourced report returns.",
@@ -26,7 +27,7 @@ export const manualIntroductions: Record<string, ManualIntroduction> = {
             ],
             [
                 "Scientist / result author",
-                "Work within assigned visibility and editing permissions, record measured values and review material usage."
+                "Work within assigned visibility and editing permissions, record measured values and review material usage. Scientists with test-panel management permission may maintain panel details and result fields."
             ],
             [
                 "Validator",
@@ -53,12 +54,15 @@ export const manualIntroductions: Record<string, ManualIntroduction> = {
             "Confirm the active facility, branch and role before opening clinical work.",
             "Have a reliable patient identifier and the intended visit or billing reference.",
             "Review specimen requirements, required workflow stages and payment eligibility.",
-            "Check that the relevant device, control material or partner setup exists for the task."
+            "Check that the relevant device, control material or partner setup exists for the task.",
+            "Confirm that test names, units and reference information come from an approved laboratory specification before configuring a panel."
         ],
         "rules": [
             "A changed result must be reviewed as its current revision. A previous approval must not be treated as approval of the changed values.",
             "Unpaid and partially paid services follow the application settings governing entry, validation and printing. A visible worklist row does not override those settings.",
             "Assigned responsibility does not itself grant editing, validation or supervisory authority.",
+            "Test-panel management is a delegated permission. Staff with multiple roles must use an assigned scientist role to manage panels; panel deletion is restricted to super-admins.",
+            "Reference information and calculation conditions must match an approved laboratory source and undergo the facility's review before live use. This manual does not supply clinical ranges.",
             "Critical-result acknowledgement, successful clinician communication and release clearance are separate recorded events.",
             "A returned external PDF provides source evidence. Internal validation and report release still follow their own checks.",
             "Receipt of department stock must reflect the physical quantity received. Unreceived quantities require investigation and cannot be consumed."

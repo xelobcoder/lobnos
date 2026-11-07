@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import guide from './page.module.css';
+import TestPanelProcedureDetails from '../../../components/learning/TestPanelProcedureDetails';
 
 export interface LearningArticleView {
     slug: string;
@@ -10,6 +11,20 @@ export interface LearningArticleView {
     after: string;
     mistakes: string[];
     related: string[];
+    sections?: { title: string; paragraphs: string[]; steps?: string[]; tables?: { caption: string; headers: string[]; rows: string[][] }[]; checklist?: string[] }[];
+    procedure?: {
+        id: string;
+        roles: { role: string; permissions: string }[];
+        fields: { field: string; required: string; entry: string; validation: string }[];
+        expectedResult: string;
+        alternatives: string[];
+        related: string[];
+        warnings: string[];
+        commonErrors: { symptom: string; cause: string; fix: string }[];
+        screenshotsPending: { figure: string; screen: string; state: string; dataNeeded: string }[];
+    };
+    before?: string[];
+    steps?: string[];
     manual: {
         route: string;
         open: string;
@@ -33,13 +48,13 @@ export default function LearningArticleContent({ article, available, hrefForArti
         <section id="open">
             <h2>How do I open this page?</h2>
             <p className={guide.example}>{page.open}</p>
-            <p><code>{page.route}</code></p>
+            {!article.procedure && <p><code>{page.route}</code></p>}
             <Link className="btn btn-outline-primary" href={article.route}>
                 {page.taskRoute ? 'Open the register to select your record' : 'Open the task page'}
             </Link>
             <p className={guide.muted}>Use your own authorized account to perform this task.</p>
         </section>
-        <section id="purpose"><h2>What can I do on this page?</h2><p>{article.what}</p>{illustration}</section>
+        {!article.procedure && <section id="purpose"><h2>What can I do on this page?</h2><p>{article.what}</p>{illustration}</section>}
         <section id="interface">
             <h2>What am I looking at?</h2>
             <dl className={guide.controls}>{page.controls.map(([name, description], index) => (
@@ -54,23 +69,55 @@ export default function LearningArticleContent({ article, available, hrefForArti
         </section>
         <section id="steps">
             <h2>How do I complete the task?</h2>
-            <nav aria-label="Tasks in this guide"><ul>{page.operations.map(operation => (
-                <li key={operation.id}><a href={`#task-${operation.id}`}>{operation.title}</a></li>
-            ))}</ul></nav>
-            {page.operations.map(operation => (
-                <section key={operation.id} id={`task-${operation.id}`} className={guide.operation}>
-                    <h3>{operation.title}</h3>
-                    <ol>{operation.steps.map(step => <li key={step}>{step}</li>)}</ol>
-                    <p><strong>Expected result</strong> {operation.result}</p>
-                    <p className={guide.example}><strong>Check it worked</strong> {operation.verify}</p>
-                </section>
-            ))}
+            {article.procedure ? <>
+                {!!article.sections?.length && <nav aria-label="Test-panel procedure sections"><ul>{article.sections.map((section, index) => (
+                    <li key={section.title}><a href={`#topic-test-panel-${index + 1}`}>{section.title}</a></li>
+                ))}</ul></nav>}
+                <TestPanelProcedureDetails
+                    procedure={article.procedure}
+                    purpose={article.what}
+                    navigation={page.open}
+                    prerequisites={article.before || []}
+                    steps={article.steps || []}
+                    expectedResult={article.procedure.expectedResult}
+                    sections={article.sections}
+                />
+                {page.operations.filter(operation => operation.id === 'example').map(operation => (
+                    <section key={operation.id} className={guide.operation}>
+                        <h3>{operation.title}</h3>
+                        <ol>{operation.steps.map(step => <li key={step}>{step}</li>)}</ol>
+                        <p><strong>Expected result</strong> {operation.result}</p>
+                    </section>
+                ))}
+            </> : <>
+                <nav aria-label="Tasks in this guide"><ul>{page.operations.map(operation => (
+                    <li key={operation.id}><a href={`#task-${operation.id}`}>{operation.title}</a></li>
+                ))}
+                    {article.sections?.map((section, index) => (
+                        <li key={`topic-${index}`}><a href={`#topic-${article.slug}-${index + 1}`}>{section.title}</a></li>
+                    ))}
+                </ul></nav>
+                {page.operations.map(operation => (
+                    <section key={operation.id} id={`task-${operation.id}`} className={guide.operation}>
+                        <h3>{operation.title}</h3>
+                        <ol>{operation.steps.map(step => <li key={step}>{step}</li>)}</ol>
+                        <p><strong>Expected result</strong> {operation.result}</p>
+                        <p className={guide.example}><strong>Check it worked</strong> {operation.verify}</p>
+                    </section>
+                ))}
+            </>}
+            {!article.procedure && article.sections?.map((section, index) => <section key={section.title} id={`topic-${article.slug}-${index + 1}`} className={guide.operation}>
+                <h3>{section.title}</h3>
+                {section.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+                {!!section.steps?.length && <ol>{section.steps.map((step, index) => <li key={index}>{step}</li>)}</ol>}
+                {!!section.checklist?.length && <ul>{section.checklist.map((item, index) => <li key={index}>{item}</li>)}</ul>}
+            </section>)}
         </section>
         <section id="after"><h2>What happens after I complete the task?</h2><p>{article.after}</p></section>
         <section id="verify">
             <h2>How do I check that it worked?</h2>
             <ul>{page.verify.map(check => <li key={check}>{check}</li>)}</ul>
-            <p className={guide.muted}>Instructions are checked against the application source. Live workflow acceptance testing remains separate. Use a training environment for practice transactions.</p>
+            {!article.procedure && <p className={guide.muted}>Instructions are checked against the application source. Live workflow acceptance testing remains separate. Use a training environment for practice transactions.</p>}
         </section>
         <section id="recovery"><h2>What if something goes wrong?</h2><ul>{article.mistakes.map(mistake => <li key={mistake}>{mistake}</li>)}</ul></section>
         <section id="next">
