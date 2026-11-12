@@ -1,3 +1,5 @@
+
+import NewPasswordInput from '../Auth/NewPasswordInput';
 import React from 'react'
 import { handleChangeWithState } from '../Auth/customFetch'
 
@@ -21,7 +23,7 @@ export default function PatientCredentialsUpdate({ data, setData }) {
           <label> new password
             <span className='text-danger'> *</span>
           </label>
-          <input value={data.npassword} className='form-control' onChange={(ev) => handleChangeWithState(ev, 'npassword', setData, data)} type='password' placeholder='Enter password here' required />
+          <NewPasswordInput value={data.npassword} className='form-control' onChange={(ev) => handleChangeWithState(ev, 'npassword', setData, data)} type='password' placeholder='Enter password here' required />
         </div>
         <div className='form-row'>
           <label>confirm new password

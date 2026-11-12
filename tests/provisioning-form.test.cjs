@@ -127,7 +127,6 @@ test("failed database deletion uses the confirmed response and clears stale retr
     assert.equal(state.retryFacility, null);
     assert.equal(state.provisioningApplication.linked_tenant_id, null);
     assert.equal(state.form.adminPassword, "");
-    assert.equal(state.showPassword, false);
     assert.match(state.deletedMessage, /partial database was permanently deleted/);
     assert.match(state.deletedMessage, /same company email/);
     assert.equal(state.deleteBusy, false);

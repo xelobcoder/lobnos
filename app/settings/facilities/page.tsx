@@ -1,4 +1,5 @@
 "use client";
+import NewPasswordInput from '../../../components/Auth/NewPasswordInput';
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import type { ElementType } from "react";
@@ -9,7 +10,7 @@ import { customFetch, customFetchMutation } from "../../../components/Auth/custo
 import { useApplication } from "../../../components/Auth/useApplicationContext";
 import FacilityManagement from "./FacilityManagement";
 import FacilityNav from "./FacilityNav";
-import { applyModuleCatalogPrices, FacilityForm, FormErrors, generateFacilityPassword, parseModulePricingCatalogEntry, validateFacilityForm, MODULE_LABELS, ModuleName, ModulePricingCatalogEntry, defaultModuleConfiguration, moduleMonthlyTotal } from "./provisioningForm";
+import { applyModuleCatalogPrices, FacilityForm, FormErrors, parseModulePricingCatalogEntry, validateFacilityForm, MODULE_LABELS, ModuleName, ModulePricingCatalogEntry, defaultModuleConfiguration, moduleMonthlyTotal } from "./provisioningForm";
 import { applicationProvisioningForm, MarketplaceApplication, marketplaceApplicationsSchema } from "./marketplaceApplications";
 
 interface Country { id: number; country_name: string }
@@ -97,7 +98,6 @@ export default function FacilityOnboardingPage() {
      const [identityConfirmed, setIdentityConfirmed] = useState(false);
      const [statusFilter, setStatusFilter] = useState("all");
      const [showControlTenant, setShowControlTenant] = useState(false);
-     const [showPassword, setShowPassword] = useState(false);
      const [formErrors, setFormErrors] = useState<FormErrors>({});
      const [copiedKey, setCopiedKey] = useState("");
      const [deleteFacility, setDeleteFacility] = useState<Facility | null>(null);
@@ -268,7 +268,7 @@ export default function FacilityOnboardingPage() {
                if (retryFacility?.tenantId === deleteFacility.tenantId) {
                     setRetryFacility(null);
                     setForm((current) => ({ ...current, adminPassword: "" }));
-                    setShowPassword(false);
+                    
                }
                if (provisioningApplication?.linked_tenant_id === deleteFacility.tenantId) {
                     setProvisioningApplication((current) => current ? { ...current, linked_tenant_id: null } : null);
@@ -324,7 +324,7 @@ export default function FacilityOnboardingPage() {
           setCreated(null);
           setError("");
           setFormErrors({});
-          setShowPassword(false);
+          
           setForm({
                ...blankFacilityForm(),
                companyName: facility.name,
@@ -390,7 +390,7 @@ export default function FacilityOnboardingPage() {
                }
                setCreated(response.result);
                setForm(blankFacilityForm());
-               setShowPassword(false);
+               
                setFormErrors({});
                setProvisionOpen(false);
                setProvisioningApplication(null);
@@ -411,7 +411,7 @@ export default function FacilityOnboardingPage() {
                     }, ...current]);
           } catch (failure) {
                setForm((current) => ({ ...current, adminPassword: "" }));
-               setShowPassword(false);
+               
                setError(errorMessage(failure));
                // A failed attempt leaves a "failed" registry row; refresh so its Retry/Delete actions appear immediately.
                try {
@@ -616,7 +616,7 @@ export default function FacilityOnboardingPage() {
                               <button type="button" disabled={busy || deleteBusy} className="btn btn-primary w-100 w-sm-auto" aria-expanded={provisionOpen} aria-controls="provision-facility" onClick={() => {
                                    setProvisionOpen(!provisionOpen);
                                    setRetryFacility(null);
-                                   setShowPassword(false);
+                                   
                                    if (provisionOpen) setForm(blankFacilityForm());
                               }}>{provisionOpen ? "Close form" : "+ Provision Facility"}</button>
                               <Link href="/settings/facilities/pricing" className="btn btn-outline-primary w-100 w-sm-auto">Manage module pricing</Link>
@@ -745,7 +745,7 @@ export default function FacilityOnboardingPage() {
                               <div className="row g-3">
                                    <div className="col-md-6"><label htmlFor="adminName" className="form-label">Administrator name</label><input {...fieldProps("adminName")} id="adminName" className="form-control" value={form.adminName} onChange={(event) => update("adminName", event.target.value)} maxLength={100} required />{fieldError("adminName")}</div>
                                    <div className="col-md-6"><label htmlFor="adminEmail" className="form-label">Administrator email</label><input {...fieldProps("adminEmail")} id="adminEmail" type="email" className="form-control" value={form.adminEmail} onChange={(event) => update("adminEmail", event.target.value)} maxLength={200} required />{fieldError("adminEmail")}</div>
-                                   <div className="col-md-6"><label htmlFor="adminPassword" className="form-label">Initial password</label><div className="input-group"><input {...fieldProps("adminPassword")} id="adminPassword" type={showPassword ? "text" : "password"} autoComplete="new-password" className="form-control" value={form.adminPassword} onChange={(event) => update("adminPassword", event.target.value)} minLength={12} maxLength={72} required /><button type="button" className="btn btn-outline-secondary" aria-pressed={showPassword} onClick={() => setShowPassword(!showPassword)}>{showPassword ? "Hide" : "Show"} password</button><button type="button" className="btn btn-outline-secondary" onClick={() => { try { update("adminPassword", generateFacilityPassword()); setShowPassword(true); } catch { setError("Secure password generation is unavailable in this browser."); } }}>Generate</button></div>{fieldError("adminPassword")}<small className="text-muted">Use at least 12 characters and at most 72 UTF-8 bytes. Passwords are not displayed in the result.</small></div>
+                                   <div className="col-md-6"><label htmlFor="adminPassword" className="form-label">Initial password</label><NewPasswordInput {...fieldProps("adminPassword")} id="adminPassword" className="form-control" value={form.adminPassword} onChange={event => update("adminPassword", event.target.value)} required confirmation />{fieldError("adminPassword")}<small className="text-muted">Use at least 12 characters and at most 72 UTF-8 bytes. Passwords are not displayed in the result.</small></div>
                                    <div className="col-md-6"><label htmlFor="licenseDays" className="form-label">License duration (days)</label><input {...fieldProps("licenseDays")} id="licenseDays" type="number" className="form-control" value={form.licenseDays} onChange={(event) => update("licenseDays", event.target.value)} min={1} max={3650} required />{fieldError("licenseDays")}<div className="d-flex flex-wrap gap-2 mt-2">{[30, 90, 365, 730].map((days) => <button key={days} type="button" className={`btn btn-sm ${form.licenseDays === String(days) ? "btn-primary" : "btn-outline-secondary"}`} aria-pressed={form.licenseDays === String(days)} onClick={() => update("licenseDays", String(days))}>{days} days</button>)}</div></div>
                               </div>
                          </div>

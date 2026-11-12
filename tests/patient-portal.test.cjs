@@ -15,19 +15,19 @@ function load(relativePath, requireMock = require) {
     const output = ts.transpileModule(read(relativePath), {
         compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
     }).outputText;
-    vm.runInNewContext(output, { exports, require: requireMock, Intl, Date, Number, String, Map, Error, JSON });
+    vm.runInNewContext(output, { exports, require: name => name === "./passwordPolicy" ? load("lib/passwordPolicy.ts") : requireMock(name), Intl, Date, Number, String, Map, Error, JSON, TextEncoder });
     return exports;
 }
 
 const portal = load(path.join("lib", "patientPortal.ts"));
 
 test("password policy mirrors the backend rules", () => {
-    assert.match(portal.passwordProblem("short1"), /at least 8/);
-    assert.match(portal.passwordProblem("lettersonly"), /letter and one number/);
-    assert.match(portal.passwordProblem("12345678"), /letter and one number/);
-    assert.match(portal.passwordProblem("a1".repeat(65)), /at most 128/);
-    assert.match(portal.passwordProblem("Secure123", "Secure124"), /do not match/);
-    assert.equal(portal.passwordProblem("Secure123", "Secure123"), null);
+    assert.match(portal.passwordProblem("short1"), /at least 12/);
+    assert.match(portal.passwordProblem("lettersonlylong"), /letter and a number/);
+    assert.match(portal.passwordProblem("123456789999"), /letter and a number/);
+    assert.match(portal.passwordProblem("a1".repeat(65)), /at most 72/);
+    assert.match(portal.passwordProblem("Secure-Example123", "Secure-Example124"), /do not match/);
+    assert.equal(portal.passwordProblem("Secure-Example123", "Secure-Example123"), null);
 });
 
 test("appointment requests reject past dates, bad times, unknown types and short reasons", () => {

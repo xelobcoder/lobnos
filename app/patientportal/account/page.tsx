@@ -1,4 +1,6 @@
 "use client";
+import NewPasswordInput from '../../../components/Auth/NewPasswordInput';
+
 
 import { FormEvent, useEffect, useState } from 'react';
 import { Alert, Button, Col, Form, Row, Spinner } from 'react-bootstrap';
@@ -145,7 +147,7 @@ export default function PatientAccountPage() {
                                         </Col>
                                         <Col md={4}>
                                              <Form.Label htmlFor="new-password">New password</Form.Label>
-                                             <Form.Control id="new-password" type="password" autoComplete="new-password" maxLength={128} value={passwords.newPassword}
+                                             <NewPasswordInput id="new-password" type="password" autoComplete="new-password" maxLength={128} value={passwords.newPassword}
                                                   onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })} required />
                                              <Form.Text>At least 8 characters with a letter and a number.</Form.Text>
                                         </Col>

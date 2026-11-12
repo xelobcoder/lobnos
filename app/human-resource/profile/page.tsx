@@ -1,4 +1,6 @@
 "use client";
+import NewPasswordInput from '../../../components/Auth/NewPasswordInput';
+
 import { useEffect, useState, ChangeEvent, FormEvent } from 'react';
 import { customFetch, handleResponse, validateFormData } from '../../../components/Auth/customFetch';
 import Loader from '../../../components/accessories/Loader';
@@ -176,8 +178,8 @@ export default function UserProfilePage() {
           }
           // Password and PIN validation
           if (passwordFields.newPassword) {
-               if (passwordFields.newPassword.length < 6) {
-                    toast.error('Password must be at least 6 characters');
+               if (passwordFields.newPassword.length < 12) {
+                    toast.error('Password must be at least 12 characters');
                     return;
                }
                if (passwordFields.newPassword !== passwordFields.confirmPassword) {
@@ -357,7 +359,7 @@ export default function UserProfilePage() {
                                              </div>
                                              <div className="col-md-6">
                                                   <label className="form-label fw-semibold" style={{ color: emphasisColor }} htmlFor="newPassword">New Password</label>
-                                                  <input type="password" name="newPassword" id="newPassword" value={passwordFields.newPassword} onChange={handlePasswordFieldsChange} className="form-control form-control-lg" placeholder="Enter new password" minLength={6} autoComplete="off" />
+                                                  <NewPasswordInput type="password" name="newPassword" id="newPassword" value={passwordFields.newPassword} onChange={handlePasswordFieldsChange} className="form-control form-control-lg" placeholder="Enter new password" minLength={12} autoComplete="off" />
                                              </div>
                                              <div className="col-md-6">
                                                   <label className="form-label fw-semibold" style={{ color: emphasisColor }} htmlFor="confirmPassword">Confirm New Password</label>

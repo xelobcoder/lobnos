@@ -60,6 +60,7 @@ function harness({ context, role = "admin", blockedStorage = false, search = "",
             if (name.endsWith("workspaceDestination")) return destinations;
             if (name.endsWith(".css")) return {};
             if (name === "@remixicon/react") return new Proxy({}, { get: () => "Icon" });
+            if (name.endsWith('/NewPasswordInput')) return { __esModule: true, default: () => null };
             throw new Error(`Unexpected dependency: ${name}`);
         },
     });

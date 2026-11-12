@@ -1,3 +1,5 @@
+
+import NewPasswordInput from '../../Auth/NewPasswordInput';
 import React from "react";
 import { Form, Button, Row, Col } from "react-bootstrap";
 
@@ -12,7 +14,7 @@ export default function LoginCredentialsForm() {
           </Form.Group>
           <Form.Group className="mb-3" controlId="password">
             <Form.Label>Password</Form.Label>
-            <Form.Control type="password" placeholder="Enter password" />
+            <NewPasswordInput type="password" placeholder="Enter password"  confirmation />
           </Form.Group>
           <Form.Group className="mb-3" controlId="pin">
             <Form.Label>PIN</Form.Label>

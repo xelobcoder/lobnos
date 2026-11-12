@@ -51,7 +51,8 @@ export const ApplicationSettingsLinks: Link[] =
             children: [
                 { title: "Users", link: "/authentication/users", icon: <RiUserSettingsLine /> },
                 { title: "Departments", link: "/settings/departments", icon: <RiGroupLine /> },
-                { title: "Login History", link: "/authentication/users-login-history", icon: <RiUserSettingsLine /> }
+                { title: "Login History", link: "/authentication/users-login-history", icon: <RiUserSettingsLine /> },
+                { title: "Security activity", link: "/settings/security-activity", icon: <RiShieldCheckLine />, roles: ['admin', 'super-admin', 'super_admin', 'superadmin'] }
             ]
         },
         {

@@ -1,4 +1,6 @@
 'use client';
+import NewPasswordInput from '../../Auth/NewPasswordInput';
+
 import React, { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -11,7 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 
 const credentialsSchema = z.object({
     username: z.string().min(6, "Username must be at least 6 characters"),
-    password: z.string().min(6, "Password must be at least 6 characters")
+    password: z.string().min(12, "Password must be at least 12 characters")
 });
 
 const PatientCredentials = ({ patientid: passedPatientId }) => {
@@ -87,12 +89,12 @@ const PatientCredentials = ({ patientid: passedPatientId }) => {
                         <span className="input-group-text">
                             <RiLockLine />
                         </span>
-                        <input
+                        <NewPasswordInput
                             {...register('password')}
                             type="password"
                             className={`form-control ${errors.password ? 'is-invalid' : ''}`}
                             placeholder="Enter password"
-                        />
+                         confirmation />
                     </div>
                     {errors.password && (
                         <p className="text-danger small mt-1">{errors.password.message}</p>

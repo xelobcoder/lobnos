@@ -10,11 +10,11 @@ function load(file, mocks = {}) {
     const exports = {};
     vm.runInNewContext(ts.transpileModule(readFileSync(path.join(root, file), 'utf8'), {
         compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
-    }).outputText, { exports, require: name => mocks[name] || require(name), URLSearchParams, AbortSignal, Date, Number, Error, JSON, fetch: () => { throw Error('Unexpected network'); } });
+    }).outputText, { exports, require: name => mocks[name] || require(name), URLSearchParams, AbortSignal, TextEncoder, Date, Number, Error, JSON, fetch: () => { throw Error('Unexpected network'); } });
     return exports;
 }
 const invitations = load("lib/portalInvitations.ts");
-const portal = load("lib/patientPortal.ts");
+const portal = load("lib/patientPortal.ts", { './passwordPolicy': load('lib/passwordPolicy.ts') });
 const { establishPatientSession } = load("lib/patientPortalSession.ts");
 
 test('patient login verifies same-origin cookies and normalizes backend context before navigation', async () => {

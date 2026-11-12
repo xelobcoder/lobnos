@@ -1,4 +1,5 @@
 "use client";
+import NewPasswordInput from '../../../components/Auth/NewPasswordInput';
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
@@ -279,6 +280,6 @@ function UsersAdmin({ users, busy, onMutate }: { users: StaffUser[]; busy: strin
     form.reset();
   }
   return <section className="dashboard-section"><div className="dashboard-section-heading"><div><span className="eyebrow">ADMINISTRATOR ONLY</span><h2>Staff accounts</h2></div></div><div className="dashboard-users">{users.map((user) => <div key={user.id}><span>{user.email}</span><span>{user.role} · {user.active ? "active" : "inactive"}</span>{user.role !== "admin" && <button type="button" disabled={Boolean(busy)} onClick={() => void onMutate(`user-${user.id}`, `staff/users/${user.id}`, "PATCH", { active: !user.active })}>{user.active ? "Deactivate" : "Reactivate"}</button>}</div>)}</div>
-    <form className="dashboard-add-user" onSubmit={submit}><label className="form-field"><span>New staff email</span><input type="email" name="email" required maxLength={254} autoComplete="off" /></label><label className="form-field"><span>Temporary password <small>12+ characters, ≤72 UTF-8 bytes</small></span><input type="password" name="password" required minLength={12} maxLength={72} autoComplete="new-password" /></label><button type="submit" disabled={Boolean(busy)}>Create staff account</button>{passwordError && <p className="form-status form-status-error" role="alert">{passwordError}</p>}</form>
+    <form className="dashboard-add-user" onSubmit={submit}><label className="form-field"><span>New staff email</span><input type="email" name="email" required maxLength={254} autoComplete="off" /></label><label className="form-field"><span>Temporary password <small>12+ characters, ≤72 UTF-8 bytes</small></span><NewPasswordInput type="password" name="password" required minLength={12} maxLength={72} autoComplete="new-password"  confirmation /></label><button type="submit" disabled={Boolean(busy)}>Create staff account</button>{passwordError && <p className="form-status form-status-error" role="alert">{passwordError}</p>}</form>
   </section>;
 }

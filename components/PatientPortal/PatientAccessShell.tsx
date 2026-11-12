@@ -3,6 +3,7 @@
 import { ReactNode } from 'react';
 import { RiLockLine, RiShieldCrossFill } from '@remixicon/react';
 import Link from 'next/link';
+import NewPasswordInput from '../Auth/NewPasswordInput';
 import styles from './PortalShell.module.css';
 
 /** Login-page split layout for the public patient account activation pages. */
@@ -33,14 +34,12 @@ export default function PatientAccessShell({ title, subtitle, children }: { titl
 }
 
 export function PasswordInput({ id, label, value, onChange }: { id: string; label: string; value: string; onChange: (value: string) => void }) {
+     const Input = /confirm/i.test(label) ? 'input' : NewPasswordInput;
      return (
           <div className={styles.formGroup}>
                <label htmlFor={id} className={styles.formLabel}>{label}</label>
-               <div className={styles.inputWrapper}>
-                    <RiLockLine size={20} className={styles.inputIcon} />
-                    <input id={id} type="password" className={styles.formInput} autoComplete="new-password" maxLength={128}
-                         placeholder="At least 8 characters with a letter and a number" value={value} onChange={(e) => onChange(e.target.value)} required />
-               </div>
+                    <Input id={id} type="password" className={styles.formInput} autoComplete="new-password" maxLength={128}
+                         style={{ paddingLeft: '0.8rem' }} placeholder="At least 12 characters with a letter and a number" value={value} onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)} required />
           </div>
      );
 }

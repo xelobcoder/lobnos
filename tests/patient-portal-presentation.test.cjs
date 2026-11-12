@@ -14,8 +14,10 @@ function load(file, mocks = {}) {
         compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
     }).outputText;
     vm.runInNewContext(output, {
-        exports, Date, Number, String, Map, Intl, JSON, Error, Infinity,
+        exports, Date, Number, String, Map, Intl, JSON, Error, Infinity, TextEncoder,
         require: name => {
+            if (name.endsWith('/NewPasswordInput')) return { __esModule: true, default: props => React.createElement('input', props) };
+            if (name === "./passwordPolicy") return load("lib/passwordPolicy.ts");
             if (name in mocks) return mocks[name];
             if (mocks.resolve) {
                 const resolved = mocks.resolve(name);

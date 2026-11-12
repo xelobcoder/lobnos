@@ -26,6 +26,7 @@ function api(options = {}) {
     const helper = compile('lib/patientImages.ts', name => {
         if (name.endsWith('apiBaseUrl')) return { buildApiUrl: endpoint => `https://facility.test/api/v1/${endpoint}` };
         if (name.endsWith('requestHeaders')) return { getRequestContext: async () => options.context || {tenantId:7,authenticated:true} };
+        if (name.endsWith('NewPasswordInput')) return { __esModule: true, default: () => null, validatePasswordControl: () => true };
         throw new Error(`Unexpected dependency ${name}`);
     }, { fetch: async (url, request) => {
         calls.push({ url: new URL(url), request });
@@ -144,6 +145,7 @@ function wizard(options = {}) {
         if (name.endsWith('encryption')) return { plsEncryption: id => `encrypted-${id}` };
         if (name.endsWith('fields/Util')) return { designation: [], PatientPersonalInformationFields: options.personalData || {}, ghanaDistricts: {} };
         if (name.endsWith('registerclient')) return { handleAgeCalculations: noop };
+        if (name.endsWith('NewPasswordInput')) return { __esModule: true, default: noop, validatePasswordControl: () => true };
         if (name.endsWith('.css')) return {};
         if (name === '@remixicon/react') return new Proxy({}, { get: () => noop });
         throw new Error(`Unexpected dependency ${name}`);
@@ -245,7 +247,7 @@ test('credential errors also prevent completion after an optional photo is saved
     view.render(); await view.flush(); await view.select();
     const inputs = nodes(view.render(), node => node.type === 'input');
     inputs.find(node => node.props.type === 'text').props.onChange({ target: { value: 'patient-user' } });
-    inputs.find(node => node.props.type === 'password').props.onChange({ target: { value: 'synthetic-password' } });
+    nodes(view.render(), node => node.props?.id === 'registration-password')[0].props.onChange({ target: { value: 'synthetic-password7' } });
     await button(view.render(), 'Complete Registration & Go to Billing').props.onClick();
     assert.equal(view.success.length, 0);
     assert.equal(view.window.location.href, '');

@@ -1,4 +1,6 @@
 'use client';
+import NewPasswordInput, { validatePasswordControl } from '../Auth/NewPasswordInput';
+
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Form, Modal, Button, Spinner, Alert } from 'react-bootstrap';
@@ -431,6 +433,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
 
      // --- STEP 4 SUBMIT (Save Photo & Credentials) ---
      const handleSaveStep4 = async () => {
+          if (credentials.password && !validatePasswordControl('registration-password')) return;
           if (!patientId) {
                toast.error("Please complete Step 1 first.");
                return;
@@ -1314,14 +1317,15 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                         </div>
                                         <div className="col-md-6">
                                              <label className="form-label text-xs fw-semibold text-uppercase text-muted mb-1">Password</label>
-                                             <input
+                                             <NewPasswordInput
+                                                  id="registration-password"
                                                   type="password"
                                                   className="form-control form-control-sm"
-                                                  placeholder="Min 6 characters"
+                                                  placeholder="At least 12 characters"
                                                   value={credentials.password}
                                                   disabled={isSubmitting}
                                                   onChange={(e) => setCredentials((prev) => ({ ...prev, password: e.target.value }))}
-                                             />
+                                              confirmation />
                                         </div>
                                    </div>
                               </div>

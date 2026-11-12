@@ -1,5 +1,6 @@
 'use client'
 import { errorMessage } from '../../../lib/errorMessage';
+import NewPasswordInput from '../../../components/Auth/NewPasswordInput';
 import {loginDestination} from '../../../lib/workspaceDestination';
 import styles from './login.module.css';
 import { RiShieldCrossFill, RiUserLine, RiLockLine, RiEyeLine, RiEyeOffLine, RiHospitalLine, RiStethoscopeLine, RiUserHeartLine } from '@remixicon/react';
@@ -440,7 +441,7 @@ export default function PrimeLabLoginPage() {
 							{recoveryStep === 'reset' && (
 								<div className={styles.formGroup}>
 									<label htmlFor="newPassword" className={styles.formLabel}>New password</label>
-									<input
+									<NewPasswordInput
 										id="newPassword"
 										name="newPassword"
 										type="password"
@@ -448,9 +449,9 @@ export default function PrimeLabLoginPage() {
 										value={newPassword}
 										onChange={(event) => setNewPassword(event.target.value)}
 										className={styles.formInput}
-										placeholder="At least 8 characters"
+										placeholder="At least 12 characters"
 										required
-									/>
+									 confirmation />
 								</div>
 							)}
 							<button

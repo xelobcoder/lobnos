@@ -1,4 +1,6 @@
 "use client";
+import NewPasswordInput from '../../../components/Auth/NewPasswordInput';
+
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -27,7 +29,7 @@ const baseSchema = z.object({
      name: z.string().min(1, "Name is required"),
      email: z.string().email("Invalid email address"),
      mobile: z.string().regex(/^\d{10}$/, "Mobile number must be 10 digits"),
-     password: z.string().min(6, "Password must be at least 6 characters"),
+     password: z.string().min(12, "Password must be at least 12 characters"),
      cpassword: z.string(),
      role: z.string().min(1, "Role is required"),
      pin: z.string().regex(/^\d{4}$/, "PIN must be 4 digits"),
@@ -142,8 +144,8 @@ export default function AuthenticationIndexPage() {
                          toast.error("Passwords do not match");
                          return false;
                     }
-                    if ((register.password || register.cpassword) && register.password.length < 6) {
-                         toast.error("Password must be at least 6 characters");
+                    if ((register.password || register.cpassword) && register.password.length < 12) {
+                         toast.error("Password must be at least 12 characters");
                          return false;
                     }
                } else {
@@ -625,16 +627,16 @@ export default function AuthenticationIndexPage() {
                                         <label className="form-label text-dark fw-medium" htmlFor="password">
                                              Password {!employeeid && <span className="text-danger">*</span>}
                                         </label>
-                                        <input
+                                        <NewPasswordInput
                                              type="password"
                                              name="password"
                                              id="password"
                                              value={register.password}
                                              onChange={handleChange}
                                              className="form-control border-1 py-2"
-                                             placeholder={employeeid ? "Leave blank to keep current password" : "Minimum 6 characters"}
+                                             placeholder={employeeid ? "Leave blank to keep current password" : "At least 12 characters"}
                                              required={!employeeid}
-                                             minLength={6}
+                                             minLength={12}
                                              autoComplete="off"
                                         />
                                    </div>

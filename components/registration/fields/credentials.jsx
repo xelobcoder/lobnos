@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { passwordProblem } from '../../../lib/passwordPolicy';
 import PatientCredentialsUpdate from "../../petientsComponent/PatientCredentialsUpdate"
 import { customPost } from "../../Auth/customFetch"
 export default function PatientCredentialsInformation({ patientid, toast }) {
@@ -11,6 +12,8 @@ export default function PatientCredentialsInformation({ patientid, toast }) {
   const [error, setError] = useState("")
 
   const handleSubmit = function () {
+    const problem = passwordProblem(credentials.npassword);
+    if (problem) { setError(problem); return; }
     let errorCount = 0
     const { nppassword, npassword } = credentials
     if (nppassword !== npassword) {

@@ -1,4 +1,6 @@
 'use client';
+import NewPasswordInput from '../Auth/NewPasswordInput';
+
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { customPost } from '../Auth/customFetch';
@@ -28,5 +30,5 @@ export default function PractitionerInvite({ token }: {
     }
     finally {
         setBusy(false);
-    } }}><p>Your username is <strong>{username}</strong>. This link can be used once.</p><label className={s.field}>Choose a password<input aria-label="Choose a password" type="password" autoComplete="new-password" minLength={8} maxLength={128} required value={password} onChange={e => setPassword(e.target.value)}/><small>8–128 characters, including a letter and a number.</small></label><label className={s.field}>Confirm password<input aria-label="Confirm password" type="password" autoComplete="new-password" required value={confirm} onChange={e => setConfirm(e.target.value)}/></label><button className={s.primary} disabled={busy}>{busy ? 'Activating…' : 'Activate account'}</button></form> : <p>Contact the facility for a new invitation. Do not share your password or activation link.</p>}</section></main>;
+    } }}><p>Your username is <strong>{username}</strong>. This link can be used once.</p><label className={s.field}>Choose a password<NewPasswordInput aria-label="Choose a password" type="password" autoComplete="new-password" minLength={12} maxLength={128} required value={password} onChange={e => setPassword(e.target.value)}/><small>At least 12 characters with a letter and a number. Avoid common passwords.</small></label><label className={s.field}>Confirm password<input aria-label="Confirm password" type="password" autoComplete="new-password" required value={confirm} onChange={e => setConfirm(e.target.value)}/></label><button className={s.primary} disabled={busy}>{busy ? 'Activating…' : 'Activate account'}</button></form> : <p>Contact the facility for a new invitation. Do not share your password or activation link.</p>}</section></main>;
 }

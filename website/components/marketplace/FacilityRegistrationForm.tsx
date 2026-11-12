@@ -1,4 +1,5 @@
 "use client";
+import NewPasswordInput from '../../../components/Auth/NewPasswordInput';
 
 import { useState, type FormEvent } from "react";
 import { z } from "zod";
@@ -89,7 +90,7 @@ export function FacilityRegistrationForm() {
     </div>
     <div className="registration-admin-fields"><span className="eyebrow">INITIAL FACILITY ADMINISTRATOR</span><div className="form-grid">
       <label className="form-field"><span>Administrator email <b>*</b></span><input name="adminEmail" type="email" required maxLength={254} autoComplete="username" /></label>
-      <label className="form-field"><span>Password <b>*</b></span><input name="adminPassword" type="password" required minLength={12} maxLength={72} autoComplete="new-password" /><small>At least 12 characters and at most 72 UTF-8 bytes.</small></label>
+      <label className="form-field"><span>Password <b>*</b></span><NewPasswordInput name="adminPassword" type="password" required minLength={12} maxLength={72} autoComplete="new-password"  confirmation /><small>At least 12 characters and at most 72 UTF-8 bytes.</small></label>
     </div><p>Password is sent only to the registration endpoint over HTTPS and is never displayed or retained by this page.</p></div>
     <p className="booking-privacy-note">Submitting confirms that you are authorized to provide these facility details for review. Public contact and payment instructions may be displayed only after approval. Do not include patient information.</p>
     {state === "error" && <p className="form-status form-status-error" role="alert">{error}</p>}

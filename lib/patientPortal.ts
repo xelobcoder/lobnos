@@ -1,3 +1,4 @@
+import { passwordProblem as newPasswordProblem } from './passwordPolicy';
 /**
  * Shared, framework-free helpers for the PLS Patient Portal pages.
  * Validation rules mirror the backend so users get immediate feedback;
@@ -95,13 +96,11 @@ export function formatDate(value: unknown, withTime = false): string {
           : date.toLocaleDateString(undefined, { dateStyle: 'medium' });
 }
 
-/** Mirrors the backend password policy: 8-128 characters with at least one letter and one digit. */
+/** Applies the shared policy before comparing confirmation. */
 export function passwordProblem(password: string, confirmation?: string): string | null {
-     const value = String(password || '');
-     if (value.length < 8) return 'Password must be at least 8 characters.';
-     if (value.length > 128) return 'Password must be at most 128 characters.';
-     if (!/[A-Za-z]/.test(value) || !/\d/.test(value)) return 'Password must contain at least one letter and one number.';
-     if (confirmation !== undefined && confirmation !== value) return 'Passwords do not match.';
+     const problem = newPasswordProblem(password);
+     if (problem) return problem;
+     if (confirmation !== undefined && confirmation !== password) return 'Passwords do not match.';
      return null;
 }
 

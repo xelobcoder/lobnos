@@ -1,0 +1,15 @@
+.page { padding: 16px 24px 24px; max-width: 1500px; margin: auto; }
+.filters { display: flex; align-items: end; flex-wrap: wrap; gap: 16px; padding: 18px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; }
+.filters label { flex: 1 1 180px; }
+.page label { display: grid; gap: 6px; font-weight: 500; }
+.page section { min-width: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.page section > h2 { padding: 18px 18px 0; }
+.page section > p { padding: 0 18px; color: var(--muted); }
+.count { font-size: .9rem; color: var(--muted); margin-left: 8px; font-variant-numeric: tabular-nums; }
+.identity { display: grid; gap: 4px; overflow-wrap: anywhere; }
+.identity strong { font-weight: 600; }
+.identity span { color: var(--muted); font-size: .9em; }
+.confirm { padding: 20px; border: 1px solid var(--accent); border-radius: 10px; background: var(--paper); display: grid; gap: 14px; }
+.confirm p { margin: 0; }
+.buttons { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+@media (max-width: 640px) { .page { padding: 12px; } .filters { padding: 14px; } }
