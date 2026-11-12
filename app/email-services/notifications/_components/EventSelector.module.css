@@ -9,3 +9,6 @@
 .selector :global(.notification-event__menu) { z-index: 30; }
 .selector :global(.notification-event__input-container input) { min-height: 0 !important; padding: 0 !important; border: 0 !important; box-shadow: none !important; }
 @media (max-width: 600px) { .fields { grid-template-columns: minmax(0, 1fr); } }
+
+.selector :global(.notification-event__control) { height: auto !important; min-height: 44px !important; font-size: inherit !important; }
+.selector :global(.notification-event__input-container) { height: auto !important; }

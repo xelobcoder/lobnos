@@ -71,6 +71,46 @@ test('event selector exposes every event, searches codes and filters modules wit
     assert.equal(changed.length,109);
 });
 
+test('settings form saves the selected event and reloads the persisted settings before reporting success', async () => {
+    const slots=[],effects=[],posts=[];
+    let cursor=0,reads=0;
+    const hooks={...React,
+        useState(initial){const i=cursor++;if(!(i in slots))slots[i]=initial;return[slots[i],value=>{slots[i]=typeof value==='function'?value(slots[i]):value;}];},
+        useRef(initial){const i=cursor++;return slots[i]||=( {current:initial} );},
+        useMemo(callback){cursor++;return callback();},
+        useEffect(callback,deps){const i=cursor++;const old=slots[i];if(!old||deps.some((value,index)=>value!==old.deps[index])){old?.cleanup?.();slots[i]={deps};effects.push(()=>{slots[i].cleanup=callback();});}},
+    };
+    const initial={emailEnabled:true,smsEnabled:false,whatsappEnabled:false,inAppEnabled:true,defaultTemplateId:42};
+    const component=load('app/email-services/notifications/events/page.tsx',{
+        react:hooks,'react-bootstrap':{Button:'button',Modal:'modal',Table:'table'},'next/link':{__esModule:true,default:'a'},
+        '@remixicon/react':{RiRefreshLine:'icon',RiSaveLine:'icon',RiSettings4Line:'icon'},
+        'react-toastify':{toast:{success(){},error(){}}},
+        '../../../../components/accessories/PrimeToast':{__esModule:true,default:'toast'},
+        '../_components/EventSelector':{__esModule:true,default:'event-selector'},
+        '../_lib':{
+            defaultEventSettings:initial,
+            loadEvents:async()=>[{id:1,event_code:'PATIENT_CREATED',event_name:'Patient created',module:'patient'}],
+            loadTemplates:async()=>[{id:42,eventId:1,templateName:'Custom template'}],
+            loadSingleEventCatalog:async()=>({event:{id:1,event_code:'PATIENT_CREATED'},variables:[],requiredReferences:[]}),
+            loadEventSettings:async()=>{reads++;return reads===1?initial:{...initial,emailEnabled:false};},
+            callMutate:async(...args)=>{posts.push(args);return{status:'success'};},
+        },
+    }).default;
+    const nodes=(node,predicate)=>!node||typeof node!=='object'?[]:Array.isArray(node)?node.flatMap(child=>nodes(child,predicate)):[...(predicate(node)?[node]:[]),...nodes(node.props?.children,predicate)];
+    const render=()=>{cursor=0;return component();};
+    const flush=async()=>{effects.splice(0).forEach(effect=>effect());await new Promise(resolve=>setImmediate(resolve));return render();};
+    render();await flush();let view=await flush();
+    const email=nodes(view,n=>n.type==='input'&&n.props.type==='checkbox')[0];
+    email.props.onChange({target:{checked:false}});view=render();
+    await nodes(view,n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});
+    await new Promise(resolve=>setImmediate(resolve));view=render();
+    assert.equal(reads,2);
+    assert.equal(posts[0][0],'notifications/settings/PATIENT_CREATED');
+    assert.equal(posts[0][2].emailEnabled,false);
+    assert.equal(posts[0][2].defaultTemplateId,42);
+    assert.equal(nodes(view,n=>n.type==='input'&&n.props.type==='checkbox')[0].props.checked,false);
+});
+
 function harness() {
     const slots=[], effects=[], requests=[];
     let cursor=0;

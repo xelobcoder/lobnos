@@ -40,7 +40,7 @@ export default function EventSelector({ id, events, value, onChange, disabled, t
                     isDisabled={disabled} isSearchable placeholder="Search event name or code…"
                     filterOption={(option, input) => `${option.label} ${option.value} ${option.data.module}`.toLowerCase().includes(input.toLowerCase().trim())}
                     onChange={option => { if (option) onChange(option.value); }}
-                    formatOptionLabel={option => <span className={styles.option}><strong>{option.label}</strong><small>{option.value}{option.templateCount != null ? ` · ${option.templateCount} saved templates` : ''}</small></span>}
+                    formatOptionLabel={(option, context) => context.context === 'value' ? option.label : <span className={styles.option}><strong>{option.label}</strong><small>{option.value}{option.templateCount != null ? ` · ${option.templateCount} saved templates` : ''}</small></span>}
                     noOptionsMessage={() => 'No events match. Try another search or module.'}
                 />
             </div>
