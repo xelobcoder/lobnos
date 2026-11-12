@@ -96,8 +96,8 @@ export function mapTemplate(item: NotificationTemplate) {
           subject: item.subject ?? '',
           htmlBody: item.htmlBody ?? item.html_body ?? '',
           plainBody: item.plainBody ?? item.plain_body ?? '',
-          isDefault: Boolean(item.isDefault ?? item.is_default),
-          isActive: Boolean(item.isActive ?? item.is_active ?? true),
+          isDefault: [true, 1, '1', 'true'].includes(item.isDefault ?? item.is_default ?? false),
+          isActive: [true, 1, '1', 'true'].includes(item.isActive ?? item.is_active ?? true),
           created_at: item.created_at,
           updated_at: item.updated_at,
      };
@@ -133,18 +133,18 @@ export async function loadEventSettings(eventCode: string) {
      } as EventSetting;
 }
 
-export async function loadTemplates() {
-     const response = await callGet('notifications/templates');
+export async function loadTemplates(includeInactive = false) {
+     const response = await callGet(`notifications/templates?includeInactive=${includeInactive}`);
      return parseList<NotificationTemplate>(response).map(mapTemplate);
 }
 
 export async function loadQueue(limit: number) {
-     const response = await callGet(`notifications/queue?limit=${limit}`);
+     const response = await callGet(`notifications/queue?page=1&count=${limit}`);
      return parseList<NotificationQueue>(response);
 }
 
 export async function loadLogs(limit: number) {
-     const response = await callGet(`notifications/logs?limit=${limit}`);
+     const response = await callGet(`notifications/logs?page=1&count=${limit}`);
      return parseList<NotificationLog>(response);
 }
 

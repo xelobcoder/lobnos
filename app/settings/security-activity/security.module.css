@@ -13,3 +13,5 @@
 .confirm p { margin: 0; }
 .buttons { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 @media (max-width: 640px) { .page { padding: 12px; } .filters { padding: 14px; } }
+
+.pagination {display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px;}

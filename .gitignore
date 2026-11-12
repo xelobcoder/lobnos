@@ -76,3 +76,7 @@ launcher/app/
 # Email delivery-log route source (not runtime logs).
 !/app/email-services/logs/
 !/app/email-services/logs/page.tsx
+
+# Notification delivery-log route source.
+!/app/email-services/notifications/logs/
+!/app/email-services/notifications/logs/page.tsx

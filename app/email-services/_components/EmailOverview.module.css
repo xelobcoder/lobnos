@@ -1,0 +1,11 @@
+.controls { display:flex; flex-wrap:wrap; gap:12px; align-items:end; }
+.controls label { display:grid; gap:6px; min-width:180px; margin-right:auto; }
+.charts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
+.charts section { min-width:0; }
+.chart { height:290px; min-width:0; width:100%; }
+.wide { grid-column:1/-1; }
+.queueCounts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.queueCounts a { display:grid; gap:4px; color:inherit; text-decoration:none; padding:8px; background:var(--soft); }
+.queueCounts span { text-transform:capitalize; color:var(--muted); }
+.queueCounts strong { font-weight:600; font-variant-numeric:tabular-nums; }
+@media(max-width:850px) { .charts { grid-template-columns:minmax(0,1fr); } }

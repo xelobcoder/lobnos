@@ -33,6 +33,7 @@ export default function SecurityActivityPage() {
     const [action, setAction] = useState('');
     const [filter, setFilter] = useState('');
     const [page, setPage] = useState(1);
+    const [cooldownPage, setCooldownPage] = useState(1);
     const [data, setData] = useState<Activity | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -49,13 +50,13 @@ export default function SecurityActivityPage() {
         setLoading(true);
         setData(null);
         setError('');
-        customFetch(`security/activity?page=${page}${filter}`).then(response => {
+        customFetch(`security/activity?page=${page}&cooldownPage=${cooldownPage}${filter}`).then(response => {
             if (!response?.success) throw Error(response?.error?.message || 'Unable to load security activity');
             if (current) setData(response.data);
         }).catch(error => { if (current) setError(error instanceof Error ? error.message : 'Unable to load security activity'); })
             .finally(() => { if (current) setLoading(false); });
         return () => { current = false; };
-    }, [allowed, filter, page, revision]);
+    }, [allowed, filter, page, cooldownPage, revision]);
 
     async function clearCooldown(event: React.FormEvent) {
         event.preventDefault();
@@ -84,10 +85,11 @@ export default function SecurityActivityPage() {
     if (!allowed) return <main className={`${workspace.workspace} ${styles.page}`}><h1>Security activity</h1><p role="alert">Administrator access is required.</p></main>;
     return <main className={`${workspace.workspace} ${styles.page}`}>
         <header className={workspace.header}><div><p className={workspace.eyebrow}>Settings / Access security</p><h1>Security activity</h1><p>Review login attempts and help verified account holders regain access in this facility.</p></div>
-            <button className={workspace.secondary} disabled={loading || busy} onClick={() => setRevision(value => value + 1)}>Refresh activity</button></header>
+            <button className={workspace.secondary} disabled={loading || busy || !!selected} onClick={() => setRevision(value => value + 1)}>Refresh activity</button></header>
         <form className={styles.filters} onSubmit={event => {
             event.preventDefault();
             setPage(1);
+            setCooldownPage(1);
             setSelected(null);
             setFilter(`${type ? `&accountType=${encodeURIComponent(type)}` : ''}${accountId ? `&accountId=${encodeURIComponent(accountId)}` : ''}${action ? `&action=${encodeURIComponent(action)}` : ''}${search.trim() ? `&search=${encodeURIComponent(search.trim())}` : ''}`);
         }}>
@@ -95,7 +97,11 @@ export default function SecurityActivityPage() {
             <label>Account type<select className="form-select" value={type} onChange={event => setType(event.target.value)}><option value="">All account types</option><option value="staff">Staff</option><option value="patient">Patient</option><option value="clinician">Practitioner</option></select></label>
             <label>Account ID (optional)<input className="form-control" type="number" min="1" step="1" value={accountId} onChange={event => setAccountId(event.target.value)} placeholder="All accounts" /></label>
             <label>History activity<select className="form-select" value={action} onChange={event => setAction(event.target.value)}><option value="">All activities</option><option value="login_failed">Incorrect password</option><option value="login_locked">Cooldown started</option><option value="login_blocked">Blocked during cooldown</option><option value="login_success">Password accepted</option><option value="admin_unlock">Administrator unlock</option></select></label>
-            <button className={workspace.primary} disabled={busy}>Apply filters</button>
+            <button className={workspace.primary} disabled={busy || loading}>Apply filters</button>
+            <button type="button" className={workspace.secondary} disabled={busy || loading} onClick={() => {
+                setType(''); setAccountId(''); setSearch(''); setAction(''); setFilter('');
+                setPage(1); setCooldownPage(1); setSelected(null);
+            }}>Reset filters</button>
         </form>
         {error && <p className="alert alert-danger" role="alert">{error}</p>}
         {notice && <p className="alert alert-success" role="status">{notice}</p>}
@@ -108,13 +114,18 @@ export default function SecurityActivityPage() {
         {data && <>
             <section><h2>Active login cooldowns <span className={styles.count}>{data.activeTotal}</span></h2><p>Times reflect the last refresh. Refresh before reviewing another account.</p>
                 <div className={workspace.tableWrap}><table className={workspace.table}><thead><tr><th>Account</th><th>Cooldown ends</th><th>Cooldown stage</th><th>Action</th></tr></thead><tbody>{data.cooldowns.map(account => <tr key={`${account.account_type}-${account.account_id}`}><td><AccountIdentity name={account.account_name} username={account.account_username} type={account.account_type} id={account.account_id}/></td><td>{date(Number(account.locked_until))}</td><td>{account.level}</td><td><button className={workspace.secondary} disabled={busy} onClick={() => { setSelected(account); setReason(''); setNotice(''); }}>Clear cooldown</button></td></tr>)}</tbody></table></div>
-                {!data.cooldowns.length && <p>No active cooldowns on this page.</p>}
+                {!data.cooldowns.length && <p>No active cooldowns match these filters.</p>}
+                {data.activeTotal > 50 && <nav className={styles.pagination} aria-label="Active cooldown pages">
+                    <button className={workspace.secondary} disabled={cooldownPage === 1 || busy} onClick={() => setCooldownPage(value => value - 1)}>Previous cooldowns</button>
+                    <span>Page {cooldownPage} of {Math.max(1, Math.ceil(data.activeTotal / 50))}</span>
+                    <button className={workspace.secondary} disabled={data.activeTotal <= cooldownPage * 50 || busy} onClick={() => setCooldownPage(value => value + 1)}>Next cooldowns</button>
+                </nav>}
             </section>
             <section><h2>Login and unlock history <span className={styles.count}>{data.total}</span></h2><p>Review password checks and administrator unlocks. Records begin when security logging is enabled.</p>
                 <div className={workspace.tableWrap}><table className={workspace.table}><thead><tr><th>Time</th><th>Account</th><th>Activity</th><th>Administrator</th><th>Reason</th></tr></thead><tbody>{data.events.map(event => <tr key={event.id}><td>{date(event.created_at)}</td><td><AccountIdentity name={event.account_name} username={event.account_username} type={event.account_type} id={event.account_id}/></td><td>{label(event.action)}</td><td>{event.actor_id ? <AccountIdentity name={event.actor_name} username={event.actor_username} type="staff" id={event.actor_id}/> : '—'}</td><td>{event.reason || '—'}</td></tr>)}</tbody></table></div>
                 {!data.events.length && <p>No security activity matches these filters.</p>}
             </section>
-            <nav className={styles.buttons} aria-label="Security activity pages"><button className={workspace.secondary} disabled={page === 1 || busy} onClick={() => setPage(value => value - 1)}>Previous</button><span>Page {page} · 50 records per table</span><button className={workspace.secondary} disabled={Math.max(data.total, data.activeTotal) <= page * 50 || busy} onClick={() => setPage(value => value + 1)}>Next</button></nav>
+            <nav className={styles.buttons} aria-label="Security activity pages"><button className={workspace.secondary} disabled={page === 1 || busy} onClick={() => setPage(value => value - 1)}>Previous</button><span>History page {page} of {Math.max(1, Math.ceil(data.total / 50))}</span><button className={workspace.secondary} disabled={data.total <= page * 50 || busy} onClick={() => setPage(value => value + 1)}>Next</button></nav>
         </>}
     </main>;
 }

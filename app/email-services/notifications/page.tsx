@@ -4,6 +4,8 @@ import Link from 'next/link';
 import React from 'react';
 import { Card, Col, Row } from 'react-bootstrap';
 import styles from '../email-standard.module.css';
+import EmailPageHero from '../_components/EmailPageHero';
+import ui from '../../../components/Billing/billing-strategy/StrategyWorkspace.module.css';
 import {
      RiFileList3Line,
      RiMailSettingsLine,
@@ -46,22 +48,9 @@ const sections = [
 
 export default function NotificationsHubPage() {
      return (
-          <div className={`container-fluid ${styles.pageRoot}`}>
-               <Card className={styles.heroCard}>
-                    <Card.Body className={styles.heroBody}>
-                         <div className={styles.heroTitleRow}>
-                              <h5 className={styles.heroTitle}>
-                                   <span className={styles.heroIcon}>
-                                        <RiMailSettingsLine size={16} />
-                                   </span>
-                                   Notifications
-                              </h5>
-                         </div>
-                         <p className={styles.heroDescription}>
-                              Manage events, template rendering, manual trigger, queue, and logs from dedicated smaller pages.
-                         </p>
-                    </Card.Body>
-               </Card>
+          <div className={`${ui.workspace} ${styles.pageRoot}`}>
+               <EmailPageHero title="Automatic notifications" subtitle="Choose when automatic emails are sent, manage their templates and review processing outcomes." icon={<RiMailSettingsLine size={24}/>} />
+               <div className={ui.actions}><Link href="/email-services" className={ui.secondary}>Email overview &amp; charts</Link><Link href="/email-services/templates" className={ui.secondary}>Reusable email templates</Link></div>
 
                <Row className="g-3">
                     {sections.map((section) => {

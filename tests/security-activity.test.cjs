@@ -44,7 +44,7 @@ function harness(role = 'admin') {
     const nodes = (node, predicate) => !node || typeof node !== 'object' ? [] : Array.isArray(node) ? node.flatMap(child => nodes(child,predicate)) : [...(predicate(node) ? [node] : []),...nodes(node.props?.children,predicate)];
     function render() { cursor=0;return exports.default(); }
     async function flush() { for (const effect of effects.splice(0)) effect(); await new Promise(resolve => setImmediate(resolve));return render(); }
-    return {render,flush,gets,posts,nodes,fail:() => {mutation={success:false,error:{message:'Training server failure'}};},succeed:() => {mutation={success:true,data:{cleared:true}};}};
+    return {render,flush,gets,posts,nodes,data,setMutation:value=>{mutation=value;},fail:() => {mutation={success:false,error:{message:'Training server failure'}};},succeed:() => {mutation={success:true,data:{cleared:true}};}};
 }
 
 test('non-administrators see denial and never request security data', async () => {
@@ -102,5 +102,37 @@ test('filters use account type and ID with a reset to the first page', async () 
     h.nodes(view,node => node.type==='form')[0].props.onSubmit({preventDefault(){}});
     h.render();
     await h.flush();
-    assert.equal(h.gets.at(-1),'security/activity?page=1&accountType=patient&accountId=7&search=Training%20Patient');
+    assert.equal(h.gets.at(-1),'security/activity?page=1&cooldownPage=1&accountType=patient&accountId=7&search=Training%20Patient');
+});
+
+
+test('history and cooldown pagination are independent and applying username search resets both', async () => {
+    const h=harness(); h.data.total=120; h.data.activeTotal=80;
+    h.render(); let view=await h.flush();
+    h.nodes(view,n=>n.type==='button'&&n.props.children==='Next')[0].props.onClick();
+    h.render(); view=await h.flush();
+    assert.equal(h.gets.at(-1),'security/activity?page=2&cooldownPage=1');
+    h.nodes(view,n=>n.type==='button'&&n.props.children==='Next cooldowns')[0].props.onClick();
+    h.render(); view=await h.flush();
+    assert.equal(h.gets.at(-1),'security/activity?page=2&cooldownPage=2');
+    h.nodes(view,n=>n.type==='input'&&n.props.type==='search')[0].props.onChange({target:{value:'S0007'}});
+    view=h.render();h.nodes(view,n=>n.type==='form')[0].props.onSubmit({preventDefault(){}});
+    h.render();await h.flush();
+    assert.equal(h.gets.at(-1),'security/activity?page=1&cooldownPage=1&search=S0007');
+});
+
+test('rapid repeated unlock submissions issue one mutation while the first request is pending', async () => {
+    const h=harness();h.render();let view=await h.flush();
+    h.nodes(view,n=>n.type==='button'&&n.props.children==='Clear cooldown')[0].props.onClick();
+    view=h.render();
+    h.nodes(view,n=>n.type==='textarea')[0].props.onChange({target:{value:'Verified caller'}});
+    view=h.render();
+    let resolve;h.setMutation(new Promise(done=>{resolve=done;}));
+    const submit=h.nodes(view,n=>n.type==='form')[1].props.onSubmit;
+    const first=submit({preventDefault(){}});
+    await submit({preventDefault(){}});
+    assert.equal(h.posts.length,1);
+    resolve({success:true,data:{cleared:true}});
+    await first;
+    assert.equal(h.nodes(h.render(),n=>n.type==='textarea').length,0);
 });

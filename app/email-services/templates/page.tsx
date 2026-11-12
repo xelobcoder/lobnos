@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ui from "../../../components/Billing/billing-strategy/StrategyWorkspace.module.css";
 import { Alert, Badge, Button, Card, Col, Form, Modal, Row, Spinner } from 'react-bootstrap';
 import { RiAddLine, RiDeleteBinLine, RiEyeLine, RiFileCopyLine, RiMailLine, RiRefreshLine, RiSaveLine } from '@remixicon/react';
@@ -18,6 +18,8 @@ export default function EmailTemplatesPage() {
      const employeeid = Number(app?.user?.employeeid || 0);
 
      const [loading, setLoading] = useState(false);
+     const [saving, setSaving] = useState(false);
+     const saveLock = useRef(false);
      const [templates, setTemplates] = useState<EmailTemplate[]>([]);
 
      const [templateModalOpen, setTemplateModalOpen] = useState(false);
@@ -75,6 +77,7 @@ export default function EmailTemplatesPage() {
      };
 
      const saveTemplate = async () => {
+          if (saveLock.current) return;
           if (!templateForm.name?.trim() || !templateForm.subject?.trim() || !templateForm.htmlBody?.trim()) {
                toast.error('Name, subject and HTML body are required');
                return;
@@ -92,6 +95,8 @@ export default function EmailTemplatesPage() {
                updatedBy: employeeid || undefined,
           };
 
+          saveLock.current = true;
+          setSaving(true);
           try {
                if (templateModalMode === 'create') {
                     await callMutate('email/templates', 'POST', payload);
@@ -104,6 +109,9 @@ export default function EmailTemplatesPage() {
                await loadTemplates();
           } catch (err: any) {
                toast.error(err?.message || 'Unable to save template');
+          } finally {
+               saveLock.current = false;
+               setSaving(false);
           }
      };
 
@@ -125,8 +133,8 @@ export default function EmailTemplatesPage() {
                const response = await callMutate(`email/templates/${item.id}/preview`, 'POST', {
                     variables: { PatientName: 'John Doe', InvoiceNumber: 'INV-0092' },
                });
-               setTemplatePreview(response?.result || null);
                if (!templateModalOpen) openTemplateModal('view', item);
+               setTemplatePreview(response?.result || null);
           } catch (err: any) {
                toast.error(err?.message || 'Preview failed');
           }
@@ -144,11 +152,11 @@ export default function EmailTemplatesPage() {
                accessor: 'templateActions',
                Cell: ({ row }: any) => (
                     <div className="d-flex gap-1 flex-wrap">
-                         <Button size="sm" variant="outline-secondary" onClick={() => openTemplateModal('view', row.original)}><RiEyeLine size={14} /></Button>
-                         <Button size="sm" variant="outline-primary" onClick={() => openTemplateModal('edit', row.original)}><RiSaveLine size={14} /></Button>
-                         <Button size="sm" variant="outline-info" onClick={() => previewTemplate(row.original)}><RiMailLine size={14} /></Button>
-                         <Button size="sm" variant="outline-dark" onClick={() => openTemplateDuplicate(row.original)}><RiFileCopyLine size={14} /></Button>
-                         <Button size="sm" variant="outline-danger" onClick={() => deleteTemplate(row.original)}><RiDeleteBinLine size={14} /></Button>
+                         <Button aria-label="View template" title="View template" size="sm" variant="outline-secondary" onClick={() => openTemplateModal('view', row.original)}><RiEyeLine size={14} /></Button>
+                         <Button aria-label="Edit template" title="Edit template" size="sm" variant="outline-primary" onClick={() => openTemplateModal('edit', row.original)}><RiSaveLine size={14} /></Button>
+                         <Button aria-label="Preview template" title="Preview template" size="sm" variant="outline-info" onClick={() => previewTemplate(row.original)}><RiMailLine size={14} /></Button>
+                         <Button aria-label="Duplicate template" title="Duplicate template" size="sm" variant="outline-dark" onClick={() => openTemplateDuplicate(row.original)}><RiFileCopyLine size={14} /></Button>
+                         <Button aria-label="Delete template" title="Delete template" size="sm" variant="outline-danger" onClick={() => deleteTemplate(row.original)}><RiDeleteBinLine size={14} /></Button>
                     </div>
                ),
           },
@@ -168,9 +176,10 @@ export default function EmailTemplatesPage() {
                          { label: 'Variables', value: VARIABLE_CHIPS.length },
                     ]}
                />
+               <p>For automatic messages, open <a href="/email-services/notifications/templates">Notification templates</a>.</p>
                <Card className={styles.surfaceCard}>
                     <Card.Header className={`${styles.surfaceHeader} d-flex justify-content-between align-items-center`}>
-                         <strong className={styles.surfaceTitle}>Email Templates</strong>
+                         <strong className={styles.surfaceTitle}>Reusable email templates</strong>
                          <div className={styles.headerActions}>
                               <Button size="sm" variant="outline-secondary" onClick={() => loadTemplates()}><RiRefreshLine size={14} /></Button>
                               <Button size="sm" variant="success" onClick={() => openTemplateModal('create')}><RiAddLine size={14} className="me-1" />New Template</Button>
@@ -185,11 +194,11 @@ export default function EmailTemplatesPage() {
                     </Card.Body>
                </Card>
 
-               <Modal className={styles.dialog} show={templateModalOpen} onHide={() => setTemplateModalOpen(false)} size="xl" centered>
-                    <Modal.Header closeButton>
+               <Modal className={styles.dialog} show={templateModalOpen} onHide={() => { if (!saving) setTemplateModalOpen(false); }} size="xl" centered>
+                    <Modal.Header closeButton={!saving}>
                          <Modal.Title className="text-capitalize">{templateModalMode} Template</Modal.Title>
                     </Modal.Header>
-                    <Modal.Body>
+                    <Modal.Body><fieldset disabled={saving}>
                          <Row className="g-3">
                               <Col md={7}>
                                    <Form.Group className="mb-2">
@@ -250,14 +259,14 @@ export default function EmailTemplatesPage() {
                                                   <>
                                                        <Alert variant="success" className="mb-2">Rendered Preview</Alert>
                                                        <div className="mb-2"><strong>Subject:</strong> {templatePreview.subject}</div>
-                                                       <div className="border rounded p-2 mb-2" dangerouslySetInnerHTML={{ __html: templatePreview.htmlBody || '' }} />
+                                                       <iframe title="Rendered email preview" sandbox="" referrerPolicy="no-referrer" className="w-100 border rounded mb-2" style={{height:300}} srcDoc={templatePreview.htmlBody || ''} />
                                                        <div className="border rounded p-2 bg-body-tertiary" style={{ whiteSpace: 'pre-wrap' }}>{templatePreview.plainTextBody || ''}</div>
                                                   </>
                                              ) : (
                                                   <>
                                                        <Alert variant="info" className="mb-2">Live Draft Preview</Alert>
                                                        <div className="mb-2"><strong>Subject:</strong> {templateForm.subject || '-'}</div>
-                                                       <div className="border rounded p-2 mb-2" dangerouslySetInnerHTML={{ __html: templateForm.htmlBody || '' }} />
+                                                       <iframe title="Draft email preview" sandbox="" referrerPolicy="no-referrer" className="w-100 border rounded mb-2" style={{height:300}} srcDoc={templateForm.htmlBody || ''} />
                                                        <div className="border rounded p-2 bg-body-tertiary" style={{ whiteSpace: 'pre-wrap' }}>{templateForm.plainTextBody || '-'}</div>
                                                   </>
                                              )}
@@ -265,10 +274,10 @@ export default function EmailTemplatesPage() {
                                    </Card>
                               </Col>
                          </Row>
-                    </Modal.Body>
+                    </fieldset></Modal.Body>
                     <Modal.Footer>
-                         <Button variant="secondary" onClick={() => setTemplateModalOpen(false)}>Close</Button>
-                         {templateModalMode !== 'view' && <Button variant="success" disabled={!isTemplateEditChanged} onClick={saveTemplate}><RiSaveLine size={14} className="me-1" />Save</Button>}
+                         <Button variant="secondary" disabled={saving} onClick={() => setTemplateModalOpen(false)}>Close</Button>
+                         {templateModalMode !== 'view' && <Button variant="success" disabled={saving || !isTemplateEditChanged} onClick={saveTemplate}><RiSaveLine size={14} className="me-1" />Save</Button>}
                     </Modal.Footer>
                </Modal>
           </div>

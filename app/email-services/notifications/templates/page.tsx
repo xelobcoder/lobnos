@@ -65,7 +65,7 @@ export default function NotificationTemplatesPage() {
           return templates.filter((item) => {
                const code = item.eventCode || item.event_code || '';
                const eventId = Number(item.eventId || item.event_id || 0);
-               return code === selectedEventCode || (selectedEvent?.id && eventId === selectedEvent.id);
+               return code === selectedEventCode || (selectedEvent?.id && eventId === Number(selectedEvent.id));
           });
      }, [templates, selectedEventCode, selectedEvent]);
 
@@ -109,10 +109,10 @@ export default function NotificationTemplatesPage() {
           const id = ++requestId.current;
           setLoading(true); setError('');
           try {
-               const [eventsRows, templatesRows] = await Promise.all([loadEvents(), loadTemplates()]);
+               const [eventsRows, templatesRows] = await Promise.all([loadEvents(), loadTemplates(true)]);
                if (id !== requestId.current) return;
                setEvents(eventsRows); setTemplates(templatesRows);
-               setSelectedEventCode(previous => previous || eventsRows[0]?.event_code || '');
+               setSelectedEventCode(previous => previous || eventsRows.find(event => templatesRows.some(template => template.eventCode === event.event_code || Number(template.eventId) === Number(event.id)))?.event_code || eventsRows[0]?.event_code || '');
           } catch (err) {
                if (id === requestId.current) setError(err instanceof Error ? err.message : 'Unable to load notification templates.');
           } finally { if (id === requestId.current) setLoading(false); }
@@ -253,7 +253,7 @@ export default function NotificationTemplatesPage() {
           <PrimeToast />
           <header className={ui.header}><div className={ui.heading}><span className={ui.icon}><RiFileHistoryLine size={24} aria-hidden="true" /></span><div><span className={ui.eyebrow}>Notifications</span><h1>Notification templates</h1><p>Compose event templates, check placeholders, and review saved versions.</p></div></div><div className={ui.actions}><button className={ui.secondary} disabled={loading || !!busy} onClick={() => void refresh()}><RiRefreshLine size={18} aria-hidden="true" />Refresh</button><button className={ui.primary} disabled={disabled} onClick={() => { resetTemplateForm(); editor.current?.scrollIntoView({ block: 'start' }); }}><RiAddLine size={18} aria-hidden="true" />New template</button></div></header>
           {error && <div className={ui.error} role="alert">{error}<button className={ui.secondary} disabled={loading || !!busy} onClick={() => void refresh()}>Retry loading</button></div>}
-          <section className={ui.panel} aria-labelledby="event-heading"><div className={ui.sectionTitle}><h2 id="event-heading">Choose an event</h2><span className={ui.badge}>{loading ? 'Loading...' : events.length + ' events'}</span></div><div className={ui.field}><label htmlFor="template-event">Notification event</label><select id="template-event" value={selectedEventCode} disabled={loading || !!busy} onChange={event => { setSelectedEventCode(event.target.value); setTemplateForm(emptyTemplateForm); setTemplatePreview(null); setPreviewFromTemplateId(null); setQuery(''); setStatus('all'); setPage(1); setCatalogLoading(true); }}><option value="">Select an event</option>{events.map(item => <option key={item.event_code} value={item.event_code}>{item.event_name || item.event_code}</option>)}</select><p className={ui.help}>Templates and available placeholders belong to the selected event.</p></div>{!loading && !events.length && <p className={ui.help}>No notification events are available.</p>}</section>
+          <section className={ui.panel} aria-labelledby="event-heading"><div className={ui.sectionTitle}><h2 id="event-heading">Choose an event</h2><span className={ui.badge}>{loading ? 'Loading...' : events.length + ' events'}</span></div><div className={ui.field}><label htmlFor="template-event">Notification event</label><select id="template-event" value={selectedEventCode} disabled={loading || !!busy} onChange={event => { setSelectedEventCode(event.target.value); setTemplateForm(emptyTemplateForm); setTemplatePreview(null); setPreviewFromTemplateId(null); setQuery(''); setStatus('all'); setPage(1); setCatalogLoading(true); }}><option value="">Select an event</option>{events.map(item => <option key={item.event_code} value={item.event_code}>{item.event_name || item.event_code} — {templates.filter(template => template.eventCode === item.event_code || Number(template.eventId) === Number(item.id)).length} saved</option>)}</select><p className={ui.help}>Templates and available placeholders belong to the selected event.</p></div>{!loading && !events.length && <p className={ui.help}>No notification events are available.</p>}</section>
           <div className={ui.stats} aria-label="Selected event overview">{[['Templates', visibleTemplates.length], ['Active templates', visibleTemplates.filter(item => item.isActive).length], ['Event variables', catalogVariables.length]].map(([label, count]) => <div className={ui.stat} key={label}><span className={ui.icon}><RiFileHistoryLine size={21} aria-hidden="true" /></span><div><strong>{loading || catalogLoading ? '-' : count}</strong><span>{label}</span></div></div>)}</div>
           <div className={ui.editorGrid} ref={editor}>
                <form className={ui.formSections} onSubmit={event => { event.preventDefault(); if (!disabled) void runAction('save', saveTemplate); }}>
