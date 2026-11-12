@@ -31,6 +31,46 @@ test('notification manager can include inactive templates without changing activ
     assert.deepEqual(calls,['notifications/templates?includeInactive=true','notifications/templates?includeInactive=false','notifications/logs?page=1&count=50','notifications/queue?page=1&count=100']);
 });
 
+test('all 109 events load and saved channel flags and catalog bodies retain their database values', async () => {
+    const events = Array.from({length:109}, (_,index) => ({id:index+1,event_code:`EVENT_${index+1}`}));
+    const lib = load('app/email-services/notifications/_lib.ts', {'../_lib':{
+        callGet:async url => url === 'notifications/events' ? {result:events} : url.includes('/catalog') ? {result:{event:events[0],variables:[{variable_name:'patient_name',data_type:'string'}],template:{subject:'Custom',html_body:'<p>Custom</p>',plain_body:'Custom'}}} : {result:{email_enabled:'0',sms_enabled:1,whatsapp_enabled:'0',in_app_enabled:0,default_template_id:'42'}},
+        callMutate:async()=>{}, parseList:response=>response.result,
+    }});
+    assert.equal((await lib.loadEvents()).length,109);
+    const settings=await lib.loadEventSettings('EVENT_1');
+    assert.equal(settings.emailEnabled,false);assert.equal(settings.smsEnabled,true);
+    assert.equal(settings.whatsappEnabled,false);assert.equal(settings.inAppEnabled,false);assert.equal(settings.defaultTemplateId,42);
+    const catalog=await lib.loadSingleEventCatalog('EVENT_1');
+    assert.equal(catalog.variables[0].variable_type,'string');
+    assert.equal(catalog.template.htmlBody,'<p>Custom</p>');assert.equal(catalog.template.plainBody,'Custom');
+});
+
+test('event selector exposes every event, searches codes and filters modules without changing the selected event', () => {
+    let module='';
+    const changed=[];
+    const component=load('app/email-services/notifications/_components/EventSelector.tsx', {
+        react:{...React,useState:()=>[module,value=>{module=value;}]},
+        'react-select':{__esModule:true,default:'event-picker'},
+        '../../../../components/Auth/customFetch':{reactSelectCustomStyles:{}},
+    }).default;
+    const events=Array.from({length:109},(_,index)=>({id:index+1,event_code:`EVENT_${index+1}`,event_name:`Event ${index+1}`,module:index<22?'inventory':'billing'}));
+    const props={id:'events',events,templates:events.map(event=>({eventId:event.id})),value:'EVENT_1',onChange:code=>changed.push(code)};
+    const nodes=(node,predicate)=>!node||typeof node!=='object'?[]:Array.isArray(node)?node.flatMap(child=>nodes(child,predicate)):[...(predicate(node)?[node]:[]),...nodes(node.props?.children,predicate)];
+    let view=component(props),picker=nodes(view,n=>n.type==='event-picker')[0];
+    assert.equal(picker.props.options.length,109);
+    for(const option of picker.props.options){assert.equal(option.templateCount,1);picker.props.onChange(option);}
+    assert.equal(changed.length,109);
+    const option=picker.props.options[108];
+    assert.equal(picker.props.filterOption({label:option.label,value:option.value,data:option},'event_109'),true);
+    assert.equal(picker.props.filterOption({label:option.label,value:option.value,data:option},'missing event'),false);
+    nodes(view,n=>n.type==='select')[0].props.onChange({target:{value:'inventory'}});
+    view=component(props);picker=nodes(view,n=>n.type==='event-picker')[0];
+    assert.equal(picker.props.options.length,22);
+    assert.equal(picker.props.value.value,'EVENT_1');
+    assert.equal(changed.length,109);
+});
+
 function harness() {
     const slots=[], effects=[], requests=[];
     let cursor=0;

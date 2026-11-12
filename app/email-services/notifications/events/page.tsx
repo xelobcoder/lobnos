@@ -9,6 +9,7 @@ import PrimeToast from '../../../../components/accessories/PrimeToast';
 import { EventCatalogItem, EventSetting, defaultEventSettings, loadEvents, loadTemplates, loadSingleEventCatalog, loadEventSettings, syncDefinitions, callMutate } from '../_lib';
 import ui from '../../../../components/Billing/billing-strategy/StrategyWorkspace.module.css';
 import styles from './EventWorkspace.module.css';
+import EventSelector from '../_components/EventSelector';
 
 
 export default function NotificationEventsPage() {
@@ -39,7 +40,7 @@ export default function NotificationEventsPage() {
           return templates.filter((item) => {
                const code = item.eventCode || item.event_code || '';
                const eventId = Number(item.eventId || item.event_id || 0);
-               return code === selectedEventCode || (selectedEvent?.id && eventId === selectedEvent.id);
+               return code === selectedEventCode || (selectedEvent?.id && eventId === Number(selectedEvent.id));
           });
      }, [templates, selectedEventCode, selectedEvent]);
 
@@ -90,6 +91,8 @@ export default function NotificationEventsPage() {
           mutationLock.current = true; setSavingSettings(true); setSaved(false);
           try {
                await callMutate('notifications/settings/' + encodeURIComponent(selectedEventCode), 'PUT', { ...eventSettings });
+               const persisted = await loadEventSettings(selectedEventCode);
+               setEventSettings(persisted);
                toast.success('Event settings updated'); setSaved(true);
           } catch (err) { toast.error(err instanceof Error ? err.message : 'Unable to update settings'); }
           finally { mutationLock.current = false; setSavingSettings(false); }
@@ -111,7 +114,7 @@ export default function NotificationEventsPage() {
           <header className={ui.header}><div className={ui.heading}><span className={ui.icon}><RiSettings4Line size={24} aria-hidden="true" /></span><div><span className={ui.eyebrow}>Notifications</span><h1>Notification events</h1><p>Choose delivery channels and a default template for each event.</p></div></div><div className={ui.actions}><button className={ui.secondary} disabled={loading || busy} onClick={() => void loadAll()}><RiRefreshLine size={18} aria-hidden="true" />Refresh</button><button className={ui.primary} disabled={loading || busy} onClick={() => void runSync()}><RiRefreshLine size={18} aria-hidden="true" />{syncing ? 'Syncing definitions...' : 'Sync definitions'}</button></div></header>
           <div className={ui.stats} aria-label="Event overview">{[['Notification events', events.length], ['Available templates', templates.length], ['Channels enabled for selected event', channels.filter(channel => eventSettings[channel.key]).length]].map(([label, count], index) => <div className={ui.stat} key={label}><span className={ui.icon}><RiSettings4Line size={21} aria-hidden="true" /></span><div><strong>{loading || (index === 2 && (detailsLoading || !catalogItem)) ? '-' : count}</strong><span>{label}</span></div></div>)}</div>
           {error && <div className={ui.error} role="alert">{error}<button className={ui.secondary} disabled={loading || busy} onClick={() => void loadAll()}>Retry loading</button></div>}
-          <section className={ui.panel} aria-labelledby="event-selection"><div className={ui.sectionTitle}><h2 id="event-selection">Choose an event</h2>{selectedEvent?.module && <span className={ui.badge}>{selectedEvent.module}</span>}</div><div className={ui.field}><label htmlFor="notification-event">Notification event</label><select id="notification-event" value={selectedEventCode} disabled={loading || busy} onChange={event => { setSelectedEventCode(event.target.value); setCatalogItem(null); setDetailsLoading(true); setSaved(false); }}><option value="">Select an event</option>{events.map(item => <option key={item.event_code} value={item.event_code}>{item.event_name || item.event_code}</option>)}</select><p className={ui.help}>Channel settings, templates and references belong to the selected event.</p></div>{!loading && !events.length && <div className={ui.notice + ' ' + styles.notice}>No notification events are available. Sync definitions to load the event catalog.</div>}</section>
+          <section className={ui.panel} aria-labelledby="event-selection"><div className={ui.sectionTitle}><h2 id="event-selection">Choose an event</h2>{selectedEvent?.module && <span className={ui.badge}>{selectedEvent.module}</span>}</div><EventSelector id="notification-event" events={events} value={selectedEventCode} disabled={loading || busy} onChange={code => { setSelectedEventCode(code); setCatalogItem(null); setDetailsLoading(true); setSaved(false); }} />{!loading && !events.length && <div className={ui.notice + ' ' + styles.notice}>No notification events are available. Sync definitions to load the event catalog.</div>}</section>
           {detailsError && <div className={ui.error} role="alert">{detailsError}<button className={ui.secondary} disabled={busy || detailsLoading} onClick={() => setDetailsRetry(value => value + 1)}>Retry event details</button></div>}
           {(loading || detailsLoading) && <div className={ui.notice} role="status">Loading event settings...</div>}
           {saved && <div className={ui.success} role="status">Settings saved for {selectedEvent?.event_name || selectedEventCode}.</div>}

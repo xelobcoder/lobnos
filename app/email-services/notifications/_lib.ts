@@ -125,11 +125,11 @@ export async function loadEventSettings(eventCode: string) {
      const response = await callGet(`notifications/settings/${encodeURIComponent(eventCode)}`);
      const source = response?.result || response || {};
      return {
-          emailEnabled: Boolean(source.emailEnabled ?? source.email_enabled ?? true),
-          smsEnabled: Boolean(source.smsEnabled ?? source.sms_enabled ?? false),
-          whatsappEnabled: Boolean(source.whatsappEnabled ?? source.whatsapp_enabled ?? false),
-          inAppEnabled: Boolean(source.inAppEnabled ?? source.in_app_enabled ?? true),
-          defaultTemplateId: source.defaultTemplateId ?? source.default_template_id ?? null,
+          emailEnabled: [true, 1, '1', 'true'].includes(source.emailEnabled ?? source.email_enabled ?? true),
+          smsEnabled: [true, 1, '1', 'true'].includes(source.smsEnabled ?? source.sms_enabled ?? false),
+          whatsappEnabled: [true, 1, '1', 'true'].includes(source.whatsappEnabled ?? source.whatsapp_enabled ?? false),
+          inAppEnabled: [true, 1, '1', 'true'].includes(source.inAppEnabled ?? source.in_app_enabled ?? true),
+          defaultTemplateId: (source.defaultTemplateId ?? source.default_template_id) == null ? null : Number(source.defaultTemplateId ?? source.default_template_id),
      } as EventSetting;
 }
 
@@ -182,15 +182,32 @@ export type TriggerByReferencePayload = {
      recipients?: { to: string[]; cc: string[]; bcc: string[] };
 };
 
+function mapEventCatalog(item: any): EventCatalogItem {
+     return {
+          ...item,
+          variables: (item.variables || []).map((variable: any) => ({
+               ...variable,
+               variable_type: variable.variable_type ?? variable.data_type,
+          })),
+          template: {
+               ...item.template,
+               subject: item.template?.subject || '',
+               htmlBody: item.template?.htmlBody ?? item.template?.html_body ?? '',
+               plainBody: item.template?.plainBody ?? item.template?.plain_body ?? '',
+          },
+     };
+}
+
 export async function loadEventCatalog(): Promise<EventCatalogItem[]> {
      const response = await callGet('notifications/events/catalog');
-     return parseList<EventCatalogItem>(response);
+     return parseList<EventCatalogItem>(response).map(mapEventCatalog);
 }
 
 export async function loadSingleEventCatalog(eventCode: string): Promise<EventCatalogItem | null> {
      try {
           const response = await callGet(`notifications/events/${encodeURIComponent(eventCode)}/catalog`);
-          return response?.result || response || null;
+          const item = response?.result || response;
+          return item?.event ? mapEventCatalog(item) : null;
      } catch {
           return null;
      }

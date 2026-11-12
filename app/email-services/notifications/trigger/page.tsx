@@ -1,5 +1,7 @@
 'use client';
 
+import EventSelector from '../_components/EventSelector';
+
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { RiSendPlane2Line } from '@remixicon/react';
@@ -145,7 +147,7 @@ export default function NotificationTriggerPage() {
                                    <section className={s.panel} aria-labelledby="event-heading" aria-busy={loading || catalogLoading}>
                                         <div className={s.sectionTitle}><h2 id="event-heading">1. Event & references</h2><span className={s.badge}>{loading ? 'Loading...' : events.length + ' events'}</span></div>
                                         <div className={s.fields}>
-                                             <div className={s.field}><label htmlFor="trigger-event">Event *</label><select id="trigger-event" required value={selectedEventCode} disabled={loading} onChange={(event) => { setCatalog(null); setSelectedEventCode(event.target.value); setTriggerResult(null); }}><option value="">Select an event</option>{events.map((item) => <option key={item.event_code} value={item.event_code}>{item.event_name || item.event_code}</option>)}</select></div>
+                                             <EventSelector id="trigger-event" events={events} value={selectedEventCode} disabled={loading} onChange={code => { setCatalog(null); setSelectedEventCode(code); setTriggerResult(null); }} />
                                              <div className={s.field}><label htmlFor="trigger-priority">Priority</label><select id="trigger-priority" value={priority} onChange={(event) => setPriority(event.target.value)}><option value="low">Low</option><option value="normal">Normal</option><option value="high">High</option></select></div>
                                         </div>
                                         <div className={styles.references}>
