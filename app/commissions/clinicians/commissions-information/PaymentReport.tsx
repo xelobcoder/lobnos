@@ -136,6 +136,21 @@ export function PaymentReport({ data, startDate, endDate, loading, error, onBrea
     );
 }
 
+function SettlementNotes({ notes }: { notes: string }) {
+    let metadata: Record<string, unknown>;
+    try {
+        const parsed: unknown = JSON.parse(notes);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return <p className="small"><strong>Notes:</strong> {notes}</p>;
+        metadata = parsed as Record<string, unknown>;
+    } catch { return <p className="small"><strong>Notes:</strong> {notes}</p>; }
+    return <dl className="row small">
+        {metadata.workflow === 'controlled_expense' && <><dt className="col-sm-3">Payment workflow</dt><dd className="col-sm-9">Expense approval</dd></>}
+        {typeof metadata.requested_payment === 'number' && <><dt className="col-sm-3">Requested payment</dt><dd className="col-sm-9">{money(metadata.requested_payment)}</dd></>}
+        {['full', 'partial'].includes(String(metadata.settlement_mode)) && <><dt className="col-sm-3">Settlement</dt><dd className="col-sm-9">{metadata.settlement_mode === 'full' ? 'Full payment' : 'Partial payment'}</dd></>}
+        {typeof metadata.waiver_reason === 'string' && metadata.waiver_reason && <><dt className="col-sm-3">Waiver reason</dt><dd className="col-sm-9">{metadata.waiver_reason}</dd></>}
+    </dl>;
+}
+
 export function BreakdownModal({ selected, onHide, data, loading, error, onRetry, reportRef, actions, extended = false }: {
     selected: PaidCommissionData | null;
     onHide: () => void;
@@ -182,7 +197,7 @@ export function BreakdownModal({ selected, onHide, data, loading, error, onRetry
                             <dt className="col-sm-3">Waived</dt><dd className="col-sm-9">{money(selected.waived_amount)}</dd>
                             <dt className="col-sm-3">Outstanding</dt><dd className="col-sm-9">{money(Math.max(0, Number(selected.total_commission_amount) - Number(selected.payment_amount) - Number(selected.waived_amount)))}</dd>
                         </dl>
-                        {selected.notes && <p className="small"><strong>Notes:</strong> {selected.notes}</p>}
+                        {selected.notes && <SettlementNotes notes={selected.notes} />}
                     </section>}
                     {loading ? <LoadingState>Loading commission breakdown…</LoadingState> : error ? <ErrorState message={error} onRetry={onRetry} /> : data.length ? <>
                         <h2 className="h6">Service allocations</h2>

@@ -32,7 +32,7 @@ test('noncash checkout asks for a reference and never offers cash change', () =>
      const html = renderToStaticMarkup(React.createElement(Fields, { payment: p, method: 'card', total: 85 }));
      assert.match(html, /Payment reference/); assert.doesNotMatch(html, /Change:/);
 });
-test('the basket sits below medicine selection with payment alongside it', () => {
+test('the basket fills the workspace and payment starts in a closed invoice drawer', () => {
      let index = 0;
      const hooks = { ...React, useEffect() {}, useCallback: fn => fn, useRef: value => ({ current: value }), useState: initial => {
           const current = index++;
@@ -41,7 +41,10 @@ test('the basket sits below medicine selection with payment alongside it', () =>
      const Page = compile('app/pharmacy/sell/page.tsx', { react: hooks, 'next/link': ({ children, href }) => React.createElement('a', { href }, children), '../components/PharmacyPaymentFields': { __esModule: true, default: Fields, usePharmacyPayment: () => payment('100'), usePharmacyDocument: () => ({ execute: async () => ({ success: true }), pending: null }) }, '../../../lib/pharmacy/receipt': { printPharmacyReceipt() {} }, './pos.module.css': { __esModule: true, default: {} }, '../components/InvoiceCollectionPanel': { __esModule: true, default: () => null } }).default;
      const html = renderToStaticMarkup(React.createElement(Page));
      assert.ok(html.indexOf('Search medicine or scan barcode') < html.indexOf('Basket'));
-     assert.ok(html.indexOf('Basket') < html.indexOf('<aside'));
+     assert.ok(html.indexOf('Basket') < html.indexOf('Current sale totals'));
+     assert.doesNotMatch(html, /<aside/);
+     assert.match(html, /Review invoice/);
+     assert.match(html, /form="pharmacy-checkout"/);
      assert.match(html, /GHS 85\.00/); assert.match(html, /Change.*GHS 15\.00/);
 });
 test('pharmacy navigation never links into lab inventory and scopes finance by role', () => {

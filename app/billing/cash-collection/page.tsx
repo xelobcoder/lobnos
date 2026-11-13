@@ -199,9 +199,9 @@ export default function CashCollection() {
           }
 
           try {
-               let url = `billing/client/bulk/outstanding?status=${searchStatus}`;
-               if (pId.trim()) url += `&patientid=${pId}`;
-               if (bId.trim()) url += `&billingid=${bId}`;
+               let url = `billing/client/bulk/outstanding?${new URLSearchParams({status: searchStatus})}`;
+               if (pId.trim()) url += `&patientid=${encodeURIComponent(pId)}`;
+               if (bId.trim()) url += `&billingid=${encodeURIComponent(bId)}`;
                
                const response = await customFetch(url) as BulkOutstandingResponse;
                if (generation !== searchGeneration.current) return;

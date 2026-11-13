@@ -1,6 +1,7 @@
 "use client";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import Modal from "react-bootstrap/Modal";
 import { RiAddLine, RiArrowDownSLine, RiArrowRightLine, RiRefreshLine, RiShieldCheckLine } from "@remixicon/react";
 import { useApplication } from "../Auth/useApplicationContext";
@@ -21,7 +22,12 @@ type View = "receivables" | "cash" | "activity";
 type EntryKind = EntryDraft["kind"];
 
 function useReport<T extends PageResult<unknown>>(fetchReport: (query: PeriodQuery) => Promise<T>, refresh: number, sessionKey: string) {
-    const [filters, setFilters] = useState<PeriodQuery>(() => ({ from: "", to: today(), page: 1, count: 25 }));
+    const params = useSearchParams();
+    const [filters, setFilters] = useState<PeriodQuery>(() => {
+        const from = params?.get('from') || '', to = params?.get('to') || today();
+        const valid = (date: string) => /^\d{4}-\d{2}-\d{2}$/.test(date) && !Number.isNaN(Date.parse(date));
+        return { from: valid(from) && valid(to) && from <= to ? from : '', to: valid(to) ? to : today(), page: 1, count: 25 };
+    });
     const [data, setData] = useState<T | null>(null), [error, setError] = useState("");
     const context = JSON.stringify([filters, refresh, sessionKey]);
     const [loadedContext, setLoadedContext] = useState(""), [errorContext, setErrorContext] = useState("");

@@ -450,6 +450,7 @@ export default function YearlySalesTrend() {
                 </div>
             </div>
 
+            <p className="small text-muted px-4 pt-3 mb-0">Sales include closed bills. Legacy facilities use available billing records. Receipts and expenses use payment dates.</p>
             <div className="card-body p-3 p-md-4">
                 {error && data.length > 0 && (
                     <div className="alert alert-warning border-warning border-opacity-50 d-flex align-items-center small p-2 mb-3" role="alert">

@@ -1,4 +1,6 @@
 "use client";
+import { analyticsWeek } from '../../../../lib/analyticsWeek';
+
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
     ResponsiveContainer,
@@ -27,7 +29,7 @@ const COLOR_TOOLTIP_BG = 'var(--bs-body-bg)';
 const COLOR_TOOLTIP_FG = 'var(--bs-body-color)';
 
 interface WeeklySalesAPIEntry {
-    week: number;
+    week: number | string;
     gross_revenue: string;
     cash_collected: string;
     earned_revenue: string;
@@ -85,14 +87,8 @@ export default function WeeklySalesTrend() {
             const response: WeeklySalesAPIEntry[] = await customFetch(url);
 
             if (response && Array.isArray(response)) {
-                // Debug: Check for invalid week values
-                const invalidWeeks = response.filter(item => typeof item.week !== 'number' || item.week < 0 || item.week === null || item.week === undefined);
-                if (invalidWeeks.length > 0) {
-                    console.warn('WeeklySalesTrend: Found records with invalid week values:', invalidWeeks.map(item => ({ week: item.week, net_operating_cash: item.net_operating_cash })));
-                }
-
                 const sortedData = response.map((item) => ({
-                    week: (typeof item.week === 'number' && item.week >= 0) ? String(item.week) : "N/A",
+                    week: analyticsWeek(item.week, fetchYear),
                     gross_revenue: parseFloat(item.gross_revenue) || 0,
                     cash_collected: parseFloat(item.cash_collected) || 0,
                     earned_revenue: parseFloat(item.earned_revenue) || 0,
@@ -101,8 +97,11 @@ export default function WeeklySalesTrend() {
                     expenses_paid: parseFloat(item.expenses_paid) || 0,
                     net_operating_cash: parseFloat(item.net_operating_cash) || 0,
                     outstanding: parseFloat(item.outstanding) || 0,
-                })).sort((a, b) => parseInt(a.week) - parseInt(b.week));
+                })).sort((a, b) => a.week.localeCompare(b.week));
 
+                if (new Set(sortedData.map(item => item.week)).size !== sortedData.length) {
+                    throw new Error('The weekly report returned duplicate periods. Please refresh the report.');
+                }
                 // Calculate percentage change from previous week
                 const formattedData = sortedData.map((item, index) => ({
                     ...item,
@@ -394,7 +393,8 @@ export default function WeeklySalesTrend() {
                         </div>
                     </div>
                 </div>
-                <div className="card-body p-3 p-md-4">
+                <p className="small text-muted px-4 pt-3 mb-0">Sales include closed bills. Legacy facilities use available billing records. Receipts and expenses use payment dates.</p>
+            <div className="card-body p-3 p-md-4">
                     {error && data.length > 0 && (
                         <div className="alert alert-warning border-warning border-opacity-50 d-flex align-items-center small p-2 mb-3" role="alert">
                             <RiErrorWarningLine size={18} className="me-2 flex-shrink-0 text-warning" /> <span className="ms-1">{error}</span>

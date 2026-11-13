@@ -16,6 +16,9 @@ type ReversedSale = {
      status: string;
      completedAt: string | null;
      cashierId: number;
+     cashierName?: string | null;
+     reversedBy?: number | null;
+     reversedByName?: string | null;
      reversalType: ReversalType | null;
      reversalReason: string | null;
      reversedAt: string | null;
@@ -37,6 +40,8 @@ type SaleDetail = ReversedSale & {
      reversedBy: number | null;
      lines: SaleLine[];
 };
+
+const staffName = (name: string | null | undefined, id: number | null | undefined) => name?.trim() || (id ? `Staff #${id}` : 'Not recorded');
 
 const currency = new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS' });
 const DEFAULT_PAGE_SIZE = 10;
@@ -151,6 +156,8 @@ export default function PharmacyReversalsPage() {
                ),
           },
           { Header: 'Customer', accessor: 'customerName' },
+          { Header: 'Sold by', id: 'cashierName', accessor: (sale: ReversedSale) => staffName(sale.cashierName, sale.cashierId) },
+          { Header: 'Reversed by', id: 'reversedByName', accessor: (sale: ReversedSale) => staffName(sale.reversedByName, sale.reversedBy) },
           { Header: 'Amount', accessor: 'total', Cell: ({ value }: { value: number }) => <span className="fw-bold">{currency.format(value)}</span> },
           {
                Header: 'Outcome',
@@ -262,6 +269,11 @@ export default function PharmacyReversalsPage() {
                                                                  <span className="fw-semibold">{detail.completedAt ? new Date(detail.completedAt).toLocaleString() : '-'}</span>
                                                             </div>
                                                        </div>
+
+                                                       <dl className="row small mb-3">
+                                                            <dt className="col-sm-3">Sold by</dt><dd className="col-sm-9">{staffName(detail.cashierName, detail.cashierId)}</dd>
+                                                            {detail.reversalType && <><dt className="col-sm-3">{detail.reversalType === 'refund' ? 'Refunded by' : detail.reversalType === 'void' ? 'Voided by' : 'Cancelled by'}</dt><dd className="col-sm-9">{staffName(detail.reversedByName, detail.reversedBy)}</dd></>}
+                                                       </dl>
 
                                                        <div className="alert alert-warning py-2">
                                                             <span className="fw-semibold text-capitalize">{detail.reversalType}</span>

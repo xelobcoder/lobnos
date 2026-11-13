@@ -9,6 +9,7 @@ import { customFetch, currencyFormatter } from "../../../../../components/Auth/c
 import DateFilterReusable from "../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend, LineChart, Line, AreaChart, Area } from 'recharts';
 import { plsEncryption } from "../../../../../lib/encryption";
+import Link from "next/link";
 
 interface ServiceDetail {
      service_name: string;
@@ -124,7 +125,7 @@ export default function CategoryDetailsPage() {
      };
 
      const fetchCategoryDetails = async () => {
-          if (!user?.employeeid || !category) return;
+          if (!user?.employeeid || !category || category.toLowerCase() === 'nhis') return;
           setLoading(true);
           setError(null);
 
@@ -291,6 +292,13 @@ export default function CategoryDetailsPage() {
           { type: "area" as const, icon: RiBubbleChartLine, label: "Area" },
      ];
 
+     if (category.toLowerCase() === 'nhis') return <main className="p-4">
+          <h1 className="h4">NHIS receivables</h1>
+          <p>NHIS balances are reconciled against remittances, tariff adjustments and write-offs in the accounting workspace. They are excluded from patient outstanding payments.</p>
+          <Link className="btn btn-primary me-2" href={`/accounting/nhis?${new URLSearchParams({from: initialStartDate, to: initialEndDate})}`}>View NHIS receivables</Link>
+          <Link className="btn btn-outline-secondary" href="/analytics/sales/outstanding-payments-breakdown">Back to patient outstanding</Link>
+     </main>;
+
      return (
           <div className="container-fluid px-4 py-3">
                {/* Header Section */}
@@ -313,7 +321,7 @@ export default function CategoryDetailsPage() {
                                         const uniquePid = pids && pids.length > 0 ? pids[0] : "";
                                         const billingIds = selectedTransactions.join(",");
                                         
-                                        const url = `/billing/cash-collection?patientid=${plsEncryption((uniquePid || "").toString())}&&billingid=${billingIds}&&paymentstatus=pending`;
+                                        const url = `/billing/cash-collection?${new URLSearchParams({billingid: billingIds, paymentstatus: "all"})}`;
                                         window.open(url, '_blank');
                                    }}
                                    className="btn btn-sm btn-success d-flex align-items-center gap-1 shadow-sm animate-in fade-in zoom-in"
@@ -449,7 +457,7 @@ export default function CategoryDetailsPage() {
                                                        const uniquePid = pids.length > 0 ? pids[0] : "";
                                                        const billingIds = selectedTransactions.join(",");
                                                        
-                                                       const url = `/billing/cash-collection?patientid=${plsEncryption((uniquePid || "").toString())}&&billingid=${billingIds}&&paymentstatus=pending`;
+                                                       const url = `/billing/cash-collection?${new URLSearchParams({billingid: billingIds, paymentstatus: "all"})}`;
                                                        window.open(url, '_blank');
                                                   }}
                                                   className="btn btn-sm btn-success d-flex align-items-center gap-1 shadow-sm animate-in fade-in zoom-in"
@@ -533,7 +541,7 @@ export default function CategoryDetailsPage() {
                                                                  <button
                                                                       onClick={() => {
                                                                            const pid = item.patientid || item.patient_id;
-                                                                           const url = `/billing/cash-collection?patientid=${plsEncryption((pid || "").toString())}&&billingid=${item.billingid}&&paymentstatus=pending`;
+                                                                           const url = `/billing/cash-collection?${new URLSearchParams({patientid: plsEncryption((pid || "").toString()), billingid: String(item.billingid), paymentstatus: "all"})}`;
                                                                            window.open(url, '_blank');
                                                                       }}
                                                                       className="btn btn-sm btn-outline-success d-flex align-items-center gap-1 mx-auto"

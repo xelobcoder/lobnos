@@ -3,6 +3,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { customFetch, customFetchMutation } from '../../../components/Auth/customFetch';
 import { useApplication } from '../../../components/Auth/useApplicationContext';
 
+function rejectedBeforeProcessing(response: any): boolean {
+     const code = response?.error?.code || response?.code;
+     return code === 'FINANCIAL_DAY_OVERDUE' || code === 'FINANCIAL_DAY_CHECK_FAILED';
+}
+
 type Pending = { endpoint: string; payload: Record<string, unknown> };
 export function usePharmacyDocument(scope: string) {
      const app = useApplication() as any;
@@ -16,10 +21,11 @@ export function usePharmacyDocument(scope: string) {
           if (busy.current) throw new Error('An operation is already running');
           busy.current = true;
           try {
+               const isNewRequest = current.current === null;
                const request = current.current || { endpoint, payload: { ...payload, idempotencyKey: crypto.randomUUID() } };
                sessionStorage.setItem(key, JSON.stringify(request)); current.current = request; setPending(request);
                const response = await customFetchMutation(request.endpoint, 'POST', request.payload);
-               if (response?.success || response?.error?.code === 'PHARMACY_OPERATION_REJECTED') { sessionStorage.removeItem(key); current.current = null; setPending(null); }
+               if (response?.success || response?.error?.code === 'PHARMACY_OPERATION_REJECTED' || (isNewRequest && rejectedBeforeProcessing(response))) { sessionStorage.removeItem(key); current.current = null; setPending(null); }
                return response;
           } finally { busy.current = false; }
      };
@@ -65,10 +71,11 @@ export function usePharmacyPayment(scope: string) {
           if (restoreFailed.current) throw new Error('Review the saved checkout in sales history before collecting another payment.');
           busy.current = true;
           try {
+               const isNewRequest = current.current === null;
                const request = current.current || { endpoint, payload: { ...payload, idempotencyKey: crypto.randomUUID(), amountTendered: Number(amount), paymentReference: reference.trim() } };
                sessionStorage.setItem(storageKey, JSON.stringify(request)); current.current = request; setPending(request);
                const response = await customFetchMutation(request.endpoint, 'POST', request.payload);
-               if (response?.success || ['SALE_REJECTED', 'HELD_SALE_COMPLETION_REJECTED', 'FULFILLMENT_REJECTED'].includes(response?.error?.code)) {
+               if (response?.success || ['SALE_REJECTED', 'HELD_SALE_COMPLETION_REJECTED', 'FULFILLMENT_REJECTED'].includes(response?.error?.code) || (isNewRequest && rejectedBeforeProcessing(response))) {
                     sessionStorage.removeItem(storageKey); current.current = null; setPending(null);
                }
                if (response?.success) { setAmount(''); setReference(''); }

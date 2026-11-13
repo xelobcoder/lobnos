@@ -63,25 +63,30 @@ const severityLevels = [
 ];
 
 export default function ComplianceAnalyticsPage() {
+     const [startDate, setStartDate] = useState(`${new Date().getFullYear()}-01-01`);
+     const [endDate, setEndDate] = useState(new Date().toISOString().slice(0,10));
      const [analyticsData, setAnalyticsData] = useState<ComplianceAnalyticsData | null>(null);
+     const [error, setError] = useState('');
      const [loading, setLoading] = useState(true);
 
      useEffect(() => {
           const fetchAnalyticsData = async () => {
                try {
                     setLoading(true);
-                    const currentYear = new Date().getFullYear();
-                    const response = await customFetch(`compliance/incidents/analytics?startDate=${currentYear}-01-01&endDate=${currentYear}-12-31&tenantId=1`);
+                    if (!startDate || !endDate || startDate > endDate) throw new Error('Invalid report period');
+                    setError('');
+                    const response = await customFetch(`compliance/incidents/analytics?startDate=${startDate}&endDate=${endDate}`);
                     setAnalyticsData(response);
                } catch (error) {
                     setAnalyticsData(null);
+                    setError('Unable to load compliance analytics. Please retry.');
                     console.error('Failed to load compliance analytics');
                } finally {
                     setLoading(false);
                }
           };
           fetchAnalyticsData();
-     }, []);
+     }, [startDate, endDate]);
 
      if (loading) return <Loader />;
 
@@ -89,7 +94,7 @@ export default function ComplianceAnalyticsPage() {
           return (
                <div className="container-fluid p-3">
                     <div className="text-center py-5">
-                         <p className="text-muted">No analytics data available</p>
+                         <p className="text-muted">{error || 'No analytics data available'}</p>
                     </div>
                </div>
           );
@@ -106,7 +111,7 @@ export default function ComplianceAnalyticsPage() {
                          </h2>
                          <p className="text-muted mb-0">Comprehensive insights into compliance incident management</p>
                     </div>
-                    <div className="d-flex gap-2">
+                    <div className="d-flex gap-2 flex-wrap"><label>From <input className="form-control" type="date" value={startDate} onChange={event => setStartDate(event.target.value)}/></label><label>To <input className="form-control" type="date" value={endDate} onChange={event => setEndDate(event.target.value)}/></label>
                          <button
                               className="btn btn-outline-secondary btn-sm"
                               onClick={() => window.location.reload()}

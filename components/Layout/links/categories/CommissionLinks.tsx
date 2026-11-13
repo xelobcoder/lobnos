@@ -18,7 +18,7 @@ export const CommissionLinks: Link[] = [
           icon: <RiStethoscopeLine />,
      },
      {
-          title: "General Commissions Analytics",
+          title: "Commission payment history",
           link: "/commissions/clinicians/commissions-payments-made",
           icon: <RiHistoryLine />,
      },

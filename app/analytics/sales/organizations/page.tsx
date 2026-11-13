@@ -65,7 +65,7 @@ export default function OrganizationsAnalytics() {
           setError(null);
           try {
                // Using the same API endpoint as the sales page for now
-               const url = `financials/billing/summary?key=totalSalesByOrganization&startDate=2024-01-01&endDate=2024-12-31&employeeid=${employeeid}`;
+               const url = `financials/billing/summary?key=totalSalesByOrganization&startDate=${new Date().getFullYear()}-01-01&endDate=${new Date().getFullYear()}-12-31&employeeid=${employeeid}`;
                const response: OrganizationEntry[] = await customFetch(url);
 
                if (response && Array.isArray(response)) {

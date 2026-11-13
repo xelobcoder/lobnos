@@ -1,0 +1,19 @@
+.page { min-width: 0; }
+.explanation { padding: 14px 16px; border-left: 3px solid var(--bs-primary); background: var(--bs-tertiary-bg); margin-bottom: 20px; font-size: 14px; }
+.explanation p { margin: 0 0 6px; max-width: 900px; }
+.filters { display: flex; flex-wrap: wrap; gap: 16px; align-items: end; margin: 16px 0; }
+.filters label { display: grid; gap: 6px; font-size: 13px; flex: 1 1 240px; max-width: 400px; }
+.empty { padding: 28px 12px; text-align: center; color: var(--bs-secondary-color); }
+.empty h3 { font-size: 16px; color: var(--bs-body-color); }
+.empty p { margin: 8px 0 14px; }
+.pagination, .sectionHeader { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.pagination { margin-top: 16px; font-size: 13px; color: var(--bs-secondary-color); }
+.invoices { scroll-margin-top: 80px; }
+.invoices:focus { outline: 2px solid var(--bs-primary); outline-offset: 4px; }
+.sectionHeader p { margin-bottom: 0; color: var(--bs-secondary-color); font-size: 13px; }
+.invoiceFilter { display: grid; gap: 6px; font-size: 13px; max-width: 280px; margin: 16px 0; }
+.formFooter { display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--bs-border-color); padding-top: 16px; margin-top: 20px; }
+.accounting { margin-top: 24px; font-size: 13px; }
+.accounting summary { cursor: pointer; margin-bottom: 12px; }
+.page tbody tr[aria-selected=true] { background: var(--bs-tertiary-bg); }
+@media (max-width: 600px) { .filters label { max-width: none; } .sectionHeader { align-items: flex-start; } }

@@ -491,7 +491,8 @@ export default function MonthlySalesTrend() {
 		return (
 			<div className="mt-4">
 				<div className="card border-0 bg-body-tertiary">
-					<div className="card-body p-4">
+					<p className="small text-muted px-4 pt-3 mb-0">Sales include closed bills. Legacy facilities use available billing records. Receipts and expenses use payment dates.</p>
+            <div className="card-body p-4">
 						<h5 className="d-flex align-items-center gap-2 mb-4">
 							<RiFileList3Line size={24} style={{ color: COLOR_ACCENT }} />
 							<span>Sales Analysis Report</span>

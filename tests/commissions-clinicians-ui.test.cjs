@@ -294,36 +294,34 @@ test("clinician bulk payment retains selection and values on failure and prevent
   assert.ok(button(tree, "Submit payment request for Selected (1)"));
 });
 
-test("payment filters preserve endpoints, mutually exclusive recipients and applied date context", async () => {
+test("payment filters preserve recipient exclusivity, native dates and applied report context", async () => {
   const calls = [];
   const h = harness(path.join(scope, "commissions-payments-made/page.tsx"), {
     fetch: async url => {
       calls.push(url);
-      if (url === "clinicians" || url === "organizations/details") return { result: [{ id: 17, name: "Fixture" }] };
+      if (url.startsWith("clinicians?") || url.startsWith("organizations/details?")) return { result: [{ id: 17, name: "Fixture" }] };
       return { status: true, data: [] };
     },
   });
   h.render(); await h.flush();
-  let tree = h.render();
-  button(tree, "Load clinicians").props.onClick(); await h.flush();
-  tree = h.render();
-  named(tree, "commission-clinician").props.onChange({ target: { value: "17" } });
-  tree = h.render();
-  const filter = nodes(tree, node => node.props?.onDateRangeChange)[0];
-  filter.props.onDateRangeChange("2026-02-01", "2026-02-28");
-  tree = h.render();
-  const reportBeforeLoad = nodes(tree, node => node.props?.onBreakdown)[0];
-  assert.notEqual(reportBeforeLoad.props.startDate, "2026-02-01", "draft date does not relabel loaded report");
-  button(tree, "Load").props.onClick(); await h.flush();
-  assert.match(calls.at(-1), /startDate=2026-02-01&endDate=2026-02-28&recipient_id=17&recipient_type=clinician/);
-  tree = h.render();
-  assert.equal(nodes(tree, node => node.props?.onBreakdown)[0].props.startDate, "2026-02-01");
-  named(tree, "commission-organization").props.onChange({ target: { value: "17" } });
-  tree = h.render();
-  assert.equal(named(tree, "commission-clinician").props.value, "");
-  button(tree, "Load").props.onClick(); await h.flush();
+  named(h.render(), "payment-recipient-type").props.onChange({ target: { value: "clinician" } });
+  await h.flush();
+  named(h.render(), "payment-recipient").props.onChange({ target: { value: "17" } });
+  named(h.render(), "payments-from").props.onChange({ target: { value: "2026-02-01" } });
+  named(h.render(), "payments-to").props.onChange({ target: { value: "2026-02-28" } });
+  assert.doesNotMatch(renderToStaticMarkup(h.render()), /1 Feb 2026/);
+  nodes(h.render(), node => node.type === "form")[0].props.onSubmit({ preventDefault() {} });
+  await h.flush();
+  assert.match(calls.at(-1), /startDate=2026-02-01&endDate=2026-02-28.*recipient_id=17&recipient_type=clinician/);
+  assert.match(renderToStaticMarkup(h.render()), /1 Feb 2026/);
+  named(h.render(), "payment-recipient-type").props.onChange({ target: { value: "organization" } });
+  await h.flush();
+  assert.equal(named(h.render(), "payment-recipient").props.value, "");
+  named(h.render(), "payment-recipient").props.onChange({ target: { value: "17" } });
+  nodes(h.render(), node => node.type === "form")[0].props.onSubmit({ preventDefault() {} });
+  await h.flush();
   assert.match(calls.at(-1), /recipient_id=17&recipient_type=organization/);
-  assert.doesNotMatch(calls.at(-1), /page=|count=/, "bounded payment response is not fabricated pagination");
+  assert.match(calls.at(-1), /page=1&count=50/);
 });
 
 test("date filter keeps native constraints, labels and failure-safe entered dates", () => {
@@ -337,4 +335,29 @@ test("date filter keeps native constraints, labels and failure-safe entered date
   assert.equal((html.match(/required=""/g) || []).length, 2);
   assert.match(html, /value="2026-02-28"/);
   assert.doesNotMatch(html, /card|shadow|bg-white/);
+});
+
+
+test("payment pagination preserves applied dates and recipient while draft filters change", async () => {
+  const calls = [];
+  const row = {id:1,batch_reference:'Fixture',recipient_id:17,recipient_type:'organization',recipient_name:'Fixture',start_date:'2026-02-01',end_date:'2026-02-28',status:'Completed',total_commission_amount:10,payment_amount:10,waived_amount:0};
+  const h = harness(path.join(scope, 'commissions-payments-made/page.tsx'), {fetch: async url => {
+    calls.push(url);
+    if(url.startsWith('organizations/details?')) return {result:[{id:17,name:'Fixture'}]};
+    return {status:true,data:url.includes('page=2') ? [row] : Array.from({length:50},(_,id)=>({...row,id:id+1}))};
+  }});
+  h.render(); await h.flush();
+  assert.equal(button(h.render(),'Previous').props.disabled,true);
+  named(h.render(),'payment-recipient-type').props.onChange({target:{value:'organization'}});await h.flush();
+  named(h.render(),'payment-recipient').props.onChange({target:{value:'17'}});
+  named(h.render(),'payments-from').props.onChange({target:{value:'2026-02-01'}});
+  named(h.render(),'payments-to').props.onChange({target:{value:'2026-02-28'}});
+  nodes(h.render(),node=>node.type==='form')[0].props.onSubmit({preventDefault(){}});await h.flush();
+  named(h.render(),'payments-from').props.onChange({target:{value:'2026-03-01'}});
+  button(h.render(),'Next').props.onClick();await h.flush();
+  assert.match(calls.at(-1),/startDate=2026-02-01&endDate=2026-02-28&page=2&count=50&recipient_id=17&recipient_type=organization/);
+  assert.equal(button(h.render(),'Next').props.disabled,true);
+  assert.equal(button(h.render(),'Previous').props.disabled,false);
+  button(h.render(),'Previous').props.onClick();await h.flush();
+  assert.match(calls.at(-1),/page=1&count=50&recipient_id=17&recipient_type=organization/);
 });

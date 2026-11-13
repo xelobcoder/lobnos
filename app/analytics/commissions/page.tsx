@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { Card, Row, Col, Form, Button, Badge, Spinner, Table } from 'react-bootstrap';
 import {
@@ -43,6 +43,8 @@ const SHADCN_MUTED_FG = "var(--bs-secondary-color)";
 
 export default function CommissionAnalytics() {
     const app = useApplication();
+    const [recipientPage, setRecipientPage] = useState(1);
+    const requestRevision = useRef(0);
 
     // State
     const [isLoading, setIsLoading] = useState(true);
@@ -56,8 +58,12 @@ export default function CommissionAnalytics() {
     const [recipientType, setRecipientType] = useState('all');
 
     const fetchDashboard = useCallback(async () => {
+        const revision = ++requestRevision.current;
+        setRecipientPage(1);
         setIsLoading(true);
         setError(null);
+        setDashboardData(null);
+        if (!startDate || !endDate || startDate > endDate) { setError("Select a valid date range."); setIsLoading(false); return; }
 
         // Build URL based on filters
         let url = `commission/analytics/dashboard?startDate=${startDate}&endDate=${endDate}&period=${period}`;
@@ -67,15 +73,16 @@ export default function CommissionAnalytics() {
 
         try {
             const response = await customFetch(url);
+            if (revision !== requestRevision.current) return;
             if (response.status === 'success') {
                 setDashboardData(response.result);
             } else {
                 throw new Error(response.message || 'Failed to fetch analytics data');
             }
         } catch (err: any) {
-            setError(err.message);
+            if (revision === requestRevision.current) setError(err.message);
         } finally {
-            setIsLoading(false);
+            if (revision === requestRevision.current) setIsLoading(false);
         }
     }, [startDate, endDate, period, recipientType]);
 
@@ -142,6 +149,7 @@ export default function CommissionAnalytics() {
                     <Form.Group className="mb-0">
                         <Form.Control
                             type="date"
+                            aria-label="Report date"
                             size="sm"
                             className="border-0 bg-light"
                             value={startDate}
@@ -186,7 +194,7 @@ export default function CommissionAnalytics() {
                         className="ms-2 border-0"
                         onClick={fetchDashboard}
                     >
-                        <RiRefreshLine size={18} />
+                        <RiRefreshLine size={18} /><span className="visually-hidden">Refresh report</span>
                     </Button>                    <Button
                         variant="outline-secondary"
                         size="sm"
@@ -197,10 +205,13 @@ export default function CommissionAnalytics() {
                     </Button>                </div>
             </div>
 
-            {error && <div className="alert alert-danger mb-4">{error}</div>}
+            {error && <div role="alert" className="alert alert-danger mb-4">{error}</div>}
+            {isLoading && <div role="status" className="py-4">Loading commission analytics...</div>}
+            <div hidden={isLoading || !!error}>
 
             {/* Key Metrics Cards - Consistent with Compliance Page */}
             <Row className="g-3 mb-4">
+                <Col md={3}><div className="border rounded p-3 h-100"><span className="text-muted small">Outstanding at end date</span><div className="fs-4 fw-bold">{currencyFormatter.format(Number(summary.totalOutstanding || 0))}</div><small>Earned less payments and waivers through {endDate}</small></div></Col>
                 <Col md={3}>
                     <div className="border rounded p-3 h-100 shadow-none">
                         <div className="d-flex align-items-center mb-2">
@@ -208,17 +219,17 @@ export default function CommissionAnalytics() {
                             <span className="fw-medium text-muted small">Total Paid</span>
                         </div>
                         <div className="fs-4 fw-bold text-primary">{currencyFormatter.format(parsedSummary.totalPaid)}</div>
-                        <div className="small text-muted">{parsedSummary.paymentPercentage.toFixed(2)}% of Due</div>
+                        <div className="small text-muted">{parsedSummary.paymentPercentage.toFixed(2)}% payments / period earnings</div>
                     </div>
                 </Col>
                 <Col md={3}>
                     <div className="border rounded p-3 h-100 shadow-none">
                         <div className="d-flex align-items-center mb-2">
                             <RiInformationLine size={20} className="me-2 text-warning" />
-                            <span className="fw-medium text-muted small">Total Due</span>
+                            <span className="fw-medium text-muted small">Commission Earned</span>
                         </div>
                         <div className="fs-4 fw-bold text-warning">{currencyFormatter.format(parsedSummary.totalDue)}</div>
-                        <div className="small text-muted">Total commissions due</div>
+                        <div className="small text-muted">Earned in the selected period</div>
                     </div>
                 </Col>
                 <Col md={3}>
@@ -275,11 +286,11 @@ export default function CommissionAnalytics() {
                                             backgroundColor: 'var(--bs-body-bg)',
                                             color: 'var(--bs-body-color)'
                                         }}
-                                        formatter={(value: any) => [currencyFormatter.format(value), 'Paid']}
+                                        formatter={(value: any, name: any) => [currencyFormatter.format(value), name]}
                                     />
                                     <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
                                     <Bar dataKey="total_paid" name="Total Paid" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="total_due" name="Total Due" fill="var(--bs-secondary-bg)" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="total_due" name="Commission Earned" fill="var(--bs-secondary-bg)" radius={[4, 4, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
@@ -291,7 +302,7 @@ export default function CommissionAnalytics() {
                     <div className="border rounded p-4 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
                         <h6 className="fw-bold mb-4 d-flex align-items-center">
                             <RiPieChartLine size={20} className="me-2 text-warning" />
-                            Payment Status
+                            Batch Status
                         </h6>
                         <div style={{ height: '250px' }}>
                             <ResponsiveContainer width="100%" height="100%">
@@ -301,7 +312,7 @@ export default function CommissionAnalytics() {
                                         innerRadius={60}
                                         outerRadius={80}
                                         paddingAngle={5}
-                                        dataKey="totalPaid"
+                                        dataKey="count"
                                         nameKey="status"
                                     >
                                         {parsedByStatus.map((entry: any, index: number) => (
@@ -315,7 +326,7 @@ export default function CommissionAnalytics() {
                                             backgroundColor: 'var(--bs-body-bg)',
                                             color: 'var(--bs-body-color)'
                                         }}
-                                        formatter={(value: any) => currencyFormatter.format(value)}
+                                        formatter={(value: any) => [Number(value), 'Batches']}
                                     />
                                     <Legend verticalAlign="bottom" align="center" iconType="circle" />
                                 </PieChart>
@@ -339,8 +350,8 @@ export default function CommissionAnalytics() {
             {/* Recipient Efficiency Table */}
             <div className="border rounded overflow-hidden">
                 <div className="bg-light px-4 py-3 border-bottom d-flex justify-content-between align-items-center">
-                    <h6 className="fw-bold mb-0">Recipient Payment Efficiency</h6>
-                    <Badge bg="secondary" className="fw-normal">Top 10 Recipients</Badge>
+                    <h6 className="fw-bold mb-0">Recipient Commission Activity</h6>
+                    <Badge bg="secondary" className="fw-normal">Recipients ranked by payments</Badge>
                 </div>
                 <Table responsive hover className="mb-0">
                     <thead className="bg-light">
@@ -349,13 +360,13 @@ export default function CommissionAnalytics() {
                             <th className="py-3 border-0 text-muted small fw-bold text-center">TYPE</th>
                             <th className="py-3 border-0 text-muted small fw-bold text-end">TOTAL DUE</th>
                             <th className="py-3 border-0 text-muted small fw-bold text-end">TOTAL PAID</th>
-                            <th className="py-3 border-0 text-muted small fw-bold text-center">EFFICIENCY</th>
+                            <th className="py-3 border-0 text-muted small fw-bold text-center">PAYMENTS / EARNINGS</th>
                             <th className="py-3 border-0 text-muted small fw-bold text-center">BATCHES</th>
                             <th className="px-4 py-3 border-0 text-muted small fw-bold text-end">ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {parsedEfficiency.slice(0, 10).map((item: any, index: number) => (
+                        {parsedEfficiency.slice((recipientPage - 1) * 20, recipientPage * 20).map((item: any, index: number) => (
                             <tr key={index} className="align-middle border-bottom">
                                 <td className="px-4 py-3 fw-medium">
                                     {item.recipientType === 'clinician' ? <RiUserSharedLine size={16} className="me-2 text-primary" /> : <RiBuilding4Line size={16} className="me-2 text-info" />}
@@ -392,12 +403,14 @@ export default function CommissionAnalytics() {
                         ))}
                     </tbody>
                 </Table>
+                {parsedEfficiency.length > 20 && <div className="d-flex gap-3 align-items-center p-3"><button className="btn btn-outline-secondary btn-sm" disabled={recipientPage === 1} onClick={() => setRecipientPage(page => page - 1)}>Previous</button><span>Page {recipientPage} of {Math.ceil(parsedEfficiency.length / 20)} · {parsedEfficiency.length} recipients</span><button className="btn btn-outline-secondary btn-sm" disabled={recipientPage * 20 >= parsedEfficiency.length} onClick={() => setRecipientPage(page => page + 1)}>Next</button></div>}
                 {parsedEfficiency.length === 0 && (
                     <div className="text-center py-5 text-muted bg-white">
                         <RiMoneyDollarCircleLine size={48} className="mb-3 opacity-25" />
                         <p>No recipient efficiency data available for this period.</p>
                     </div>
                 )}
+            </div>
             </div>
         </div>
     );

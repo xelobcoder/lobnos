@@ -67,7 +67,7 @@ const analyticsSections = [
           color: 'primary'
      },
      {
-          title: "Clincians Analytics",
+          title: "Clinician Analytics",
           description: "Analysis of clinician performance and activity",
           icon: RiUserHeartLine,
           path: '/analytics/clinicians',

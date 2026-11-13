@@ -465,6 +465,7 @@ export default function DailySalesTrend() {
                     </div>
                 </div>
             </div>
+            <p className="small text-muted px-4 pt-3 mb-0">Sales include closed bills. Legacy facilities use available billing records. Receipts and expenses use payment dates.</p>
             <div className="card-body p-3 p-md-4">
                 {error && data.length > 0 && (
                     <div className="alert alert-light-warning border-warning border-opacity-50 border-start-0 border-end-0 border-bottom-0 rounded-0 d-flex align-items-center small p-2 mb-3" role="alert" style={{ borderTopWidth: '3px' }}>
