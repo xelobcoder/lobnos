@@ -1,297 +1,158 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { Card, Row, Col, Form, Button, Badge, Table, Alert } from 'react-bootstrap';
-import { 
-    RiMoneyDollarCircleLine, 
-    RiUserSharedLine, 
-    RiBuilding4Line, 
-    RiRefreshLine,
-    RiArrowLeftLine,
-    RiPieChartLine,
-    RiInformationLine,
-    RiCalendarLine,
-    RiArrowLeftRightLine
-} from '@remixicon/react';
-import { 
-    ResponsiveContainer, 
-    LineChart, 
-    Line, 
-    XAxis, 
-    YAxis, 
-    CartesianGrid, 
-    Tooltip, 
-    Legend
-} from 'recharts';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useParams, useSearchParams } from 'next/navigation';
 import dayjs from 'dayjs';
-import Loader from '../../../../../components/accessories/Loader';
-import { currencyFormatter ,customFetch} from '../../../../../components/Auth/customFetch';
+import { RiArrowLeftLine, RiRefreshLine } from '@remixicon/react';
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { currencyFormatter, customFetch } from '../../../../../components/Auth/customFetch';
+import DateFilterReusable from '../../../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable';
+import ui from '../../../../../components/Billing/billing-strategy/StrategyWorkspace.module.css';
+import styles from '../../CommissionAnalytics.module.css';
 
-
-// UI Constants to match existing analytics (Compliance/Sales)
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
-const SHADCN_BORDER = "var(--bs-border-color)";
-const SHADCN_MUTED_FG = "var(--bs-secondary-color)";
+interface Range { startDate: string; endDate: string; period: string }
+interface PeriodActivity {
+    period: string;
+    total_due: number | string;
+    total_paid: number | string;
+    total_waived: number | string;
+    average_paid: number | string;
+    batch_count: number;
+}
 
 export default function RecipientCommissionDetails() {
     const params = useParams();
     const searchParams = useSearchParams();
-    const router = useRouter();
-    const recipientId = params.id;
-    
-    // Initial state from URL or defaults
-    const [startDate, setStartDate] = useState(searchParams.get('startDate') || dayjs().subtract(1, 'month').format('YYYY-MM-DD'));
-    const [endDate, setEndDate] = useState(searchParams.get('endDate') || dayjs().format('YYYY-MM-DD'));
-    const [recipientType, setRecipientType] = useState(searchParams.get('recipientType') || 'clinician');
+    const recipientId = Number(params.id);
+    const recipientType = searchParams.get('recipientType') === 'organization' ? 'organization' : 'clinician';
+    const [range, setRange] = useState<Range>(() => ({
+        startDate: searchParams.get('startDate') || dayjs().subtract(1, 'month').format('YYYY-MM-DD'),
+        endDate: searchParams.get('endDate') || dayjs().format('YYYY-MM-DD'),
+        period: searchParams.get('period') || 'monthly',
+    }));
+    const [applied, setApplied] = useState(range);
+    const initialRange = useRef(range);
+    const [dateFilter, setDateFilter] = useState('Custom Range');
+    const [rows, setRows] = useState<PeriodActivity[]>([]);
+    const [recipientName, setRecipientName] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [page, setPage] = useState(1);
+    const revision = useRef(0);
 
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [details, setDetails] = useState<any>(null);
-    const [recipientInfo, setRecipientInfo] = useState<any>(null);
-
-    const calculatePeriod = () => {
-        const diffInDays = dayjs(endDate).diff(dayjs(startDate), 'day');
-        return diffInDays > 31 ? 'monthly' : 'daily';
-    };
-
-    const fetchRecipientDetails = useCallback(async () => {
-        setIsLoading(true);
-        setError(null);
-        
-        const period = calculatePeriod();
-        const url = `commission/analytics/recipient/${recipientId}?startDate=${startDate}&endDate=${endDate}&period=${period}&recipientType=${recipientType}`;
-        
-        try {
-            if (!recipientInfo) {
-                const infoUrl = recipientType === 'clinician' 
-                    ? `clinicians/getclinician?id=${recipientId}`
-                    : `organization/basic?id=${recipientId}`;
-                
-                const infoResponse = await customFetch(infoUrl);
-                if (infoResponse.status === 'success' && infoResponse.result?.[0]) {
-                    setRecipientInfo(infoResponse.result[0]);
-                }
-            }
-
-            const response = await customFetch(url);
-            if (response.status === 'success' && response.result) {
-                setDetails(response.result);
-            } else {
-                throw new Error(response.message || 'Failed to fetch recipient details');
-            }
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
-            setIsLoading(false);
+    const loadReport = useCallback(async (next: Range) => {
+        const request = ++revision.current;
+        setError('');
+        if (!next.startDate || !next.endDate || next.startDate > next.endDate || !Number.isSafeInteger(recipientId) || recipientId <= 0) {
+            setError('Choose a valid recipient and date range.');
+            setLoading(false);
+            return;
         }
-    }, [recipientId, startDate, endDate, recipientType, recipientInfo]);
+        setLoading(true);
+        try {
+            const query = new URLSearchParams({ ...next, recipientType });
+            const infoUrl = recipientType === 'clinician' ? `clinicians/getclinician?id=${recipientId}` : `organization/basic?id=${recipientId}`;
+            const [response, info] = await Promise.all([
+                customFetch(`commission/analytics/recipient/${recipientId}?${query}`),
+                customFetch(infoUrl).catch(() => null),
+            ]);
+            if (request !== revision.current) return;
+            if (response.status !== 'success' || !Array.isArray(response.result?.data)) throw new Error(response.message || 'Unable to load recipient analytics.');
+            setRows(response.result.data);
+            const records = info?.result || info?.data;
+            const recipient = Array.isArray(records) ? records[0] : records;
+            setRecipientName(recipient?.name || recipient?.organization_name || recipient?.clinician_name || '');
+            setApplied(next);
+            setPage(1);
+        } catch (err) {
+            if (request === revision.current) setError(err instanceof Error ? err.message : 'Unable to load recipient analytics.');
+        } finally {
+            if (request === revision.current) setLoading(false);
+        }
+    }, [recipientId, recipientType]);
 
     useEffect(() => {
-        fetchRecipientDetails();
-    }, [fetchRecipientDetails]);
+        void loadReport(initialRange.current);
+        return () => { revision.current += 1; };
+    }, [loadReport]);
 
-    if (isLoading && !details) {
-        return <Loader />;
-    }
-
-    const chartData = details?.data || [];
-    const periodType = calculatePeriod();
-    
-    // Calculate summary from the detailed data
-    const summary = chartData.reduce((acc: any, curr: any) => ({
-        totalPaid: acc.totalPaid + parseFloat(curr.total_paid),
-        totalDue: acc.totalDue + parseFloat(curr.total_due),
-        totalWaived: acc.totalWaived + parseFloat(curr.total_waived),
-        batchCount: acc.batchCount + curr.batch_count
-    }), { totalPaid: 0, totalDue: 0, totalWaived: 0, batchCount: 0 });
-
-    const efficiency = summary.totalDue > 0 ? ((summary.totalPaid / summary.totalDue) * 100).toFixed(2) : "0";
+    const summary = rows.reduce((total, row) => ({
+        earned: total.earned + Number(row.total_due || 0),
+        paid: total.paid + Number(row.total_paid || 0),
+        waived: total.waived + Number(row.total_waived || 0),
+        batches: total.batches + Number(row.batch_count || 0),
+    }), { earned: 0, paid: 0, waived: 0, batches: 0 });
+    const chartData = rows.map(row => ({ ...row, total_due: Number(row.total_due), total_paid: Number(row.total_paid) }));
+    const pages = Math.max(1, Math.ceil(rows.length / 20));
+    const visiblePage = Math.min(page, pages);
+    const reportQuery = new URLSearchParams({ ...applied, recipientType });
+    const paymentWorkspace = recipientType === 'organization'
+        ? `/commissions/organizations/commission-details/${recipientId}`
+        : `/commissions/clinicians/commissions-information/${recipientId}`;
 
     return (
-        <div className="container-fluid p-4 min-vh-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-            {/* Header consistent with Compliance Analytics */}
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <div className="d-flex align-items-center">
-                    <Button 
-                        variant="outline-secondary" 
-                        size="sm"
-                        className="me-3 rounded-circle p-2 border-0"
-                        onClick={() => router.back()}
-                    >
-                        <RiArrowLeftLine size={20} />
-                    </Button>
-                    <div>
-                        <h2 className="mb-1">
-                            {recipientType === 'clinician' ? <RiUserSharedLine className="me-2 text-primary" /> : <RiBuilding4Line className="me-2 text-info" />}
-                            {recipientInfo?.name || `Recipient #${recipientId}`}
-                        </h2>
-                        <p className="text-muted mb-0 text-capitalize">{recipientType} performance analysis • Showing {periodType} breakdown</p>
-                    </div>
+        <main className={`${ui.workspace} ${styles.workspace}`}>
+            <header className={ui.header}>
+                <div>
+                    <Link className={ui.textButton} href={`/analytics/commissions?${reportQuery}`}><RiArrowLeftLine size={16} /> Commission analytics</Link>
+                    <h1>{recipientName || `${recipientType === 'organization' ? 'Organization' : 'Clinician'} #${recipientId}`}</h1>
+                    <p>{recipientType === 'organization' ? 'Organization' : 'Clinician'} commission activity</p>
                 </div>
-                
-                <div className="d-flex gap-2 align-items-center">
-                    <Form.Group className="mb-0">
-                        <Form.Control 
-                            type="date" 
-                            size="sm" 
-                            className="border-0 bg-light"
-                            value={startDate} 
-                            onChange={(e) => setStartDate(e.target.value)} 
-                        />
-                    </Form.Group>
-                    <RiArrowLeftRightLine size={16} className="text-muted mx-1" />
-                    <Form.Group className="mb-0">
-                        <Form.Control 
-                            type="date" 
-                            size="sm" 
-                            className="border-0 bg-light"
-                            value={endDate} 
-                            onChange={(e) => setEndDate(e.target.value)} 
-                        />
-                    </Form.Group>
-                    <Button 
-                        variant="outline-secondary" 
-                        size="sm" 
-                        className="ms-2 border-0"
-                        onClick={fetchRecipientDetails} 
-                        disabled={isLoading}
-                    >
-                        <RiRefreshLine size={18} />
-                    </Button>
+                <Link className={ui.primary} href={paymentWorkspace}>Manage recipient commissions</Link>
+            </header>
+
+            <form className={ui.panel} onSubmit={event => { event.preventDefault(); void loadReport(range); }}>
+                <div className={styles.filters}>
+                    <div className={ui.field}>
+                        <label htmlFor="recipient-date-range">Date range</label>
+                        <DateFilterReusable id="recipient-date-range" className={styles.dateFilter} label="Recipient commission date range" value={dateFilter} onChange={setDateFilter}
+                            startDate={range.startDate} endDate={range.endDate} onDateRangeChange={(startDate, endDate) => setRange(current => ({ ...current, startDate, endDate }))} />
+                    </div>
+                    <div className={ui.field}>
+                        <label htmlFor="recipient-period">Group by</label>
+                        <select id="recipient-period" value={range.period} onChange={event => setRange(current => ({ ...current, period: event.target.value }))}>
+                            <option value="daily">Day</option><option value="weekly">Week</option><option value="monthly">Month</option><option value="quarterly">Quarter</option><option value="yearly">Year</option>
+                        </select>
+                    </div>
+                    <div className={ui.actions}><button className={ui.primary} type="submit" disabled={loading}><RiRefreshLine size={16} /> {loading ? 'Loading…' : 'Apply filters'}</button></div>
                 </div>
-            </div>
+            </form>
 
-            {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
+            {error && <div className={ui.error} role="alert">{error}<button type="button" className={ui.secondary} onClick={() => void loadReport(range)}>Retry</button></div>}
+            {loading && <div className={ui.notice} role="status">Loading recipient analytics…</div>}
+            {!loading && !error && <>
+                <p className={ui.help}>Showing {dayjs(applied.startDate).format('D MMM YYYY')} – {dayjs(applied.endDate).format('D MMM YYYY')}. Earnings and payments use their recorded dates.</p>
+                <section className={styles.recipientMetrics} aria-label="Recipient commission summary">
+                    {[
+                        ['Commission earned', currencyFormatter.format(summary.earned)],
+                        ['Paid', currencyFormatter.format(summary.paid)],
+                        ['Waived', currencyFormatter.format(summary.waived)],
+                        ['Payment batches', summary.batches.toLocaleString()],
+                    ].map(([label, value]) => <div className={ui.stat} key={label}><div><span>{label}</span><strong>{value}</strong></div></div>)}
+                </section>
 
-            {/* Key Metrics Cards - Consistent with Compliance Page */}
-            <Row className="g-3 mb-4">
-                <Col md={3}>
-                    <div className="border rounded p-3 h-100 shadow-none">
-                        <div className="d-flex align-items-center mb-2">
-                            <RiMoneyDollarCircleLine size={20} className="me-2 text-primary" />
-                            <span className="fw-medium text-muted small">Total Paid</span>
-                        </div>
-                        <div className="fs-4 fw-bold text-primary">{currencyFormatter.format(summary.totalPaid)}</div>
-                        <div className="small text-muted">Actual payouts</div>
-                    </div>
-                </Col>
-                <Col md={3}>
-                    <div className="border rounded p-3 h-100 shadow-none">
-                        <div className="d-flex align-items-center mb-2">
-                            <RiInformationLine size={20} className="me-2 text-warning" />
-                            <span className="fw-medium text-muted small">Total Due</span>
-                        </div>
-                        <div className="fs-4 fw-bold text-warning">{currencyFormatter.format(summary.totalDue)}</div>
-                        <div className="small text-muted">Calculated commissions</div>
-                    </div>
-                </Col>
-                <Col md={3}>
-                    <div className="border rounded p-3 h-100 shadow-none">
-                        <div className="d-flex align-items-center mb-2">
-                            <RiPieChartLine size={20} className="me-2 text-info" />
-                            <span className="fw-medium text-muted small">Efficiency</span>
-                        </div>
-                        <div className="fs-4 fw-bold text-info">{efficiency}%</div>
-                        <div className="small text-muted">Paid vs Due ratio</div>
-                    </div>
-                </Col>
-                <Col md={3}>
-                    <div className="border rounded p-3 h-100 shadow-none">
-                        <div className="d-flex align-items-center mb-2">
-                            <RiCalendarLine size={20} className="me-2 text-danger" />
-                            <span className="fw-medium text-muted small">Total Batches</span>
-                        </div>
-                        <div className="fs-4 fw-bold text-danger">{summary.batchCount}</div>
-                        <div className="small text-muted">Payment cycles</div>
-                    </div>
-                </Col>
-            </Row>
+                <section className={ui.panel} aria-labelledby="recipient-periods-title">
+                    <h2 id="recipient-periods-title">Activity by period</h2>
+                    <div className={ui.tableWrap}><table className={ui.table}>
+                        <thead><tr><th>Period</th><th className={styles.amount}>Earned</th><th className={styles.amount}>Paid</th><th className={styles.amount}>Waived</th><th className={styles.amount}>Payment batches</th><th className={styles.amount}>Average payment</th></tr></thead>
+                        <tbody>{rows.slice((visiblePage - 1) * 20, visiblePage * 20).map(row => <tr key={row.period}><td>{row.period}</td><td className={styles.amount}>{currencyFormatter.format(Number(row.total_due))}</td><td className={styles.amount}>{currencyFormatter.format(Number(row.total_paid))}</td><td className={styles.amount}>{currencyFormatter.format(Number(row.total_waived))}</td><td className={styles.amount}>{row.batch_count}</td><td className={styles.amount}>{currencyFormatter.format(Number(row.average_paid || 0))}</td></tr>)}</tbody>
+                    </table></div>
+                    {!rows.length && <div className={ui.empty}><h3>No commission activity</h3><p>Choose a different date range to view this recipient’s activity.</p></div>}
+                    <footer className={ui.footer}><span className={ui.help}>{rows.length} periods · Page {visiblePage} of {pages}</span><nav className={ui.actions} aria-label="Report pages"><button type="button" className={ui.secondary} disabled={visiblePage === 1} onClick={() => setPage(visiblePage - 1)}>Previous</button><button type="button" className={ui.secondary} disabled={visiblePage === pages} onClick={() => setPage(visiblePage + 1)}>Next</button></nav></footer>
+                </section>
 
-            {/* Charts Section - Using consistent styling */}
-            <div className="border rounded p-4 mb-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                <h5 className="mb-4 d-flex align-items-center fw-bold">
-                    <RiMoneyDollarCircleLine size={20} className="me-2 text-primary" />
-                    {periodType.charAt(0).toUpperCase() + periodType.slice(1)} Performance Trends
-                </h5>
-                <div style={{ height: '400px' }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={SHADCN_BORDER} />
-                            <XAxis 
-                                dataKey="period" 
-                                axisLine={false} 
-                                tickLine={false} 
-                                tick={{ fontSize: 12, fill: SHADCN_MUTED_FG }} 
-                            />
-                            <YAxis 
-                                axisLine={false} 
-                                tickLine={false} 
-                                tick={{ fontSize: 12, fill: SHADCN_MUTED_FG }}
-                                tickFormatter={(val) => `GHS ${val}`}
-                            />
-                            <Tooltip 
-                                contentStyle={{ 
-                                    borderRadius: '8px', 
-                                    border: `1px solid ${SHADCN_BORDER}`,
-                                    backgroundColor: 'var(--bs-body-bg)',
-                                    color: 'var(--bs-body-color)'
-                                }}
-                                formatter={(value: any) => currencyFormatter.format(value)}
-                            />
-                            <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-                            <Line 
-                                type="monotone" 
-                                dataKey="total_paid" 
-                                name="Paid Amount" 
-                                stroke={COLOR_ACCENT} 
-                                strokeWidth={3} 
-                                dot={{ r: 5, fill: COLOR_ACCENT }} 
-                            />
-                            <Line 
-                                type="monotone" 
-                                dataKey="total_due" 
-                                name="Due Amount" 
-                                stroke="var(--bs-primary)" 
-                                strokeWidth={2} 
-                                strokeDasharray="5 5"
-                                dot={{ r: 4, fill: "var(--bs-primary)" }} 
-                            />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </div>
-            </div>
-
-            {/* Data Table - Consistent with standard analytics tables */}
-            <div className="border rounded overflow-hidden">
-                <div className="bg-light px-4 py-3 border-bottom">
-                    <h6 className="fw-bold mb-0">Detailed Payment Records</h6>
-                </div>
-                <Table responsive hover className="mb-0">
-                    <thead className="bg-light">
-                        <tr className="border-bottom">
-                            <th className="px-4 py-3 border-0 text-muted small fw-bold">PERIOD</th>
-                            <th className="py-3 border-0 text-muted small fw-bold text-end">TOTAL DUE</th>
-                            <th className="py-3 border-0 text-muted small fw-bold text-end">TOTAL PAID</th>
-                            <th className="py-3 border-0 text-muted small fw-bold text-end">WAIVED</th>
-                            <th className="py-3 border-0 text-muted small fw-bold text-center">BATCHES</th>
-                            <th className="px-4 py-3 border-0 text-muted small fw-bold text-end">AVG. PAYMENT</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {chartData.map((item: any, index: number) => (
-                            <tr key={index} className="align-middle border-bottom">
-                                <td className="px-4 py-3 fw-medium text-capitalize">{item.period}</td>
-                                <td className="text-end">{currencyFormatter.format(item.total_due)}</td>
-                                <td className="text-end fw-bold text-success">{currencyFormatter.format(item.total_paid)}</td>
-                                <td className="text-end text-warning">{currencyFormatter.format(item.total_waived)}</td>
-                                <td className="text-center">{item.batch_count}</td>
-                                <td className="px-4 text-end">{currencyFormatter.format(item.average_paid)}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </Table>
-            </div>
-        </div>
+                {rows.length > 0 && <section className={ui.panel} aria-labelledby="recipient-trend-title">
+                    <h2 id="recipient-trend-title">Earnings and payments over time</h2>
+                    <div className={styles.chart}><ResponsiveContainer width="100%" height="100%"><BarChart data={chartData} margin={{ top: 20, right: 12, left: 4, bottom: 0 }}>
+                        <CartesianGrid stroke="var(--bs-border-color)" vertical={false} strokeDasharray="3 3" />
+                        <XAxis dataKey="period" tick={{ fill: 'var(--bs-secondary-color)', fontSize: 12 }} tickLine={false} />
+                        <YAxis width={66} tick={{ fill: 'var(--bs-secondary-color)', fontSize: 12 }} tickFormatter={value => `GHS ${value}`} axisLine={false} tickLine={false} />
+                        <Tooltip formatter={value => currencyFormatter.format(Number(value))} contentStyle={{ background: 'var(--theme-card-bg, var(--bs-body-bg))', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }} />
+                        <Legend /><Bar dataKey="total_due" name="Earned" fill="var(--bs-secondary-color)" radius={[3, 3, 0, 0]} /><Bar dataKey="total_paid" name="Paid" fill="var(--accounting-accent)" radius={[3, 3, 0, 0]} />
+                    </BarChart></ResponsiveContainer></div>
+                </section>}
+            </>}
+        </main>
     );
 }

@@ -238,6 +238,8 @@ export function canAccessRolePage(role: unknown, value: string, settings: Naviga
                [
                     "/pharmacy/inventory/orders",
                     "/pharmacy/inventory/deliveries",
+                    "/pharmacy/inventory/uninvoiced",
+                    "/pharmacy/inventory/supplier-invoices",
                     "/pharmacy/counter",
                     "/pharmacy/collections",
                     "/pharmacy/cashier",

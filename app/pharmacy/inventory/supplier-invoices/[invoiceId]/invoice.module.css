@@ -1,0 +1,47 @@
+.page { min-width: 0; }
+.printRoot { display: none; }
+.paper { max-width: 900px; margin: 0 auto 24px; padding: 36px; border: 1px solid var(--bs-border-color); background: #fff; color: #17252e; font-size: 14px; }
+.invoiceHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding-bottom: 24px; border-bottom: 3px solid #253d4b; }
+.invoiceHeader > div { min-width: 0; }
+.invoiceHeader > div:last-child { text-align: right; }
+.invoiceHeader h2 { margin: 0 0 8px; font-size: 22px; color: inherit; }
+.invoiceHeader p { margin: 3px 0; }
+.reference { overflow-wrap: anywhere; font-size: 18px; font-weight: 600; }
+.parties { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 24px 0; }
+.paper h3 { font-size: 12px; color: #586873; margin: 0 0 8px; }
+.parties p { margin: 4px 0; }
+.parties dl { margin: 0; }
+.parties dl > div { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+.parties dt { font-weight: 400; color: #586873; }
+.parties dd { margin: 0; text-align: right; }
+.tableWrap { overflow-x: auto; }
+.paper table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.paper th { padding: 12px 8px; background: #edf2f4; font-size: 11px; color: #354b58; }
+.paper td { padding: 14px 8px; border-bottom: 1px solid #dde4e8; vertical-align: top; }
+.paper th:not(:first-child), .paper td:not(:first-child) { text-align: right; white-space: nowrap; }
+.paper td:first-child { min-width: 180px; overflow-wrap: anywhere; }
+.paper td small { display: block; color: #586873; font-size: 11px; margin-top: 3px; }
+.totals { width: min(340px,100%); margin: 20px 0 20px auto; }
+.totals > div { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; }
+.totals dt { font-weight: 400; }
+.totals dd { margin: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.totals .grandTotal { border-top: 2px solid #253d4b; margin-top: 8px; font-size: 19px; font-weight: 700; }
+.grandTotal dt { font-weight: 700; }
+.note { padding: 16px 0; border-top: 1px solid #dde4e8; }
+.note p { margin: 0; }
+.documentFooter { border-top: 1px solid #dde4e8; margin-top: 24px; padding-top: 12px; color: #586873; font-size: 10px; }
+.documentFooter span { display: block; margin-top: 4px; overflow-wrap: anywhere; }
+.files { list-style: none; padding: 0; }
+.files li { display: flex; flex-wrap: wrap; gap: 8px 20px; padding: 10px 0; border-bottom: 1px solid var(--bs-border-color); }
+.files small { color: var(--bs-secondary-color); }
+@media(max-width:600px) { .paper { padding: 18px; } .invoiceHeader { flex-direction: column; gap: 16px; } .invoiceHeader > div:last-child { text-align: left; } .parties { grid-template-columns: 1fr; gap: 20px; } }
+@media print {
+  @page { size: A4; margin: 15mm; }
+  :global(body) > * { display: none !important; }
+  :global(body) > .printRoot { display: block !important; }
+  .paper { position: static; width: 100%; max-width: none; margin: 0; padding: 0; border: 0; font-size: 11pt; }
+  .controls { display: none !important; }
+  .tableWrap { overflow: visible; }
+  .paper thead { display: table-header-group; }
+  .paper tr, .invoiceHeader, .parties, .totals { break-inside: avoid; }
+}

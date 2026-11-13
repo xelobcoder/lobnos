@@ -795,13 +795,13 @@ export default function ApplicationSettings() {
 				<div className="card border mt-3 mb-4 p-3">
 					<div className="row align-items-center g-3">
 						<div className="col-12 col-lg-7">
-							<h5 className="mb-1">Clinician Referral Commission Recipient</h5>
-							<p className="text-muted small mb-0">Choose who receives commission when a selected clinician is linked to an organization.</p>
+							<h5 className="mb-1">Commission Recipient Preference</h5>
+							<p className="text-muted small mb-0">For general and health insurance billing, choose who receives commission when both an organization and a clinician are selected. Organization billing pays the organization. Clinician special billing pays the clinician.</p>
 						</div>
 						<div className="col-12 col-lg-5">
 							<Form.Select
 								name="commissionRecipientPolicy"
-								aria-label="Commission recipient for organization-linked clinicians"
+								aria-label="Commission recipient when both organization and clinician are selected"
 								value={settings.commissionRecipientPolicy || 'clinician'}
 								onChange={handleChange}
 							>

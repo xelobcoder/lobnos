@@ -9,6 +9,8 @@ interface DateFilterReusableProps {
      label?: string;
      className?: string;
      disabled?: boolean;
+     startDate?: string;
+     endDate?: string;
 }
 
 const CUSTOM_RANGE_VALUE = 'Custom Range';
@@ -271,7 +273,9 @@ export default function DateFilterReusable({
      onDateRangeChange,
      label = 'Filter by',
      className = 'col-12 col-lg-2',
-     disabled = false
+     disabled = false,
+     startDate,
+     endDate
 }: DateFilterReusableProps) {
      const [customStartDate, setCustomStartDate] = React.useState(dayjs().startOf('month').format('YYYY-MM-DD'));
      const [customEndDate, setCustomEndDate] = React.useState(dayjs().format('YYYY-MM-DD'));
@@ -280,25 +284,25 @@ export default function DateFilterReusable({
           onChange(filterValue);
           if (onDateRangeChange) {
                if (filterValue === CUSTOM_RANGE_VALUE) {
-                    onDateRangeChange(customStartDate, customEndDate);
+                    onDateRangeChange(startDate ?? customStartDate, endDate ?? customEndDate);
                     return;
                }
-               const { startDate, endDate } = calculateDateRange(filterValue);
-               onDateRangeChange(startDate, endDate);
+               const range = calculateDateRange(filterValue);
+               onDateRangeChange(range.startDate, range.endDate);
           }
      };
 
      const handleCustomStartDateChange = (startDate: string) => {
           setCustomStartDate(startDate);
           if (onDateRangeChange) {
-               onDateRangeChange(startDate, customEndDate);
+               onDateRangeChange(startDate, endDate ?? customEndDate);
           }
      };
 
      const handleCustomEndDateChange = (endDate: string) => {
           setCustomEndDate(endDate);
           if (onDateRangeChange) {
-               onDateRangeChange(customStartDate, endDate);
+               onDateRangeChange(startDate ?? customStartDate, endDate);
           }
      };
 
@@ -335,7 +339,7 @@ export default function DateFilterReusable({
                          <input
                               type="date"
                               className="form-control form-control-sm"
-                              value={customStartDate}
+                              value={startDate ?? customStartDate}
                               onChange={(ev) => handleCustomStartDateChange(ev.target.value)}
                               disabled={disabled}
                               aria-label="Custom range start date"
@@ -343,8 +347,8 @@ export default function DateFilterReusable({
                          <input
                               type="date"
                               className="form-control form-control-sm"
-                              value={customEndDate}
-                              min={customStartDate}
+                              value={endDate ?? customEndDate}
+                              min={startDate ?? customStartDate}
                               onChange={(ev) => handleCustomEndDateChange(ev.target.value)}
                               disabled={disabled}
                               aria-label="Custom range end date"

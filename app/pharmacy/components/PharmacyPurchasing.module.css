@@ -1,8 +1,9 @@
 /* PLS purchasing theme: maps Bootstrap primary colours to the PLS brand within inventory and purchase request screens. */
 .theme {
-  --accent: var(--pls-primary, #2e7d32);
-  --deep: var(--pls-primary-dark, #1b5e20);
-  --ink: var(--pls-primary-dark, #1b5e20);
+  --accounting-accent: var(--theme-accent, var(--pls-primary, var(--bs-primary)));
+  --accent: var(--accounting-accent);
+  --deep: var(--accounting-accent);
+  --ink: var(--accounting-accent);
   --paper: var(--theme-card-bg, var(--bs-body-bg, #fff));
   --soft: color-mix(in srgb, var(--accent) 7%, var(--paper));
   --line: var(--bs-border-color, #dce4df);
@@ -12,11 +13,11 @@
   --bs-focus-ring-color: color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
-:global(html[data-bs-theme="dark"]) .theme { --ink: var(--pls-primary-lighter, #81c784); --deep: var(--pls-primary-dark, #2e7d32); }
+:global(html[data-bs-theme="dark"]) .theme { --ink: var(--accounting-accent); }
 
 .theme :global(.btn-primary) {
   --bs-btn-bg: var(--deep); --bs-btn-border-color: var(--deep); --bs-btn-color: #fff;
-  --bs-btn-hover-bg: var(--accent); --bs-btn-hover-border-color: var(--accent); --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: color-mix(in srgb, var(--accent) 85%, black); --bs-btn-hover-border-color: var(--bs-btn-hover-bg); --bs-btn-hover-color: #fff;
   --bs-btn-active-bg: var(--deep); --bs-btn-active-border-color: var(--deep); --bs-btn-active-color: #fff;
   --bs-btn-disabled-bg: var(--deep); --bs-btn-disabled-border-color: var(--deep); --bs-btn-disabled-color: #fff;
   --bs-btn-focus-shadow-rgb: 46, 125, 50;

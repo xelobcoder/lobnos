@@ -1010,8 +1010,9 @@ test('confirmed disabled accounting preserves legacy expense posting and journal
 test('Accounts retains customer invoice collection and credit controls when linked accounting is enabled',()=>{
   const compatibility=compatibilityModule();
   const accounts=compile('app/pharmacy/accounts/page.tsx',{
+    'next/link':{__esModule:true,default:({href,children,...props})=>require('react').createElement('a',{href,...props},children)},
     '../accounting/components/common':common,
-    'react/jsx-runtime':jsx,react:hooks,'../../../components/Auth/customFetch':{},
+    'react/jsx-runtime':jsx,react:{...hooks,useRef:value=>({current:value}),useEffect:()=>{}},'../../../components/Auth/customFetch':{},
     '../components/LinkedAccountingCompatibility':{...compatibility,useLinkedAccounting:()=>({mode:'enabled',error:'',refresh(){}})},
     '../components/PharmacyPaymentFields':{usePharmacyDocument:()=>({pending:null})},
     '../../../lib/pharmacy/receipt':{},
@@ -1023,7 +1024,7 @@ test('Accounts retains customer invoice collection and credit controls when link
     },
   });
   const html=renderToStaticMarkup(accounts.default());
-  assert.match(html,/Invoices \/ collect/);assert.match(html,/Approve credit account/);assert.match(html,/Limit \/ access/);
+  assert.match(html,/View invoices.*collect/);assert.match(html,/Add patient credit account/);assert.match(html,/Edit credit limit/);
   assert.match(html,/Linked Pharmacy Accounting is enabled/);
 });
 test('AP and AR source-specific reversal requests preserve date/reason without mutating original amounts',async()=>{

@@ -1,6 +1,8 @@
 "use client";
 
 import PharmacyReportCharts from "./PharmacyReportCharts";
+import Link from "next/link";
+import DateFilterReusable from "../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
 import accountingStyles from "../accounting/components/AccountingWorkspace.module.css";
 import purchasing from "./PharmacyPurchasing.module.css";
 import { useSearchParams } from "next/navigation";
@@ -73,6 +75,7 @@ export default function PharmacyReportsWorkspace({ accounting = false }: { accou
      const today = new Date().toISOString().slice(0, 10);
      const [from, setFrom] = useState(() => new Date(Date.now() - 29 * 86400000).toISOString().slice(0, 10));
      const [to, setTo] = useState(today);
+     const [datePreset, setDatePreset] = useState("Custom Range");
      const [search, setSearch] = useState(params.get("search") || "");
      const [filters, setFilters] = useState({ from, to, search: params.get("search") || "" });
      const [error, setError] = useState("");
@@ -95,8 +98,8 @@ export default function PharmacyReportsWorkspace({ accounting = false }: { accou
 
      const apply = (event: FormEvent) => {
           event.preventDefault();
-          if (from > to) {
-               setError("The start date must be on or before the end date");
+          if (!from || !to || from > to) {
+               setError("Choose a complete date range with the start date on or before the end date");
                return;
           }
           setError("");
@@ -267,29 +270,10 @@ export default function PharmacyReportsWorkspace({ accounting = false }: { accou
                <Message error={error || resource.error} />
                <form className={styles.card} onSubmit={apply}>
                     <div className="row g-3 align-items-end">
-                         <div className="col-sm-3">
-                              <label className="form-label w-100">
-                                   From
-                                   <input
-                                        className="form-control"
-                                        type="date"
-                                        required
-                                        value={from}
-                                        onChange={(event) => setFrom(event.target.value)}
-                                   />
-                              </label>
-                         </div>
-                         <div className="col-sm-3">
-                              <label className="form-label w-100">
-                                   To
-                                   <input
-                                        className="form-control"
-                                        type="date"
-                                        required
-                                        value={to}
-                                        onChange={(event) => setTo(event.target.value)}
-                                   />
-                              </label>
+                         <div className="col-sm-6">
+                              <label className="form-label" htmlFor="pharmacy-report-period">Date range</label>
+                              <DateFilterReusable id="pharmacy-report-period" className="" label="Report date period" value={datePreset} startDate={from} endDate={to} onChange={setDatePreset} onDateRangeChange={(start,end)=>{setFrom(start);setTo(end);}}/>
+                              <small className="text-muted">{from} to {to}</small>
                          </div>
                          <div className="col-sm-4">
                               <label className="form-label w-100">
@@ -417,7 +401,9 @@ export default function PharmacyReportsWorkspace({ accounting = false }: { accou
                                                                                      : undefined
                                                                            }
                                                                       >
-                                                                           {column.key === "status" ? (
+                                                                           {!accounting && report === "inventory" && column.key === "name" ? (
+                                                                                <Link href={`/pharmacy/analytics/items/${encodeURIComponent(row.id)}`}>{row.name}</Link>
+                                                                           ) : column.key === "status" ? (
                                                                                 <span
                                                                                      className={
                                                                                           "badge " +

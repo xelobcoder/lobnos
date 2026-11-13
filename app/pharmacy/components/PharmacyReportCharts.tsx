@@ -82,6 +82,14 @@ function SeriesChart({ type, data, label, series, currency, angled, width, heigh
      return <BarChart {...props} barCategoryGap="20%" barGap={2}>{common}{series.map((item, i) => <Bar key={item.key} dataKey={item.key} name={item.name} fill={colors[i % colors.length]} maxBarSize={48}/>)}</BarChart>;
 }
 
+export function PharmacyItemTrend({rows, label, series}: {rows: any[]; label: string; series: Series[]}) {
+     const [type, setType] = useState<ChartType>('bar');
+     if (!rows.length) return null;
+     return <ChartCard title="Activity in the selected period" subtitle="Quantities in base units" toggle={{value:type,set:setType}}>
+          <SeriesChart type={type} data={rows} label={label} series={series} currency={false} angled={label==='supplier'}/>
+     </ChartCard>;
+}
+
 export default function PharmacyReportCharts({ report, data }: { report: string; data: any }) {
      const [types, setTypes] = useState<Record<string, ChartType>>({});
      const toggle = (id: string, fallback: ChartType): Toggle => ({ value: types[id] ?? fallback, set: value => setTypes(current => ({ ...current, [id]: value })) });

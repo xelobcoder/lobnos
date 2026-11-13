@@ -6,13 +6,18 @@ import dayjs from "dayjs";
 import { RiRefreshLine } from "@remixicon/react";
 import { toast } from "react-toastify";
 import { customFetch, customPost, currencyFormatter } from "../../components/Auth/customFetch";
-import { CommissionTable, Pagination, PeriodFilter, ReportState, SummaryMetric, TableCell, commissionRecords } from "./PortalUi";
+import { CommissionTable, Pagination, PeriodFilter, ReportState, TableCell, commissionRecords } from "./PortalUi";
+import ui from "../../components/Billing/billing-strategy/StrategyWorkspace.module.css";
+import styles from "./untracked.module.css";
 
 interface UntrackedService {
     serviceid: number; totalpayable: string; paidamount: string; status: string;
     paymentstatus: string; serviceAddedOn: string; serviceCategory: string;
     clinicianId: number | null; organizationId: number | null;
     test_name: string; clinician_name: string | null; organization_name: string | null;
+    commission_recipient_type: 'clinician' | 'organization';
+    commission_recipient_id: number;
+    commission_recipient_name: string | null;
 }
 type Recipient = { recipient_type: string; recipient_id: string };
 
@@ -21,6 +26,7 @@ export default function UntrackedServices({ recipient }: { recipient?: Recipient
     const [startDate, setStartDate] = useState(dayjs().startOf("year").format("YYYY-MM-DD"));
     const [endDate, setEndDate] = useState(dayjs().format("YYYY-MM-DD"));
     const [data, setData] = useState<UntrackedService[]>([]);
+    const [summaryRows, setSummaryRows] = useState<UntrackedService[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [revision, setRevision] = useState(0);
@@ -31,7 +37,7 @@ export default function UntrackedServices({ recipient }: { recipient?: Recipient
     const recipientId = recipient?.recipient_id;
     const filterKey = `${startDate}:${endDate}:${recipientType || ""}:${recipientId || ""}`;
     const currentKey = useRef(filterKey);
-    currentKey.current = filterKey;
+    useEffect(() => { currentKey.current = filterKey; }, [filterKey]);
     const buildUrl = useCallback(({ page, count, sortby }: Pagination) => {
         const scope = recipientType && recipientId
             ? `&recipient_type=${encodeURIComponent(recipientType)}&recipient_id=${encodeURIComponent(recipientId)}` : "";
@@ -47,10 +53,12 @@ export default function UntrackedServices({ recipient }: { recipient?: Recipient
             const records = commissionRecords<UntrackedService>(await customFetch(buildUrl({ page: 1, count: 10 })));
             if (version !== request.current) return;
             setData(records);
+            setSummaryRows(records);
             setRevision(value => value + 1);
         } catch (failure) {
             if (version !== request.current) return;
             setData([]);
+            setSummaryRows([]);
             setError(failure instanceof Error ? failure.message : "Unable to load untracked services.");
         } finally {
             if (version === request.current) setLoading(false);
@@ -58,14 +66,17 @@ export default function UntrackedServices({ recipient }: { recipient?: Recipient
     }, [buildUrl, startDate, endDate]);
     const invalidate = useCallback(() => { request.current++; }, []);
     useEffect(() => {
-        void refresh();
-        return invalidate;
+        let active = true;
+        // Allow cleanup to cancel a superseded initial request before it starts.
+        void Promise.resolve().then(() => { if (active) return refresh(); });
+        return () => { active = false; invalidate(); };
     }, [refresh, invalidate]);
 
     const handleServerSideProcessing = async (pagination: Pagination) => {
         try {
             const result = commissionRecords<UntrackedService>(await customFetch(buildUrl(pagination)));
             if (currentKey.current !== filterKey) return { result: [], error: "Filters changed; reload the selected period." };
+            setSummaryRows(result);
             return { result, error: false as const };
         } catch (failure) {
             return { result: [], error: failure instanceof Error ? failure.message : "Unable to load untracked services." };
@@ -73,8 +84,8 @@ export default function UntrackedServices({ recipient }: { recipient?: Recipient
     };
     const handleTrackRecord = async (service: UntrackedService) => {
         if (trackingLock.current) return;
-        const type = recipientType || (service.clinicianId ? "clinician" : "organization");
-        const id = recipientId ? Number(recipientId) : service.clinicianId || service.organizationId;
+        const type = service.commission_recipient_type;
+        const id = service.commission_recipient_id;
         if (!id) { toast.error("No recipient found for this service"); return; }
         trackingLock.current = true;
         setTracking(service.serviceid);
@@ -100,18 +111,18 @@ export default function UntrackedServices({ recipient }: { recipient?: Recipient
         { Header: "Service ID", accessor: "serviceid" },
         { Header: "Test / category", accessor: "test_name", Cell: ({ row }: TableCell<UntrackedService>) =>
             <div>{row.original.test_name}<div className="small text-body-secondary">{row.original.serviceCategory}</div></div> },
-        { Header: "Total payable", accessor: "totalpayable", Cell: ({ row }: TableCell<UntrackedService>) => currencyFormatter.format(Number(row.original.totalpayable)) },
-        { Header: "Paid amount", accessor: "paidamount", Cell: ({ row }: TableCell<UntrackedService>) => currencyFormatter.format(Number(row.original.paidamount)) },
+        { Header: "Service charges", accessor: "totalpayable", Cell: ({ row }: TableCell<UntrackedService>) => currencyFormatter.format(Number(row.original.totalpayable)) },
+        { Header: "Paid toward services", accessor: "paidamount", Cell: ({ row }: TableCell<UntrackedService>) => currencyFormatter.format(Number(row.original.paidamount)) },
         { Header: "Status", accessor: "status", Cell: ({ row }: TableCell<UntrackedService>) =>
             <span className={row.original.status === "active" ? "text-success" : "text-body-secondary"}>{row.original.status}</span> },
-        { Header: "Payment status", accessor: "paymentstatus", Cell: ({ row }: TableCell<UntrackedService>) =>
+        { Header: "Service payment status", accessor: "paymentstatus", Cell: ({ row }: TableCell<UntrackedService>) =>
             <span className={row.original.paymentstatus === "paid" ? "text-success" : "text-body-emphasis"}>{row.original.paymentstatus}</span> },
         { Header: "Added on", accessor: "serviceAddedOn", Cell: ({ row }: TableCell<UntrackedService>) => dayjs(row.original.serviceAddedOn).format("YYYY-MM-DD HH:mm") },
         ...(!recipient ? [
-            { Header: "Recipient", accessor: "clinician_name", Cell: ({ row }: TableCell<UntrackedService>) => row.original.clinician_name || row.original.organization_name || "N/A" },
+            { Header: "Recipient", accessor: "commission_recipient_name", Cell: ({ row }: TableCell<UntrackedService>) => row.original.commission_recipient_name || "N/A" },
             { Header: "View", id: "view", disableSortBy: true, Cell: ({ row }: TableCell<UntrackedService>) => {
-                const type = row.original.clinicianId ? "clinician" : "organization";
-                const id = row.original.clinicianId || row.original.organizationId;
+                const type = row.original.commission_recipient_type;
+                const id = row.original.commission_recipient_id;
                 return id ? <Link className="btn btn-sm btn-outline-primary" href={`/commissions/untracked-commission-records/recipient/${type}/${id}`}>View {type}</Link> : "N/A";
             } },
         ] : []),
@@ -121,37 +132,45 @@ export default function UntrackedServices({ recipient }: { recipient?: Recipient
                 {tracking === row.original.serviceid ? "Tracking…" : "Track record"}
             </button> },
     ];
-    const summary = data.reduce((acc, item) => ({
+    const summary = summaryRows.reduce((acc, item) => ({
         payable: acc.payable + Number(item.totalpayable), paid: acc.paid + Number(item.paidamount),
-    }), { payable: 0, paid: 0 });
+        balance: acc.balance + Math.max(0, Number(item.totalpayable) - Number(item.paidamount)),
+    }), { payable: 0, paid: 0, balance: 0 });
     const known = !loading && !error;
-    const recipientName = data[0]?.clinician_name || data[0]?.organization_name;
-    return <div className="container-fluid px-3 px-md-4 py-3" aria-busy={loading || tracking !== null}>
+    const recipientName = data[0]?.commission_recipient_name;
+    return <div className={`${ui.workspace} ${styles.workspace}`} aria-busy={loading || tracking !== null}>
         {recipient && <nav aria-label="breadcrumb" className="mb-2">
             <Link href="/commissions/untracked-commission-records">Untracked commission services</Link>
             <span className="text-body-secondary ms-2">/ {recipientType} {recipientId}</span>
         </nav>}
-        <header className="mb-3">
-            <h1 className="fs-4 fw-bold mb-1">Untracked commission services</h1>
-            <p className="text-body-secondary mb-0">{recipient
+        <header className={ui.header}>
+            <div><h1>Untracked commission services</h1>
+            <p>{recipient
                 ? `Services for ${recipientName || `${recipientType} ID: ${recipientId}`}.`
-                : "Review services not yet tracked for commission processing."}</p>
+                : "Review eligible services and generate their commission tracking records."}</p></div>
+            <Link href="/commissions" className={ui.secondary}>Commission overview</Link>
         </header>
         <ReportState loading={loading} error={error} retry={refresh} />
-        <div className="row g-3 mb-3">
-            <div className="col-12 col-sm-6 col-xl-4"><SummaryMetric title="Services" value={known ? data.length : null} variant="primary" /></div>
-            <div className="col-12 col-sm-6 col-xl-4"><SummaryMetric title="Payable" value={known ? summary.payable : null} financial variant="secondary" /></div>
-            <div className="col-12 col-sm-6 col-xl-4"><SummaryMetric title="Paid" value={known ? summary.paid : null} financial variant="success" /></div>
-        </div>
-        <div className="row g-2 align-items-end mb-3">
+        <section aria-label="Underlying service bills" className={ui.panel}>
+            <h2>Service bill amounts</h2>
+            <p className={ui.help}>These amounts describe the underlying service bills. Commission is calculated when a service is tracked.</p>
+            <div className={styles.metrics}>
+                <div className={ui.stat}><div><span>Services on this page</span><strong>{known ? summaryRows.length : '—'}</strong></div></div>
+                <div className={ui.stat}><div><span>Service charges</span><strong>{known ? currencyFormatter.format(summary.payable) : '—'}</strong></div></div>
+                <div className={ui.stat}><div><span>Paid toward services</span><strong>{known ? currencyFormatter.format(summary.paid) : '—'}</strong></div></div>
+                <div className={ui.stat}><div><span>Remaining service balance</span><strong className={summary.balance > 0 ? 'text-warning-emphasis' : undefined}>{known ? currencyFormatter.format(summary.balance) : '—'}</strong></div></div>
+            </div>
+            {known && <p className={ui.help}>Figures cover the {summaryRows.length} service records loaded on the current page, before table search.</p>}
+        </section>
+        <div className={`row g-2 align-items-end ${ui.panel}`}>
             <PeriodFilter value={dateFilter} onChange={setDateFilter} disabled={loading || tracking !== null}
                 onDateRangeChange={(start, end) => { setStartDate(start); setEndDate(end); }} />
             <div className="col-12 col-md-auto">
-                <button type="button" className="btn btn-sm btn-outline-secondary" disabled={loading || tracking !== null} onClick={refresh}>
+                <button type="button" className={ui.secondary} disabled={loading || tracking !== null} onClick={refresh}>
                     <RiRefreshLine size={16} className="me-1" aria-hidden="true" />{loading ? "Refreshing…" : "Refresh"}
                 </button>
             </div>
         </div>
-        {known && <CommissionTable key={`${filterKey}:${revision}`} column={columns} data={data} handleSeverSideProcessing={handleServerSideProcessing} />}
+        {known && <section className={ui.panel}><CommissionTable key={`${filterKey}:${revision}`} column={columns} data={data} handleSeverSideProcessing={handleServerSideProcessing} /></section>}
     </div>;
 }
