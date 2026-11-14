@@ -304,6 +304,7 @@ export interface FinancialDayCloseDetail {
      actions: any[];
      snapshots: any[];
      lockedRecords: number;
+     dailySales?: { netSales: number; receiptCredits: number; expensePayments: number; receiptRefunds: number };
 }
 
 const BASE = "accounting";

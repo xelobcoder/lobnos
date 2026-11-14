@@ -215,11 +215,11 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 							</div>
 							<div className="col-md-6 col-lg-3">
 								<AnalyticCard
-									title="Paid on period services"
+									title="Payments Received"
 									value={Number(internalSummary.cash_collected)}
 									Icon={RiWalletLine}
 									variant="success"
-									subtitle="Cumulative payments on selected services"
+									subtitle="Payments received during the selected period"
 								/>
 							</div>
 							<div className="col-md-6 col-lg-3">
@@ -257,7 +257,7 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 							)}
 							<div className="col-md-6 col-lg-3">
 								<AnalyticCard
-									title="Earned Revenue"
+									title="Net Billed"
 									value={Number(internalSummary.earned_revenue)}
 									Icon={RiCheckboxCircleLine}
 									variant="info"
@@ -276,11 +276,11 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 							{canViewExpenseMetrics && (
 								<div className="col-md-6 col-lg-3">
 									<AnalyticCard
-										title="Paid Less Expenses"
+										title="Net Cash Movement"
 										value={Number(internalSummary.net_operating_cash)}
 										Icon={RiBarChartLine}
 										variant="success"
-										subtitle="Selected-service payments less period expenses"
+										subtitle="Payments received minus refunds and expenses paid"
 									/>
 								</div>
 							)}
@@ -328,7 +328,7 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 										>
 											<RiWalletLine style={{ fontSize: "0.8rem", color: "white" }} />
 										</div>
-										<span className="small fw-medium text-muted">Paid on period services</span>
+										<span className="small fw-medium text-muted">Payments Received</span>
 									</div>
 									<span className="fw-semibold text-dark small">
 										{currencyFormatter.format(Number(internalSummary.cash_collected) || 0)}
@@ -351,7 +351,7 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 										>
 											<RiCheckboxCircleLine style={{ fontSize: "0.8rem", color: "white" }} />
 										</div>
-										<span className="small fw-medium text-muted">Earned Revenue</span>
+										<span className="small fw-medium text-muted">Net Billed</span>
 									</div>
 									<span className="fw-semibold text-dark small">
 										{currencyFormatter.format(Number(internalSummary.earned_revenue) || 0)}
@@ -469,7 +469,7 @@ export default function BilledSummary({ branchid, from, to, summary }: PropsQuer
 											>
 												<RiBarChartLine style={{ fontSize: "0.8rem", color: "white" }} />
 											</div>
-											<span className="small fw-medium text-muted">Paid Less Expenses</span>
+											<span className="small fw-medium text-muted">Net Cash Movement</span>
 										</div>
 										<span className={`fw-semibold small ${Number(internalSummary.net_operating_cash) >= 0 ? 'text-success' : 'text-danger'}`}>
 											{currencyFormatter.format(Number(internalSummary.net_operating_cash) || 0)}

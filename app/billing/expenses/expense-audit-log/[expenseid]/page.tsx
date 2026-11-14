@@ -1,363 +1,151 @@
 'use client';
+
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState } from 'react';
+import { RiArrowLeftLine, RiHistoryLine, RiRefreshLine, RiSearchLine } from '@remixicon/react';
 import { customFetch } from '../../../../../components/Auth/customFetch';
-import { motion, AnimatePresence } from 'motion/react';
-import { RiRefreshLine, RiSearchLine } from '@remixicon/react';
 import styles from './AuditLogDisplay.module.css';
 
-interface ExpenseRecord {
-  name: string;
-  date: string;
-  merchant: string;
-  amount: number;
-  category: number;
-  mode: number;
-  description: string;
-  employeeid: number;
-  branchid: number;
-  createdon: string;
-  approved: number | boolean;
-  approvedby: number | null;
-  approvedon: string | null;
-  rejectionmessage: string | null;
-  isassociatedservice: number | boolean;
-  serviceid: number | null;
-  [key: string]: any;
-}
-
-interface LogEntry {
+type Fields = Record<string, unknown>;
+type Log = {
   audit_id: number;
-  uid: string;
-  operation: 'UPDATE' | 'INSERT' | 'DELETE';
-  table_name: string;
-  record_id: number;
-  old_data: Partial<ExpenseRecord> | null;
-  new_data: Partial<ExpenseRecord> | null;
-  changed_by: number;
+  operation: 'INSERT' | 'UPDATE' | 'DELETE';
+  old_data: Fields | null;
+  new_data: Fields | null;
+  changed_by: number | null;
   changed_on: string;
-  client_ip: string | null;
-  username: string;
-}
-
-interface WorkflowHistory {
-  expense: any;
-  actions: Array<{ id: number; action: string; from_status: string; to_status: string; actor_name?: string; actor_employeeid: number; actor_role?: string; amount: number; reason?: string; created_at: string }>;
-  payments: Array<{ id: number; amount: number; payment_date: string; method: string; payment_reference?: string; payment_account_name?: string; recorded_by_name?: string }>;
-}
-
-const operationStyles = {
-  INSERT: {
-    bg: 'var(--success-bg)',
-    text: 'var(--success-text)',
-    border: 'var(--success-border)',
-    icon: '➕',
-  },
-  UPDATE: {
-    bg: 'var(--info-bg)',
-    text: 'var(--info-text)',
-    border: 'var(--info-border)',
-    icon: '✏️',
-  },
-  DELETE: {
-    bg: 'var(--danger-bg)',
-    text: 'var(--danger-text)',
-    border: 'var(--danger-border)',
-    icon: '🗑️',
-  },
+  username?: string;
 };
+type History = {
+  expense: { name: string; amount: number; approved: number; workflow_status?: string; description?: string };
+  actions: Array<{ id: number; action: string; from_status?: string; to_status?: string; actor_name?: string; actor_employeeid: number; actor_role?: string; amount: number; reason?: string; created_at: string }>;
+  payments: Array<{ id: number; amount: number; payment_date: string; method: string; status: string; is_reversed: number; payment_reference?: string; payment_account_name?: string; recorded_by_name?: string }>;
+};
+type Activity = { id: string; title: string; date: string; actor?: string; detail?: string; amount?: number };
 
-const AuditLogDisplay: React.FC = () => {
-  const [auditLogs, setAuditLogs] = useState<LogEntry[]>([]);
-  const [workflowHistory, setWorkflowHistory] = useState<WorkflowHistory | null>(null);
-  const [expandedLog, setExpandedLog] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const params = useParams();
-  const expenseid = params?.expenseid;
+const money = new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS' });
+const dateTime = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short' });
+const dateLabel = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeZone: 'UTC' });
+const readable = (value = '') => value.replace(/_/g, ' ');
+const formatDate = (value: string) => {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return 'Date unavailable';
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? dateLabel.format(date) : dateTime.format(date);
+};
+const formatValue = (value: unknown) => value == null ? '—' : typeof value === 'object' ? JSON.stringify(value) : String(value);
+const operation = { INSERT: 'Created', UPDATE: 'Updated', DELETE: 'Deleted' };
 
-  const fetchAuditLog = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const [response, workflowResponse] = await Promise.all([
-        customFetch(`expenses/audit/${expenseid}`),
-        customFetch(`expenses/${expenseid}/workflow-history`),
-      ]);
-      if (response && Array.isArray(response)) {
-        setAuditLogs(response);
-      } else {
-        throw new Error('Invalid response format');
-      }
-      if (workflowResponse?.success) setWorkflowHistory(workflowResponse.data);
-    } catch (err) {
-      setError('Failed to load audit logs. Please try again.');
-      console.error('Error fetching audit logs:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [expenseid]);
+export default function ExpenseAuditPage() {
+  const { expenseid } = useParams<{ expenseid: string }>();
+  const [data, setData] = useState<{ id: string; logs: Log[] | null; history: History | null }>();
+  const [request, setRequest] = useState(0);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (expenseid) {
-      fetchAuditLog();
-    }
-  }, [expenseid, fetchAuditLog]);
-
-  const toggleExpand = useCallback((logId: number) => {
-    setExpandedLog((prev) => (prev === logId ? null : logId));
-  }, []);
-
-  const formatValue = useCallback((value: any): string => {
-    if (value === null || value === undefined) return 'NULL';
-    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
-    if (typeof value === 'object') return JSON.stringify(value);
-    return String(value);
-  }, []);
-
-  const formatDate = useCallback((dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
+    let active = true;
+    setLoading(true);
+    Promise.allSettled([
+      customFetch(`expenses/audit/${expenseid}`),
+      customFetch(`expenses/${expenseid}/workflow-history`),
+    ]).then(([audit, workflow]) => {
+      if (!active) return;
+      setData({
+        id: expenseid,
+        logs: audit.status === 'fulfilled' && Array.isArray(audit.value) ? audit.value : null,
+        history: workflow.status === 'fulfilled' && workflow.value?.success ? workflow.value.data : null,
+      });
+      setLoading(false);
     });
-  }, []);
+    return () => { active = false; };
+  }, [expenseid, request]);
 
-  const filteredLogs = useMemo(() => {
-    return auditLogs.filter(
-      (log) => {
-        const username = log.username ? log.username.toLowerCase() : '';
-        const operation = log.operation ? log.operation.toLowerCase() : '';
-        const changedOn = formatDate(log.changed_on).toLowerCase();
+  const current = data?.id === expenseid ? data : undefined;
+  const history = current?.history;
+  const expense = history?.expense;
+  const paid = history?.payments.reduce((sum, payment) =>
+    payment.status.toLowerCase() === 'paid' && !Number(payment.is_reversed) ? sum + Number(payment.amount) : sum, 0);
+  const status = expense && (Number(expense.approved) === 1
+    ? (Number(paid) >= Number(expense.amount) ? 'Paid' : Number(paid) > 0 ? 'Partially paid' : 'Approved')
+    : Number(expense.approved) === 2 ? 'Rejected' : expense.workflow_status === 'draft' ? 'Draft' : 'Awaiting approval');
 
-        return (
-          username.includes(searchTerm.toLowerCase()) ||
-          operation.includes(searchTerm.toLowerCase()) ||
-          changedOn.includes(searchTerm.toLowerCase())
-        );
-      }
-    );
-  }, [auditLogs, searchTerm, formatDate]);
-
-  if (isLoading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner}></div>
-      </div>
-    );
-  }
+  const activity: Activity[] = history ? [
+    ...history.actions.map(action => ({
+      id: `action-${action.id}`, title: readable(action.action), date: action.created_at,
+      actor: [action.actor_name || `Employee ${action.actor_employeeid}`, action.actor_role].filter(Boolean).join(' · '),
+      detail: [action.from_status && action.to_status && `${readable(action.from_status)} → ${readable(action.to_status)}`, action.reason].filter(Boolean).join(' · '),
+      amount: action.amount,
+    })),
+    ...history.payments.map(payment => ({
+      id: `payment-${payment.id}`, title: Number(payment.is_reversed) ? 'Payment reversed' : payment.method === 'SYSTEM_AUTO' ? 'Automated settlement' : `Payment · ${payment.status}`,
+      date: payment.payment_date, actor: payment.recorded_by_name,
+      detail: [payment.payment_account_name || (payment.method !== 'SYSTEM_AUTO' && readable(payment.method)), payment.payment_reference].filter(Boolean).join(' · '),
+      amount: payment.amount,
+    })),
+  ].sort((a, b) => Date.parse(b.date) - Date.parse(a.date)) : [];
+  const query = search.trim().toLowerCase();
+  const logs = [...(current?.logs || [])].sort((a, b) => b.audit_id - a.audit_id).filter(log =>
+    [log.username, log.changed_by, log.operation, operation[log.operation], formatDate(log.changed_on)]
+      .some(value => String(value ?? '').toLowerCase().includes(query)),
+  );
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <div>
-          <h1>Expense Audit Trail</h1>
-          <p>Track all modifications made to this expense record</p>
+    <main className={styles.page} aria-busy={loading}>
+      <header className={styles.header}>
+        <div className={styles.toolbar}>
+          <Link href="/billing/expenses"><RiArrowLeftLine size={18} aria-hidden /> Expenses</Link>
+          <button type="button" className="btn btn-sm btn-outline-secondary" disabled={loading} onClick={() => setRequest(value => value + 1)}>
+            <RiRefreshLine size={16} aria-hidden /> {loading ? 'Refreshing…' : 'Refresh'}
+          </button>
         </div>
-        <div className={styles.totalChanges}>
-          Total Changes: <span>{auditLogs.length}</span>
+        <div className={styles.heading}>
+          <div><p>Expense #{expenseid} / Audit trail</p><h1>{expense?.name || 'Expense audit trail'}</h1></div>
+          {status && <span className={styles.status} data-status={status}>{status}</span>}
         </div>
-      </div>
+        {expense?.description && <p className={styles.description}>{expense.description}</p>}
+        {expense && <dl className={styles.totals}>
+          <div><dt>Expense amount</dt><dd>{money.format(Number(expense.amount))}</dd></div>
+          <div><dt>Settled amount</dt><dd>{money.format(paid ?? 0)}</dd></div>
+          <div><dt>Outstanding</dt><dd>{Number(expense.approved) === 1 ? money.format(Math.max(0, Number(expense.amount) - (paid ?? 0))) : '—'}</dd></div>
+        </dl>}
+      </header>
 
-      {error && (
-        <div className={styles.errorMessage}>
-          <p>{error}</p>
-          <button onClick={fetchAuditLog}>Retry</button>
-        </div>
-      )}
-
-      <div className={styles.controls}>
-        <div className={styles.searchContainer}>
-          <RiSearchLine className={styles.searchIcon} size={20} />
-          <input
-            type="text"
-            placeholder="Search by username, operation, or date..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            aria-label="Search audit logs"
-          />
-        </div>
-        <button
-          className={styles.refreshButton}
-          onClick={fetchAuditLog}
-          aria-label="Refresh audit logs"
-        >
-          <RiRefreshLine size={20} />
-          Refresh
-        </button>
-      </div>
-
-      {workflowHistory && (
-        <section className="card border-0 shadow-sm mb-4">
-          <div className="card-body">
-            <div className="d-flex flex-wrap justify-content-between gap-2 mb-3">
-              <div><h2 className="h5 mb-1">Workflow Timeline</h2><p className="text-muted mb-0">Authenticated approvals, rejections, and payments</p></div>
-              <span className="text-capitalize fw-semibold">Current state: {String(workflowHistory.expense.workflow_status || 'pending_approval').replace(/_/g, ' ')}</span>
-            </div>
-            <div className="table-responsive">
-              <table className="table align-middle mb-0">
-                <thead><tr><th>Date</th><th>Action</th><th>Transition</th><th>Actor</th><th>Amount</th><th>Reason / Source</th></tr></thead>
-                <tbody>
-                  {workflowHistory.actions.map((action) => (
-                    <tr key={`action-${action.id}`}>
-                      <td>{formatDate(action.created_at)}</td>
-                      <td className="text-capitalize fw-semibold">{action.action.replace(/_/g, ' ')}</td>
-                      <td className="text-capitalize">{action.from_status.replace(/_/g, ' ')} → {action.to_status.replace(/_/g, ' ')}</td>
-                      <td>{action.actor_name || `Employee ${action.actor_employeeid}`}<small className="text-muted d-block text-capitalize">{action.actor_role || ''}</small></td>
-                      <td>{Number(action.amount || 0).toLocaleString('en-GH', { style: 'currency', currency: 'GHS' })}</td>
-                      <td>{action.reason || '-'}</td>
-                    </tr>
-                  ))}
-                  {workflowHistory.payments.map((payment) => (
-                    <tr key={`payment-${payment.id}`}>
-                      <td>{formatDate(payment.payment_date)}</td><td className="fw-semibold">Payment</td><td>Payment recorded</td><td>{payment.recorded_by_name || 'Recorded user'}</td><td>{Number(payment.amount).toLocaleString('en-GH', { style: 'currency', currency: 'GHS' })}</td><td>{payment.payment_account_name || payment.method}{payment.payment_reference ? ` · ${payment.payment_reference}` : ''}</td>
-                    </tr>
-                  ))}
-                  {!workflowHistory.actions.length && !workflowHistory.payments.length && <tr><td colSpan={6} className="text-muted text-center py-4">No workflow events recorded yet.</td></tr>}
-                </tbody>
-              </table>
-            </div>
-          </div>
+      {!current && loading ? <p className={styles.empty} role="status">Loading expense history…</p> : <>
+        <section className={styles.panel} aria-labelledby="activity-heading">
+          <div className={styles.sectionTitle}><RiHistoryLine size={21} aria-hidden /><h2 id="activity-heading">Workflow activity</h2></div>
+          {!history ? <p className={styles.empty} role="alert">Workflow history is unavailable. Use Refresh to try again.</p> : activity.length === 0
+            ? <p className={styles.empty}>No workflow actions or payments have been recorded.</p>
+            : <ol className={styles.timeline}>{activity.map(item => (
+              <li key={item.id}>
+                <div><h3>{item.title}</h3><p>{[formatDate(item.date), item.actor].filter(Boolean).join(' · ')}</p>{item.detail && <p>{item.detail}</p>}</div>
+                {item.amount != null && <strong>{money.format(Number(item.amount))}</strong>}
+              </li>
+            ))}</ol>}
         </section>
-      )}
 
-      {filteredLogs.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className={styles.noLogs}
-        >
-          <h3>No audit logs found</h3>
-          <p>This expense has not been modified yet.</p>
-        </motion.div>
-      ) : (
-        <div>
-          {filteredLogs.map((log) => {
-            const allKeys = new Set([
-              ...(log.old_data ? Object.keys(log.old_data) : []),
-              ...(log.new_data ? Object.keys(log.new_data) : []),
-            ]);
-
-            return (
-              <motion.div
-                key={log.audit_id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className={styles.logCard}
-                style={{
-                  borderLeftColor:
-                    log.operation === 'INSERT'
-                      ? 'var(--success-border)'
-                      : log.operation === 'UPDATE'
-                        ? 'var(--info-border)'
-                        : 'var(--danger-border)',
-                }}
-              >
-                <div
-                  className={styles.logHeader}
-                  onClick={() => toggleExpand(log.audit_id)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      toggleExpand(log.audit_id);
-                      e.preventDefault();
-                    }
-                  }}
-                  tabIndex={0}
-                  role="button"
-                  aria-expanded={expandedLog === log.audit_id}
-                  aria-label={`Toggle details for ${log.operation} by ${log.username} on ${formatDate(log.changed_on)}`}
-                >
-                  <div className={styles.logHeaderContent}>
-                    <span style={{ fontSize: '1.5rem' }}>{operationStyles[log.operation].icon}</span>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <span
-                          className={styles.operationTag}
-                          style={{
-                            background: operationStyles[log.operation].bg,
-                            color: operationStyles[log.operation].text,
-                            borderColor: operationStyles[log.operation].border,
-                          }}
-                        >
-                          {log.operation}
-                        </span>
-                        <span style={{ fontSize: '0.9rem', color: '#6c757d' }}>
-                          {formatDate(log.changed_on)}
-                        </span>
-                      </div>
-                      <h3 style={{ fontSize: '1rem', fontWeight: 500, marginTop: '0.25rem' }}>
-                        Changed by <span style={{ fontWeight: 600 }}>{log.username}</span>
-                      </h3>
-                    </div>
-                  </div>
-                  <span>{expandedLog === log.audit_id ? '▲' : '▼'}</span>
-                </div>
-
-                <AnimatePresence>
-                  {expandedLog === log.audit_id && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className={styles.logDetails}
-                    >
-                      <table className={styles.logTable}>
-                        <thead>
-                          <tr>
-                            <th style={{ width: '25%' }}>Field</th>
-                            <th>Before</th>
-                            <th>After</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {Array.from(allKeys).map((key) => (
-                            <tr key={key}>
-                              <td style={{ fontWeight: 500, textTransform: 'capitalize' }}>
-                                {key.replace(/([A-Z])/g, ' $1').trim()}
-                              </td>
-                              <td
-                                className={log.old_data?.[key] !== log.new_data?.[key] ? styles.changed : ''}
-                                style={{
-                                  color:
-                                    log.old_data?.[key] !== log.new_data?.[key]
-                                      ? 'var(--danger-text)'
-                                      : '#6c757d',
-                                }}
-                              >
-                                {formatValue(log.old_data?.[key])}
-                              </td>
-                              <td
-                                className={log.old_data?.[key] !== log.new_data?.[key] ? styles.changed : ''}
-                                style={{
-                                  color:
-                                    log.old_data?.[key] !== log.new_data?.[key]
-                                      ? 'var(--success-text)'
-                                      : '#6c757d',
-                                }}
-                              >
-                                {formatValue(log.new_data?.[key])}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+        <section className={styles.panel} aria-labelledby="changes-heading">
+          <div className={styles.sectionHeader}>
+            <div><h2 id="changes-heading">Record changes</h2>{current?.logs && <p>{logs.length} of {current.logs.length} changes</p>}</div>
+            {!!current?.logs?.length && <label className={styles.search}><RiSearchLine size={18} aria-hidden />
+              <input type="search" aria-label="Search record changes" placeholder="Search actor, action or date" value={search} onChange={event => setSearch(event.target.value)} />
+            </label>}
+          </div>
+          {!current?.logs ? <p className={styles.empty} role="alert">Record changes are unavailable. Use Refresh to try again.</p> : !logs.length
+            ? <p className={styles.empty}>{query ? 'No changes match your search.' : 'No record changes have been logged.'}</p>
+            : logs.map(log => {
+              const fields = [...new Set([...Object.keys(log.old_data || {}), ...Object.keys(log.new_data || {})])];
+              const changed = fields.filter(field => log.operation !== 'UPDATE' || formatValue(log.old_data?.[field]) !== formatValue(log.new_data?.[field]));
+              return <details className={styles.change} key={log.audit_id}>
+                <summary><span><strong>{operation[log.operation] || log.operation}</strong><small>{log.username || (log.changed_by ? `Employee ${log.changed_by}` : 'Actor unavailable')} · {formatDate(log.changed_on)}</small></span>
+                  <span className={styles.fieldCount}>{changed.length} {changed.length === 1 ? 'field' : 'fields'}</span></summary>
+                {changed.length ? <div className={styles.tableWrap}><table><thead><tr><th scope="col">Field</th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
+                  <tbody>{changed.map(field => <tr key={field}><th scope="row">{readable(field)}</th><td>{formatValue(log.old_data?.[field])}</td><td>{formatValue(log.new_data?.[field])}</td></tr>)}</tbody></table></div>
+                  : <p className={styles.empty}>No field differences were recorded.</p>}
+              </details>;
+            })}
+        </section>
+      </>}
+    </main>
   );
-};
-
-export default AuditLogDisplay;
+}

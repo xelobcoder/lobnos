@@ -130,13 +130,14 @@ export default function DailyFinancialClosePage() {
                if (!response || response.status === 'error') throw new Error(response?.message || 'Daily close action failed');
                toast.success(actionMode === 'finalize' ? 'Financial day finalized and locked.' : 'Financial day updated.');
                setActionMode(null); setPin(''); setNotes(''); await load();
-               if (response.result) setSelected(response.result);
+               if (response.result?.closure) await openDetail(response.result.closure);
           } catch (error: any) { toast.error(error?.message || 'Daily close action failed'); }
           finally { setBusy(false); }
      };
 
      const latestSnapshot = selected?.snapshots?.[selected.snapshots.length - 1];
      const totals = latestSnapshot?.totals_json ? JSON.parse(latestSnapshot.totals_json) : {};
+     const dailySales = selected?.dailySales;
      const discrepancies = latestSnapshot?.discrepancies_json ? JSON.parse(latestSnapshot.discrepancies_json) : [];
      const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.count));
 
@@ -208,8 +209,32 @@ export default function DailyFinancialClosePage() {
           <Modal show={Boolean(selected)} onHide={() => setSelected(null)} size="xl" animation={false} dialogClassName="mt-3">
                <Modal.Header closeButton><Modal.Title className="h5">Financial Day Review{selected && <> #{selected.closure.id} - {dayjs(selected.closure.financial_date).format("DD MMM YYYY")} - Branch {selected.closure.branchid}</>}</Modal.Title></Modal.Header>
                <Modal.Body>{selected && <>
-                    <div className="row g-3 mb-3">{[['Billing', totals.billingPayable, 'primary'], ['Payments', totals.paymentCredits, 'success'], ['Expenses', totals.expensesAccrued, 'danger'], ['Refunds', totals.refundsPaid, 'warning']].map(([label, value, variant]) => <div className="col-6 col-lg-3" key={String(label)}><div className={`card border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}><div className="card-body p-3"><div className="text-xs text-uppercase fw-semibold opacity-75">{label}</div><h3 className="fw-bold mb-0">{Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3><span className="text-xs opacity-75">Snapshot total</span></div></div></div>)}</div>
+                    {dailySales && <>
+                         <h2 className="h6">Daily Sales activity</h2>
+                         <div className="row g-3 mb-3">
+                              {([
+                                   ['Net billed', dailySales.netSales],
+                                   ['Payments received', dailySales.receiptCredits],
+                                   ['Expenses paid', dailySales.expensePayments],
+                                   ['Refunds paid', dailySales.receiptRefunds],
+                              ] as const).map(([label, amount]) => (
+                                   <div key={label} className="col-6 col-lg-3">
+                                        <div className="card border-0 shadow-sm bg-white bg-gradient text-dark rounded-3 h-100">
+                                             <div className="card-body p-3">
+                                                  <div className="text-xs text-uppercase fw-semibold opacity-75">{label}</div>
+                                                  <h3 className="fw-bold mb-0">{amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3>
+                                                  <span className="text-xs" aria-hidden="true">&nbsp;</span>
+                                             </div>
+                                        </div>
+                                   </div>
+                              ))}
+                         </div>
+                    </>}
+                    {latestSnapshot ? <>
+                         <h2 className="h6">Saved close snapshot</h2>
+                    <div className="row g-3 mb-3">{[['Billing', totals.billingPayable, 'primary'], ['Payments', totals.paymentCredits, 'success'], ['Expenses accrued', totals.expensesAccrued, 'danger'], ['Refunds', totals.refundsPaid, 'warning']].map(([label, value, variant]) => <div className="col-6 col-lg-3" key={String(label)}><div className={`card border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}><div className="card-body p-3"><div className="text-xs text-uppercase fw-semibold opacity-75">{label}</div><h3 className="fw-bold mb-0">{value == null ? "Unavailable" : Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3><span className="text-xs opacity-75">Snapshot total</span></div></div></div>)}</div>
                     {discrepancies.length > 0 ? <div className="alert alert-danger"><strong>Reconciliation blockers</strong>{discrepancies.map((item: any) => <div key={item.code}>{item.message}</div>)}</div> : <div className="alert alert-success d-flex align-items-center gap-2"><RiCheckboxCircleLine size={18} /> Snapshot is reconciled.</div>}
+                    </> : <p className="text-muted">No close snapshot has been saved.</p>}
                     <div className="row g-3"><div className="col-lg-6"><h2 className="h6">Authorization timeline</h2>{selected.actions.map((action) => <div className="border-start border-3 ps-3 py-2 mb-2" key={action.id}><div className="fw-semibold text-capitalize">{statusText(action.action)}</div><div className="small text-muted">{action.actor_role} #{action.actor_employeeid} · {formatWhen(action.action_at)}</div>{action.reason ? <div className="small">{action.reason}</div> : null}</div>)}</div><div className="col-lg-6"><h2 className="h6">Integrity</h2><div className="border rounded p-3"><div>Locked records: <strong>{selected.lockedRecords}</strong></div><div className="small text-muted text-break mt-2">Snapshot hash: {selected.closure.finalized_hash || selected.closure.latest_snapshot_hash || 'Not created'}</div></div></div></div>
                </>}</Modal.Body>
           </Modal>
