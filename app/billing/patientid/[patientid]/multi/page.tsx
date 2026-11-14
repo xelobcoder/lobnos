@@ -4,7 +4,7 @@ import { Alert, Button, Modal, Spinner } from 'react-bootstrap';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { billingSource } from '../../../../../lib/billingLib';
-import { RiHealthBookLine, RiArrowRightLine, RiListCheck, RiUser3Line, RiBuildingLine, RiAddLine, RiSearchLine } from '@remixicon/react';
+import { RiHealthBookLine, RiArrowRightLine, RiListCheck, RiUser3Line, RiBuildingLine, RiAddLine, RiSearchLine, RiCheckLine } from '@remixicon/react';
 import { useApplication } from '../../../../../components/Auth/useApplicationContext';
 import { customFetch } from '../../../../../components/Auth/customFetch';
 import { toast } from 'react-toastify';
@@ -25,6 +25,14 @@ const SOURCE_DESCRIPTIONS: Record<number, string> = {
 	3: 'Use a private health insurance scheme.',
 	4: 'Use the National Health Insurance Scheme.',
 	6: 'Bill through a special health care provider.',
+};
+
+const SOURCE_TONE: Record<number, string> = {
+	1: 'success',
+	2: 'primary',
+	3: 'warning',
+	4: 'info',
+	6: 'secondary',
 };
 
 const sourceIcon = (value: number) => {
@@ -152,6 +160,45 @@ export default function BillingTypeSelection() {
 					</Link>
 				</div>
 
+				{/* Billing setup steps */}
+				<div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '0.75rem' }}>
+					<div className="card-body px-3 px-lg-4 py-3 d-flex flex-column flex-md-row align-items-md-center gap-3 gap-lg-4" role="list" aria-label="Billing setup steps">
+						<div className="d-flex align-items-center gap-2" role="listitem">
+							<span className="badge rounded-circle bg-success d-inline-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 24, height: 24 }}>
+								<RiCheckLine size={14} />
+							</span>
+							<div>
+								<div className="small fw-semibold">Patient selected</div>
+								<div className="small" style={{ color: COLOR_TEXT_MUTED }}>Ready to set up billing</div>
+							</div>
+						</div>
+
+						<div className="vr d-none d-md-block" />
+
+						<div className="d-flex align-items-center gap-2" role="listitem" aria-current="step">
+							<span className="badge rounded-circle bg-success d-inline-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 24, height: 24 }}>
+								2
+							</span>
+							<div>
+								<div className="small fw-semibold">Choose billing source</div>
+								<div className="small" style={{ color: COLOR_TEXT_MUTED }}>Select the appropriate payer</div>
+							</div>
+						</div>
+
+						<div className="vr d-none d-md-block" />
+
+						<div className="d-flex align-items-center gap-2" role="listitem" style={{ color: COLOR_TEXT_MUTED }}>
+							<span className="badge rounded-circle bg-body-secondary text-body-secondary d-inline-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 24, height: 24 }}>
+								3
+							</span>
+							<div>
+								<div className="small fw-semibold">Build the bill</div>
+								<div className="small">Add tests and services</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
 				{(billingMode === 'loading' || billingMode === 'simple') ? (
 					<div className="card border-0 shadow-sm" style={{ borderRadius: '0.75rem' }}>
 						<div className="card-body py-5">
@@ -231,10 +278,14 @@ export default function BillingTypeSelection() {
 																value={option.value}
 																checked={selected}
 																onChange={() => setSelectedBillingSource(option)}
+																style={{
+																	backgroundColor: selected ? 'var(--bs-success)' : undefined,
+																	borderColor: selected ? 'var(--bs-success)' : undefined,
+																}}
 															/>
 															<span
-																className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0 bg-body-tertiary"
-																style={{ width: 40, height: 40, color: selected ? COLOR_ACCENT : COLOR_TEXT_MUTED }}
+																className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0 bg-success bg-opacity-10 text-success"
+																style={{ width: 40, height: 40 }}
 															>
 																<SourceIcon size={20} />
 															</span>
@@ -252,7 +303,7 @@ export default function BillingTypeSelection() {
 									)}
 								</div>
 
-								<div className="card-footer bg-white border-top d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3 p-lg-4">
+								<div className="card-footer bg-body border-top d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3 p-lg-4">
 									<span className="small" style={{ color: COLOR_TEXT_MUTED }}>
 										{selectedBillingSource ? selectedBillingSource.label : 'Choose a billing source above'}
 									</span>

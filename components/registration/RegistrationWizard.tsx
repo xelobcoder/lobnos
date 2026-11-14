@@ -338,7 +338,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
 
           const primary = String(personalData.mobile_number || '').replace(/\D/g, '');
           const enteredBackup = contacts.backup.trim();
-          const backup = enteredBackup.replace(/[\s()+-]/g, '').replace(/^00(?=[1-9])/, '')
+          const backup = enteredBackup.replace(/[\s()+-]/g, '').replace(/^00(?=[1-9]\d{9,14}$)/, '')
                .replace(/^233(\d{9})$/, '0$1').replace(/^(\d{9})$/, '0$1');
           if ((primary && !/^\d{10}$/.test(primary)) || (backup && !/^\d{10,15}$/.test(backup))) {
                toast.error('Check the primary or secondary number you entered.');
