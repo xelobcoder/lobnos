@@ -27,14 +27,6 @@ const SOURCE_DESCRIPTIONS: Record<number, string> = {
 	6: 'Bill through a special health care provider.',
 };
 
-const SOURCE_TONE: Record<number, string> = {
-	1: 'success',
-	2: 'primary',
-	3: 'warning',
-	4: 'info',
-	6: 'secondary',
-};
-
 const sourceIcon = (value: number) => {
 	if (value === 2) return RiBuildingLine;
 	if (value === 3 || value === 4) return RiHealthBookLine;
@@ -161,14 +153,14 @@ export default function BillingTypeSelection() {
 				</div>
 
 				{/* Billing setup steps */}
-				<div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '0.75rem' }}>
+				<div className="card border-0 p-4  mb-4" style={{ borderRadius: '0.75rem' }}>
 					<div className="card-body px-3 px-lg-4 py-3 d-flex flex-column flex-md-row align-items-md-center gap-3 gap-lg-4" role="list" aria-label="Billing setup steps">
 						<div className="d-flex align-items-center gap-2" role="listitem">
 							<span className="badge rounded-circle bg-success d-inline-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 24, height: 24 }}>
 								<RiCheckLine size={14} />
 							</span>
 							<div>
-								<div className="small fw-semibold">Patient selected</div>
+								<div className="fw-bold fs-4 text-uppercase">Patient selected</div>
 								<div className="small" style={{ color: COLOR_TEXT_MUTED }}>Ready to set up billing</div>
 							</div>
 						</div>
@@ -180,7 +172,7 @@ export default function BillingTypeSelection() {
 								2
 							</span>
 							<div>
-								<div className="small fw-semibold">Choose billing source</div>
+								<div className="fw-bold fs-4 text-uppercase">Choose billing source</div>
 								<div className="small" style={{ color: COLOR_TEXT_MUTED }}>Select the appropriate payer</div>
 							</div>
 						</div>
@@ -192,7 +184,7 @@ export default function BillingTypeSelection() {
 								3
 							</span>
 							<div>
-								<div className="small fw-semibold">Build the bill</div>
+								<div className="fw-bold fs-4 text-uppercase">Build the bill</div>
 								<div className="small">Add tests and services</div>
 							</div>
 						</div>
@@ -200,7 +192,7 @@ export default function BillingTypeSelection() {
 				</div>
 
 				{(billingMode === 'loading' || billingMode === 'simple') ? (
-					<div className="card border-0 shadow-sm" style={{ borderRadius: '0.75rem' }}>
+					<div className="card border-0 " style={{ borderRadius: '0.75rem' }}>
 						<div className="card-body py-5">
 							<div className="d-flex flex-column align-items-center justify-content-center text-center">
 								<div
@@ -223,7 +215,7 @@ export default function BillingTypeSelection() {
 				) : (
 					<div className="row g-4">
 						<div className="col-12 col-xl-8">
-							<div className="card border-0 shadow-sm h-100" style={{ borderRadius: '0.75rem' }}>
+							<div className="card border-0  h-100" style={{ borderRadius: '0.75rem' }}>
 								<div className="card-body p-3 p-lg-4 d-flex flex-column">
 									<div className="d-flex align-items-center gap-3 mb-3">
 										<div
@@ -322,7 +314,7 @@ export default function BillingTypeSelection() {
 						</div>
 
 						<div className="col-12 col-xl-4">
-							<div className="card border-0 shadow-sm" style={{ borderRadius: '0.75rem' }}>
+							<div className="card border-0 " style={{ borderRadius: '0.75rem' }}>
 								<div className="card-body p-3 p-lg-4">
 									<div className="d-flex align-items-center gap-3 mb-2">
 										<div
