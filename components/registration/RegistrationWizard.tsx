@@ -10,6 +10,7 @@ import { toast } from 'react-toastify';
 import {
      RiUser3Line,
      RiMapPinLine,
+     RiPhoneLine,
      RiCameraLine,
      RiCheckLine,
      RiArrowRightLine,
@@ -88,6 +89,8 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
      // --- Step 1: Personal Details State ---
      const [personalData, setPersonalData] = useState({ ...PatientPersonalInformationFields });
      const [contacts, setContacts] = useState({ relationship: 'self', owner: '', backup: '', backupOwner: '', backupRelationship: 'relative', backupPatientId: null as number | null });
+     const [additionalPhones, setAdditionalPhones] = useState<Array<{ phone: string; relationship: string; contact_name: string; owner_patient_id: number | null }>>([]);
+     const [primaryPhoneOwnerId, setPrimaryPhoneOwnerId] = useState<number | null>(null);
      const [mobileCountryCode, setMobileCountryCode] = useState('+233');
      const [whatsappCountryCode, setWhatsappCountryCode] = useState('+233');
      const [isMobileExist, setIsMobileExist] = useState(false);
@@ -201,6 +204,10 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                               backupRelationship: p.backup_relationship || 'relative',
                               backupPatientId: p.backup_patient_id ?? null,
                          });
+                         setAdditionalPhones((p.additional_phone_contacts ?? []).map((contact: { phone: string; relationship: string; contact_name?: string | null; owner_patient_id?: number | null }) => ({
+                              ...contact, contact_name: contact.contact_name ?? '', owner_patient_id: contact.owner_patient_id ?? null,
+                         })));
+                         setPrimaryPhoneOwnerId(p.primary_phone_owner_patient_id ?? null);
                          setPersonalData({
                               firstname: p.firstname || '',
                               middlename: p.middlename || '',
@@ -322,8 +329,30 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
      }, [secondaryPhone, linkedPatientId, patientId]);
 
      // --- STEP 1 SUBMIT (Save Personal Info) ---
-     const handleSaveStep1 = async (redirectToBilling = false) => {
+     const normalizeAdditionalPhone = (value: string) => value.trim().replace(/[\s()+-]/g, '')
+          .replace(/^00(?=[1-9]\d{9,14}$)/, '').replace(/^233(\d{9})$/, '0$1').replace(/^(\d{9})$/, '0$1');
+
+     const updateAdditionalPhone = (index: number, fields: Partial<(typeof additionalPhones)[number]>) => {
+          setAdditionalPhones(list => list.map((contact, i) => i === index ? { ...contact, ...fields } : contact));
+     };
+
+     const promotePhone = (next: (typeof additionalPhones)[number], index?: number) => {
+          const previousPhone = String(personalData.mobile_number || '');
+          const previous = previousPhone ? { phone: previousPhone, relationship: contacts.relationship, contact_name: contacts.owner, owner_patient_id: primaryPhoneOwnerId } : null;
+          if (index === undefined) {
+               setContacts(data => ({ ...data, backup: previous?.phone ?? '', backupRelationship: previous?.relationship ?? 'relative', backupOwner: previous?.contact_name ?? '', backupPatientId: previous?.owner_patient_id ?? null }));
+          } else {
+               setAdditionalPhones(list => list.flatMap((contact, i) => i === index ? previous ? [previous] : [] : [contact]));
+          }
+          setPersonalData(data => ({ ...data, mobile_number: normalizeAdditionalPhone(next.phone) }));
+          setContacts(data => ({ ...data, relationship: next.relationship, owner: next.contact_name }));
+          setMobileCountryCode('+233');
+          setPrimaryPhoneOwnerId(next.owner_patient_id);
+          setIsMobileExist(false);
           setContactConflict('');
+     };
+
+     const validatePersonalDetails = () => {
           const firstname = String(personalData.firstname || '').trim();
           const lastname = String(personalData.lastname || '').trim();
 
@@ -336,68 +365,38 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                return false;
           }
 
-          const primary = String(personalData.mobile_number || '').replace(/\D/g, '');
-          const enteredBackup = contacts.backup.trim();
-          const backup = enteredBackup.replace(/[\s()+-]/g, '').replace(/^00(?=[1-9]\d{9,14}$)/, '')
-               .replace(/^233(\d{9})$/, '0$1').replace(/^(\d{9})$/, '0$1');
-          if ((primary && !/^\d{10}$/.test(primary)) || (backup && !/^\d{10,15}$/.test(backup))) {
-               toast.error('Check the primary or secondary number you entered.');
-               return false;
-          }
-          if ((primary && contacts.relationship !== 'self' && !contacts.owner.trim()) ||
-               (backup && backup === primary)) {
-               toast.error('Enter the primary contact owner and use a different number for the secondary contact.');
-               return false;
-          }
+          return true;
+     };
+
+     const saveRegistrationDetails = async ({ includeContacts = false, redirectToBilling = false } = {}) => {
+          const contactsOnly = includeContacts && Boolean(patientId);
+          if (!contactsOnly && !validatePersonalDetails()) return false;
+          setContactConflict('');
+          const contactPayload = includeContacts ? buildContactPayload() : null;
+          if (includeContacts && !contactPayload) return false;
 
           try {
                setIsSubmitting(true);
                const method = patientId ? "PUT" : "POST";
-               const endpoint =
-                    method === "POST"
-                         ? `register?employeeid=${employeeid}`
-                         : `register/personalinformation?patientid=${patientId}&employeeid=${employeeid}`;
-
-               const payload: any = {
-                    firstname: firstname,
-                    middlename: personalData.middlename || '',
-                    lastname: lastname,
-                    designation: personalData.designation || 'Mr.',
-                    age: personalData.age ? parseInt(String(personalData.age), 10) : 0,
-                    agetype: personalData.ageType || 'years',
-                    gender: personalData.gender,
-                    mobile_number: !primary || contacts.relationship === "self" ? primary || null : undefined,
-                    contact_pointer: !primary || contacts.relationship === "self" ? "self" : "relative",
-                    contact_relationship: primary ? contacts.relationship : "self",
-                    backup_phone: backup,
-                    backup_patient_id: contacts.backupPatientId,
-                    backup_contact_name: backup && contacts.backupRelationship !== 'self' ? contacts.backupOwner.trim() : '',
-                    backup_relationship: backup ? contacts.backupRelationship : '',
-                    mobile_country_code: mobileCountryCode,
-                    whatsapp_country_code: whatsappCountryCode,
+               const endpoint = patientId
+                    ? `register/personalinformation?patientid=${patientId}&employeeid=${employeeid}`
+                    : `register?employeeid=${employeeid}`;
+               const payload = {
+                    ...(!patientId ? { contact_pointer: 'self' } : {}),
+                    ...(contactsOnly ? {} : buildPersonalPayload()),
+                    ...contactPayload,
                     registeredby: employeeid,
                };
-
-               if (contacts.relationship !== 'self' && primary) {
-                    payload.relativecontactnumber = primary;
-                    payload.relativecontactname = contacts.owner.trim();
-               }
-               if (personalData.whatAppcontact) payload.whatAppcontact = personalData.whatAppcontact;
-               if (personalData.email) payload.email = personalData.email;
-               if (personalData.marital_status) payload.marital_status = personalData.marital_status;
-               if (personalData.occupation) payload.occupation = personalData.occupation;
-               if (personalData.organization) payload.organization = personalData.organization;
-
-               if (personalData.years && personalData.months && personalData.days) {
-                    const parsedYears = parseInt(String(personalData.years), 10) || 0;
-                    const parsedMonths = parseInt(String(personalData.months), 10) || 0;
-                    const parsedDays = parseInt(String(personalData.days), 10) || 0;
-                    const date = new Date(Date.UTC(parsedYears, parsedMonths - 1, parsedDays));
-                    if (date.getUTCFullYear() !== parsedYears || date.getUTCMonth() !== parsedMonths - 1 || date.getUTCDate() !== parsedDays) {
+               if (!contactsOnly && personalData.years && personalData.months && personalData.days) {
+                    const year = Number(personalData.years);
+                    const month = Number(personalData.months);
+                    const day = Number(personalData.days);
+                    const date = new Date(Date.UTC(year, month - 1, day));
+                    if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
                          toast.error('Enter a valid date of birth, or leave it blank and enter age.');
                          return false;
                     }
-                    payload.dob = date.toISOString().slice(0, 10);
+                    Object.assign(payload, { dob: date.toISOString().slice(0, 10) });
                }
 
                const response = await customPost(endpoint, method, payload);
@@ -410,33 +409,76 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                     setRegistrationMatches(response.matches);
                     return false;
                }
-               if (response?.status === true || response?.status === "success") {
-                    const registeredId = response.patientid || patientId;
-                    if (registeredId) {
-                         setPatientId(Number(registeredId));
-                    }
-                    const warning = registeredId ? await syncQueuePatient(Number(registeredId)) : '';
-
-                    toast.success(method === "POST" ? "Basic Patient Information Registered Successfully!" : "Personal Information Updated!");
-
-                    if (redirectToBilling && registeredId) {
-                         const billingUrl = billingUrlForPatient(Number(registeredId), Boolean(warning));
-                         window.location.href = billingUrl;
-                         return true;
-                    }
-
-                    return true;
-               } else {
-                    toast.error(response?.message || "Failed to save personal information.");
+               if (response?.status !== true && response?.status !== 'success') {
+                    toast.error(response?.message || (contactsOnly ? 'Failed to save phone contacts.' : 'Failed to save personal information.'));
                     return false;
                }
+
+               const registeredId = Number(response.patientid || patientId);
+               if (registeredId) setPatientId(registeredId);
+               const warning = registeredId && (!contactsOnly || redirectToBilling) ? await syncQueuePatient(registeredId) : '';
+               toast.success(contactsOnly ? 'Phone contacts saved.' : patientId ? 'Personal information updated.' : 'Patient registered.');
+               if (redirectToBilling && registeredId) window.location.href = billingUrlForPatient(registeredId, Boolean(warning));
+               return true;
           } catch (err: any) {
-               toast.error(err?.message || "Error submitting registration.");
+               toast.error(err?.message || 'Error submitting registration.');
                return false;
           } finally {
                setIsSubmitting(false);
           }
      };
+
+     const buildContactPayload = () => {
+          const primary = String(personalData.mobile_number || '').replace(/\D/g, '');
+          const backup = normalizeAdditionalPhone(contacts.backup);
+          const additional = additionalPhones.filter(contact => contact.phone.trim()).map(contact => ({
+               ...contact, phone: normalizeAdditionalPhone(contact.phone), contact_name: contact.contact_name.trim(),
+          }));
+          if ((primary && !/^\d{10}$/.test(primary)) || (backup && !/^\d{10,15}$/.test(backup))) {
+               toast.error('Check the primary or secondary number you entered.');
+               return false;
+          }
+          if ((primary && contacts.relationship !== 'self' && !contacts.owner.trim()) ||
+               (backup && backup === primary)) {
+               toast.error('Enter the primary contact owner and use a different number for the secondary contact.');
+               return false;
+          }
+          const numbers = [primary, backup, ...additional.map(contact => contact.phone)].filter(Boolean);
+          if (additional.some(contact => !/^\d{10,15}$/.test(contact.phone)) || new Set(numbers).size !== numbers.length) {
+               toast.error('Enter a different, valid number for each contact.');
+               return false;
+          }
+
+          return {
+               mobile_number: primary && contacts.relationship !== 'self' ? undefined : primary || null,
+               contact_pointer: primary && contacts.relationship !== 'self' ? 'relative' : 'self',
+               contact_relationship: primary ? contacts.relationship : 'self',
+               relativecontactnumber: primary && contacts.relationship !== 'self' ? primary : undefined,
+               relativecontactname: primary && contacts.relationship !== 'self' ? contacts.owner.trim() : undefined,
+               backup_phone: backup,
+               backup_patient_id: backup ? contacts.backupPatientId : null,
+               backup_contact_name: backup && contacts.backupRelationship !== 'self' ? contacts.backupOwner.trim() : '',
+               backup_relationship: backup ? contacts.backupRelationship : '',
+               additional_phone_contacts: additional,
+               mobile_country_code: mobileCountryCode,
+               whatsapp_country_code: whatsappCountryCode,
+               whatAppcontact: personalData.whatAppcontact || null,
+          };
+     };
+
+     const buildPersonalPayload = () => ({
+          firstname: String(personalData.firstname || '').trim(),
+          middlename: personalData.middlename || '',
+          lastname: String(personalData.lastname || '').trim(),
+          designation: personalData.designation || 'Mr.',
+          age: personalData.age ? parseInt(String(personalData.age), 10) : 0,
+          agetype: personalData.ageType || 'years',
+          gender: personalData.gender,
+          email: personalData.email || undefined,
+          marital_status: personalData.marital_status || undefined,
+          occupation: personalData.occupation || undefined,
+          organization: personalData.organization || undefined,
+     });
 
      // --- STEP 2 SUBMIT (Save Address) ---
      const handleSaveStep2 = async (redirectToBilling = false) => {
@@ -561,9 +603,10 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
      // Step labels
      const stepsConfig = [
           { id: 0, title: 'Personal Details', name: 'Basic Info', icon: RiUser3Line },
-          { id: 1, title: 'Address & Location', name: 'Address', icon: RiMapPinLine },
-          { id: 2, title: 'Emergency Contact', name: 'Emergency', icon: RiHeartPulseLine },
-          { id: 3, title: 'Photo & Credentials', name: 'Identity', icon: RiCameraLine },
+          { id: 1, title: 'Phone Contacts', name: 'Optional', icon: RiPhoneLine },
+          { id: 2, title: 'Address & Location', name: 'Address', icon: RiMapPinLine },
+          { id: 3, title: 'Emergency Contact', name: 'Emergency', icon: RiHeartPulseLine },
+          { id: 4, title: 'Photo & Credentials', name: 'Identity', icon: RiCameraLine },
      ];
 
      const progressPercent = Math.round(((currentStep + 1) / stepsConfig.length) * 100);
@@ -634,7 +677,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                               const IconComp = s.icon;
                               const isActive = currentStep === s.id;
                               const isCompleted = patientId !== null && s.id < currentStep;
-                              const isUnlocked = s.id === 0 || patientId !== null;
+                              const isUnlocked = isActive || s.id === 0 || patientId !== null;
 
                               return (
                                    <button
@@ -718,11 +761,6 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                    * Mandatory Fields
                               </span>
                          </div>
-
-                         {contactConflict && <Alert variant="warning" role="alert">{contactConflict}</Alert>}
-                         {isMobileExist && !contactConflict && <Alert variant="info" className="mb-3">
-                              This number is already linked to a patient. Select the contact owner below or use phone search to review linked records.
-                         </Alert>}
 
                          {/* 2-COLUMN VERTICAL FORM LAYOUT */}
                          <div className="row g-4">
@@ -886,69 +924,6 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
 
                               {/* RIGHT COLUMN VERTICAL STACK */}
                               <div className="col-md-6 col-12">
-                                   {/* Primary Mobile */}
-                                   <div className={styles.formGroup}>
-                                        <label className={styles.fieldLabel}>
-                                             Primary mobile (optional)
-                                        </label>
-                                        <div className={styles.phoneInputRow}>
-                                             <select
-                                                  tabIndex={12}
-                                                  className={`form-select form-select-lg ${styles.phoneCodeSelect}`}
-                                                  value={mobileCountryCode}
-                                                  onChange={(e) => setMobileCountryCode(e.target.value)}
-                                             >
-                                                  {Object.entries(COUNTRY_CODES_GROUPED).map(([region, countries]) => (
-                                                       <optgroup key={region} label={region}>
-                                                            {countries.map((c) => (
-                                                                 <option key={c.code} value={c.code}>{c.abbreviation} {c.code}</option>
-                                                            ))}
-                                                       </optgroup>
-                                                  ))}
-                                             </select>
-                                             <input
-                                                  tabIndex={13}
-                                                  type="tel"
-                                                  className={`form-control form-control-lg ${styles.phoneNumberInput}`}
-                                                  placeholder="10-digit mobile number"
-                                                  maxLength={10}
-                                                  value={personalData.mobile_number || ''}
-                                                  onChange={(e) => { setContactConflict(''); setPersonalData((prev) => ({ ...prev, mobile_number: e.target.value })); }}
-                                                  onBlur={(e) => handleCheckMobileNumber(e.target.value)}
-                                             />
-                                        </div>
-                                   </div>
-
-                                   {/* WhatsApp Contact */}
-                                   <div className={styles.formGroup}>
-                                        <label className={styles.fieldLabel}>WhatsApp Contact</label>
-                                        <div className={styles.phoneInputRow}>
-                                             <select
-                                                  tabIndex={14}
-                                                  className={`form-select form-select-lg ${styles.phoneCodeSelect}`}
-                                                  value={whatsappCountryCode}
-                                                  onChange={(e) => setWhatsappCountryCode(e.target.value)}
-                                             >
-                                                  {Object.entries(COUNTRY_CODES_GROUPED).map(([region, countries]) => (
-                                                       <optgroup key={region} label={region}>
-                                                            {countries.map((c) => (
-                                                                 <option key={c.code} value={c.code}>{c.abbreviation} {c.code}</option>
-                                                            ))}
-                                                       </optgroup>
-                                                  ))}
-                                             </select>
-                                             <input
-                                                  tabIndex={15}
-                                                  type="tel"
-                                                  className={`form-control form-control-lg ${styles.phoneNumberInput}`}
-                                                  placeholder="WhatsApp contact"
-                                                  maxLength={10}
-                                                  value={personalData.whatAppcontact || ''}
-                                                  onChange={(e) => setPersonalData((prev) => ({ ...prev, whatAppcontact: e.target.value }))}
-                                             />
-                                        </div>
-                                   </div>
-
                                    {/* Email */}
                                    <div className={styles.formGroup}>
                                         <label className={styles.fieldLabel}>Email Address</label>
@@ -1005,10 +980,131 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                         </select>
                                    </div>
 
+                              </div>
+                         </div>
+
+                         {/* Step 1 Action Bar */}
+                         <div className={styles.actionFooter}>
+                              <div>
+                                   <span className="text-xs text-muted">
+                                        Basic info can be saved immediately to issue bills.
+                                   </span>
+                              </div>
+                              <div className={styles.rightActions}>
+                                   <Button
+                                        variant="success"
+                                        className="px-3 fw-semibold d-inline-flex align-items-center gap-1"
+                                        disabled={isSubmitting}
+                                        onClick={() => saveRegistrationDetails({ redirectToBilling: true })}
+                                   >
+                                        {isSubmitting ? <Spinner size="sm" /> : <RiCashFill size={18} />}
+                                        Save & Proceed to Billing
+                                   </Button>
+
+                                   <Button
+                                        variant="primary"
+                                        className="px-3 fw-semibold d-inline-flex align-items-center gap-1"
+                                        disabled={isSubmitting}
+                                        onClick={async () => {
+                                             const ok = patientId ? await saveRegistrationDetails() : validatePersonalDetails();
+                                             if (ok) setCurrentStep(1);
+                                        }}
+                                   >
+                                        {isSubmitting ? <Spinner size="sm" /> : null}
+                                        {patientId ? 'Save & Continue' : 'Continue to Phone Contacts'} <RiArrowRightLine size={18} />
+                                   </Button>
+                              </div>
+                         </div>
+                    </div>
+               )}
+
+               {currentStep === 1 && (
+                    <div className={styles.formCard}>
+                         <div className={styles.sectionHeader}>
+                              <div>
+                                   <h6 className={styles.sectionTitle}>
+                                        <RiPhoneLine size={20} className="text-primary" /> Phone Contacts
+                                   </h6>
+                                   <p className={styles.sectionSubtitle}>Add patient or relative numbers, or skip to Address.</p>
+                              </div>
+                              <span className="badge bg-light text-dark">Optional</span>
+                         </div>
+                         {contactConflict && <Alert variant="warning" role="alert">{contactConflict}</Alert>}
+                         {isMobileExist && !contactConflict && <Alert variant="info" className="mb-3">
+                              This number is already linked to a patient. Select the contact owner below or use phone search to review linked records.
+                         </Alert>}
+
+                         <div className="row g-4">
+                              <div className="col-md-6">
+                                   {/* Primary Mobile */}
+                                   <div className={styles.formGroup}>
+                                        <label className={styles.fieldLabel} htmlFor="registration-primary-mobile">
+                                             Primary mobile (optional)
+                                        </label>
+                                        <div className={styles.phoneInputRow}>
+                                             <select
+                                                  aria-label="Primary mobile country code"
+                                                  className={`form-select form-select-lg ${styles.phoneCodeSelect}`}
+                                                  value={mobileCountryCode}
+                                                  onChange={(e) => setMobileCountryCode(e.target.value)}
+                                             >
+                                                  {Object.entries(COUNTRY_CODES_GROUPED).map(([region, countries]) => (
+                                                       <optgroup key={region} label={region}>
+                                                            {countries.map((c) => (
+                                                                 <option key={c.code} value={c.code}>{c.abbreviation} {c.code}</option>
+                                                            ))}
+                                                       </optgroup>
+                                                  ))}
+                                             </select>
+                                             <input
+                                                  id="registration-primary-mobile"
+                                                  type="tel"
+                                                  className={`form-control form-control-lg ${styles.phoneNumberInput}`}
+                                                  placeholder="10-digit mobile number"
+                                                  maxLength={10}
+                                                  value={personalData.mobile_number || ''}
+                                                  onChange={(e) => { setContactConflict(''); setPrimaryPhoneOwnerId(null); setPersonalData((prev) => ({ ...prev, mobile_number: e.target.value })); }}
+                                                  onBlur={(e) => handleCheckMobileNumber(e.target.value)}
+                                             />
+                                        </div>
+                                   </div>
+
+                                   {/* WhatsApp Contact */}
+                                   <div className={styles.formGroup}>
+                                        <label className={styles.fieldLabel} htmlFor="registration-whatsapp">WhatsApp Contact</label>
+                                        <div className={styles.phoneInputRow}>
+                                             <select
+                                                  aria-label="WhatsApp country code"
+                                                  className={`form-select form-select-lg ${styles.phoneCodeSelect}`}
+                                                  value={whatsappCountryCode}
+                                                  onChange={(e) => setWhatsappCountryCode(e.target.value)}
+                                             >
+                                                  {Object.entries(COUNTRY_CODES_GROUPED).map(([region, countries]) => (
+                                                       <optgroup key={region} label={region}>
+                                                            {countries.map((c) => (
+                                                                 <option key={c.code} value={c.code}>{c.abbreviation} {c.code}</option>
+                                                            ))}
+                                                       </optgroup>
+                                                  ))}
+                                             </select>
+                                             <input
+                                                  id="registration-whatsapp"
+                                                  type="tel"
+                                                  className={`form-control form-control-lg ${styles.phoneNumberInput}`}
+                                                  placeholder="WhatsApp contact"
+                                                  maxLength={10}
+                                                  value={personalData.whatAppcontact || ''}
+                                                  onChange={(e) => setPersonalData((prev) => ({ ...prev, whatAppcontact: e.target.value }))}
+                                             />
+                                        </div>
+                                   </div>
+
+                              </div>
+                              <div className="col-md-6">
                                    <fieldset className="border rounded p-3">
                                         <legend className="h6">Contact ownership</legend>
                                         <label className="d-block mb-2">Who owns the primary number?
-                                             <select className="form-select" value={contacts.relationship} onChange={e => { setContactConflict(''); setContacts({ ...contacts, relationship: e.target.value }); }}>
+                                             <select className="form-select" value={contacts.relationship} onChange={e => { setContactConflict(''); setPrimaryPhoneOwnerId(null); setContacts({ ...contacts, relationship: e.target.value }); }}>
                                                   <option value="self">Patient (self)</option>
                                                   {['mother', 'father', 'guardian', 'relative', 'other'].map(relation => <option className="text-capitalize" key={relation} value={relation}>{relation}</option>)}
                                              </select>
@@ -1016,6 +1112,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                         {contacts.relationship !== 'self' && <label className="d-block mb-3">Primary contact name
                                              <input className="form-control" value={contacts.owner} onChange={e => setContacts({ ...contacts, owner: e.target.value })} />
                                         </label>}
+                                        {primaryPhoneOwnerId && <a className="d-block mb-2" href={`/crm/registration/${primaryPhoneOwnerId}/personal-information`}>Linked patient #{primaryPhoneOwnerId}</a>}
                                         <label className="d-block mb-2">Secondary phone (optional)
                                              <input type="tel" inputMode="tel" className="form-control" value={contacts.backup} onChange={e => setContacts({ ...contacts, backup: e.target.value, backupPatientId: null })} />
                                         </label>
@@ -1036,38 +1133,53 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                              {contacts.backupRelationship !== 'self' && <label className="d-block">Backup contact name
                                                   <input className="form-control" value={contacts.backupOwner} readOnly={!!contacts.backupPatientId} onChange={e => setContacts({ ...contacts, backupOwner: e.target.value })} />
                                              </label>}
+                                             <button type="button" className="btn btn-sm btn-outline-primary mt-2"
+                                                  disabled={!/^0\d{9}$/.test(normalizeAdditionalPhone(contacts.backup)) || (contacts.backupRelationship !== 'self' && !contacts.backupOwner.trim())}
+                                                  onClick={() => promotePhone({ phone: contacts.backup, relationship: contacts.backupRelationship, contact_name: contacts.backupOwner, owner_patient_id: contacts.backupPatientId })}>Make secondary number primary</button>
                                         </>}
+                                        {additionalPhones.map((contact, index) => (
+                                             <fieldset className="border rounded p-2 mt-3" key={index}>
+                                                  <legend className="h6">Additional contact {index + 1}</legend>
+                                                  <label className="d-block mb-2">Phone number
+                                                       <input type="tel" inputMode="tel" className="form-control" value={contact.phone}
+                                                            onChange={e => updateAdditionalPhone(index, { phone: e.target.value, owner_patient_id: null, contact_name: contact.owner_patient_id ? '' : contact.contact_name })} />
+                                                  </label>
+                                                  <label className="d-block mb-2">Who owns this number?
+                                                       <select className="form-select" value={contact.relationship}
+                                                            onChange={e => updateAdditionalPhone(index, { relationship: e.target.value, owner_patient_id: e.target.value === 'self' ? null : contact.owner_patient_id })}>
+                                                            <option value="self">Patient (self)</option>
+                                                            {['mother', 'father', 'guardian', 'relative', 'other'].map(relation => <option key={relation} value={relation}>{relation}</option>)}
+                                                       </select>
+                                                  </label>
+                                                  {contact.relationship !== 'self' && <label className="d-block mb-2">Contact name
+                                                       <input className="form-control" value={contact.contact_name} readOnly={!!contact.owner_patient_id}
+                                                            onChange={e => updateAdditionalPhone(index, { contact_name: e.target.value })} />
+                                                       <small className="text-muted">If the number belongs to a registered patient, their record will link on save.</small>
+                                                  </label>}
+                                                  {contact.owner_patient_id && <a className="d-block mb-2" href={`/crm/registration/${contact.owner_patient_id}/personal-information`}>
+                                                       {contact.contact_name} · Patient #{contact.owner_patient_id}
+                                                  </a>}
+                                                  <button type="button" className="btn btn-sm btn-outline-primary me-2" disabled={!/^0\d{9}$/.test(normalizeAdditionalPhone(contact.phone)) || (contact.relationship !== 'self' && !contact.contact_name.trim())}
+                                                       onClick={() => promotePhone(contact, index)}>Make primary</button>
+                                                  <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => setAdditionalPhones(list => list.filter((_, i) => i !== index))}>Remove</button>
+                                             </fieldset>
+                                        ))}
+                                        <button type="button" className="btn btn-sm btn-outline-primary mt-3"
+                                             onClick={() => setAdditionalPhones(list => [...list, { phone: '', relationship: 'self', contact_name: '', owner_patient_id: null }])}>Add another phone number</button>
                                    </fieldset>
                               </div>
                          </div>
-
-                         {/* Step 1 Action Bar */}
                          <div className={styles.actionFooter}>
-                              <div>
-                                   <span className="text-xs text-muted">
-                                        Basic info can be saved immediately to issue bills.
-                                   </span>
-                              </div>
+                              <Button variant="outline-secondary" disabled={isSubmitting} onClick={() => setCurrentStep(0)}>
+                                   <RiArrowLeftLine size={18} /> Back
+                              </Button>
                               <div className={styles.rightActions}>
-                                   <Button
-                                        variant="success"
-                                        className="px-3 fw-semibold d-inline-flex align-items-center gap-1"
-                                        disabled={isSubmitting}
-                                        onClick={() => handleSaveStep1(true)}
-                                   >
-                                        {isSubmitting ? <Spinner size="sm" /> : <RiCashFill size={18} />}
-                                        Save & Proceed to Billing
-                                   </Button>
-
-                                   <Button
-                                        variant="primary"
-                                        className="px-3 fw-semibold d-inline-flex align-items-center gap-1"
-                                        disabled={isSubmitting}
-                                        onClick={async () => {
-                                             const ok = await handleSaveStep1(false);
-                                             if (ok) setCurrentStep(1);
-                                        }}
-                                   >
+                                   <Button variant="outline-secondary" disabled={isSubmitting || isLoadingPatient} onClick={async () => {
+                                        if (patientId || await saveRegistrationDetails()) setCurrentStep(2);
+                                   }}>Skip to Address</Button>
+                                   <Button variant="primary" disabled={isSubmitting || isLoadingPatient} onClick={async () => {
+                                        if (await saveRegistrationDetails({ includeContacts: true })) setCurrentStep(2);
+                                   }}>
                                         {isSubmitting ? <Spinner size="sm" /> : null}
                                         Save & Continue to Address <RiArrowRightLine size={18} />
                                    </Button>
@@ -1077,7 +1189,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                )}
 
                {/* STEP 2: ADDRESS & LOCATION */}
-               {currentStep === 1 && (
+               {currentStep === 2 && (
                     <div className={styles.formCard}>
                          <div className={styles.sectionHeader}>
                               <div>
@@ -1156,7 +1268,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                               <Button
                                    variant="light"
                                    className="px-3"
-                                   onClick={() => setCurrentStep(0)}
+                                   onClick={() => setCurrentStep(1)}
                               >
                                    <RiArrowLeftLine size={18} /> Back to Personal Info
                               </Button>
@@ -1178,7 +1290,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                         disabled={isSubmitting}
                                         onClick={async () => {
                                              const ok = await handleSaveStep2(false);
-                                             if (ok) setCurrentStep(2);
+                                             if (ok) setCurrentStep(3);
                                         }}
                                    >
                                         {isSubmitting ? <Spinner size="sm" /> : null}
@@ -1190,7 +1302,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                )}
 
                {/* STEP 3: EMERGENCY CONTACT */}
-               {currentStep === 2 && (
+               {currentStep === 3 && (
                     <div className={styles.formCard}>
                          <div className={styles.sectionHeader}>
                               <div>
@@ -1271,7 +1383,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                               <Button
                                    variant="light"
                                    className="px-3"
-                                   onClick={() => setCurrentStep(1)}
+                                   onClick={() => setCurrentStep(2)}
                               >
                                    <RiArrowLeftLine size={18} /> Back to Address
                               </Button>
@@ -1293,7 +1405,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                         disabled={isSubmitting}
                                         onClick={async () => {
                                              const ok = await handleSaveStep3(false);
-                                             if (ok) setCurrentStep(3);
+                                             if (ok) setCurrentStep(4);
                                         }}
                                    >
                                         {isSubmitting ? <Spinner size="sm" /> : null}
@@ -1305,7 +1417,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                )}
 
                {/* STEP 4: PHOTO & IDENTITY */}
-               {currentStep === 3 && (
+               {currentStep === 4 && (
                     <div className={styles.formCard}>
                          <div className={styles.sectionHeader}>
                               <div>
@@ -1420,7 +1532,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                    variant="light"
                                    className="px-3"
                                    disabled={isSubmitting}
-                                   onClick={() => setCurrentStep(2)}
+                                   onClick={() => setCurrentStep(3)}
                               >
                                    <RiArrowLeftLine size={18} /> Back to Emergency Contact
                               </Button>

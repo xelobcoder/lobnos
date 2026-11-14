@@ -9,7 +9,7 @@ export default function PageEmergencyContact() {
 
      return (
           <div className="container-fluid px-2 py-2">
-               <RegistrationForm patientid={id} initialStep={2} />
+               <RegistrationForm patientid={id} initialStep={3} />
           </div>
      );
 }

@@ -9,7 +9,7 @@ export default function PageCredentials() {
 
      return (
           <div className="container-fluid px-2 py-2">
-               <RegistrationForm patientid={id} initialStep={3} />
+               <RegistrationForm patientid={id} initialStep={4} />
           </div>
      );
 }

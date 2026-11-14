@@ -9,7 +9,7 @@ export default function PageAddressingInformation() {
 
 	return (
 		<div className="container-fluid px-2 py-2">
-			<RegistrationForm patientid={id} initialStep={1} />
+			<RegistrationForm patientid={id} initialStep={2} />
 		</div>
 	);
 }

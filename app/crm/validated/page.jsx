@@ -5,20 +5,20 @@ import { LaboratoryStagesProvider } from "../../../components/operations/Laborat
 import ValidatedResultTable from "../../../components/operations/Laboratory/validatedResultTable";
 
 export default function CrmValidatedResults() {
-  const { applicationsettings } = useApplicationSettings();
-  const { user, branchid } = applicationsettings || {};
+	const { applicationsettings } = useApplicationSettings();
+	const { user, branchid } = applicationsettings || {};
 
-  return (
-    <div className="p-2 container-fluid">
-      <LaboratoryStagesProvider>
-        <LaboratoryAscensionStages
-          employeeid={user?.employeeid}
-          branchid={branchid}
-          ascension_stage={'VALIDATED'}
-        />
-        <ValidatedResultTable employeeid={user?.employeeid} mode="crm" />
-      </LaboratoryStagesProvider>
-    </div>
-  );
+	return (
+		<div className="p-2 container-fluid">
+			<LaboratoryStagesProvider>
+				<LaboratoryAscensionStages
+					employeeid={user?.employeeid}
+					branchid={branchid}
+					ascension_stage={'VALIDATED'}
+				/>
+				<ValidatedResultTable employeeid={user?.employeeid} mode="crm" />
+			</LaboratoryStagesProvider>
+		</div>
+	);
 }
 
