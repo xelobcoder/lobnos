@@ -12,7 +12,14 @@ export async function requestBackendJson(endpoint: string, method = 'GET', body?
         if (response.status === 204 || method.toUpperCase() === 'HEAD') return {status: response.ok};
         const data = await response.json();
         return !response.ok && data && typeof data === 'object' ? {...data,statusCode:data.statusCode??response.status} : data;
-    } catch {
+    } catch (error: any) {
+        // Keep the client message generic, but leave a server-side breadcrumb: the endpoint path
+        // (never the query string, which can contain patient search terms) and the failure reason.
+        console.error('[backend-request] failed', {
+            method: method.toUpperCase(),
+            endpoint: String(endpoint).split('?')[0],
+            reason: error?.message || String(error),
+        });
         return {status:false,success:false,statusCode:503,code:'UPSTREAM_UNAVAILABLE',message:'The server response could not be confirmed. Retry the original operation.',error:{code:'UPSTREAM_UNAVAILABLE',message:'The server response could not be confirmed. Retry the original operation.'}};
     }
 }

@@ -50,6 +50,7 @@ export default function DailySalesViewCustomerRepresentative(
     const [expensesPaymentMade, setExpensesPaymentMade] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [branchIdState, setBranchIdState] = useState<string>("");
+    const [branchMissing, setBranchMissing] = useState<string | null>(null);
     const { branchid } = params;
     const initialFrom = searchParams.from || "";
     const initialTo = searchParams.to || "";
@@ -126,6 +127,13 @@ export default function DailySalesViewCustomerRepresentative(
 					setTransactions(data.data);
 					setSummary(data.summary);
 					setExpensesPaymentMade(data.expensesPaymentMade || []);
+					setBranchMissing(null);
+				} else if (data?.statusCode === 404 || /branch not found/i.test(String(data?.message || ""))) {
+					// A stale or cross-facility link: show a clear state instead of a generic failure.
+					setBranchMissing(data?.message || "Branch not found");
+					setTransactions([]);
+					setSummary(undefined);
+					setExpensesPaymentMade([]);
 				} else {
                     setSalesError(data?.message||"Unable to load daily sales. Please retry.");
 					setTransactions([]);
@@ -164,11 +172,24 @@ export default function DailySalesViewCustomerRepresentative(
 		</div>;
 	}
 
+    if (branchMissing) {
+        return (
+            <div className="alert alert-warning" role="alert">
+                <h1 className="h5">Branch not found</h1>
+                <p className="mb-2">
+                    This facility does not have a branch with that identifier. The link may belong to another facility,
+                    or the branch may have been removed.
+                </p>
+                <Link className="btn btn-primary btn-sm" href="/billing/sales/branches">View available branches</Link>
+            </div>
+        );
+    }
+
     return (
 		<div className={inlineStyles.page}>
 			<div className="d-flex justify-content-end gap-2 flex-wrap mt-3">
                     {!isLoading&&!salesError&&<DailySalesBreakdown transactions={transactions} branchid={branchIdState} from={activeQuery.from} to={activeQuery.to} canReport={canExportSalesReport} canExpenses={canViewAdvancedSales} onSelection={setInlineSelection}/>}
-                    {canExportSalesReport&&<SalesReportModal key={branchIdState} branchId={branchIdState} from={activeQuery.from} to={activeQuery.to}/>}
+                    {canExportSalesReport&&!branchMissing&&<SalesReportModal key={branchIdState} branchId={branchIdState} from={activeQuery.from} to={activeQuery.to}/>}
                 </div>
 			{isDailyRestrictedView ? (
 				<div className="d-flex align-items-center justify-content-between mt-3 mb-3 flex-wrap gap-2">

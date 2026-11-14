@@ -1,4 +1,5 @@
 'use client';
+import PatientDuplicateReview, { RegistrationMatchDrawer, type RegistrationMatch } from './PatientDuplicateReview';
 import NewPasswordInput, { validatePasswordControl } from '../Auth/NewPasswordInput';
 
 
@@ -63,6 +64,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
      const searchParams = useSearchParams();
      const queueHandoff = parseQueueHandoff(searchParams);
      const [queueWarning, setQueueWarning] = useState('');
+     const [registrationMatches, setRegistrationMatches] = useState<RegistrationMatch[]>([]);
      const employeeid = useApplication()?.user?.employeeid || null;
 
      const [currentStep, setCurrentStep] = useState(initialStep);
@@ -85,10 +87,11 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
 
      // --- Step 1: Personal Details State ---
      const [personalData, setPersonalData] = useState({ ...PatientPersonalInformationFields });
+     const [contacts, setContacts] = useState({ relationship: 'self', owner: '', backup: '', backupOwner: '', backupRelationship: 'relative', backupPatientId: null as number | null });
      const [mobileCountryCode, setMobileCountryCode] = useState('+233');
      const [whatsappCountryCode, setWhatsappCountryCode] = useState('+233');
-     const [relativeCountryCode, setRelativeCountryCode] = useState('+233');
      const [isMobileExist, setIsMobileExist] = useState(false);
+     const [contactConflict, setContactConflict] = useState('');
 
      // Search patient
      const [searchQuery, setSearchQuery] = useState('');
@@ -190,6 +193,14 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                    days = String(dob.getDate());
                               }
                          }
+                         setContacts({
+                              relationship: p.contact_relationship || (p.contactpointer === 'relative' ? 'relative' : 'self'),
+                              owner: p.relativecontactname || '',
+                              backup: p.backup_phone || '',
+                              backupOwner: p.backup_contact_name || '',
+                              backupRelationship: p.backup_relationship || 'relative',
+                              backupPatientId: p.backup_patient_id ?? null,
+                         });
                          setPersonalData({
                               firstname: p.firstname || '',
                               middlename: p.middlename || '',
@@ -198,7 +209,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                               age: p.age !== undefined && p.age !== null ? String(p.age) : '',
                               ageType: p.agetype || p.ageType || 'years',
                               gender: p.gender || '',
-                              mobile_number: p.mobile_number || '',
+                              mobile_number: (p.contactpointer === 'relative' ? p.relativecontactnumber : p.mobile_number) || '',
                               mobileCountryCode: p.mobile_country_code || p.mobileCountryCode || '+233',
                               whatsappCountryCode: p.whatsapp_country_code || p.whatsappCountryCode || '+233',
                               relativeCountryCode: p.relative_country_code || p.relativeCountryCode || '+233',
@@ -218,7 +229,6 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
 
                          if (p.mobile_country_code) setMobileCountryCode(p.mobile_country_code);
                          if (p.whatsapp_country_code) setWhatsappCountryCode(p.whatsapp_country_code);
-                         if (p.relative_country_code) setRelativeCountryCode(p.relative_country_code);
                     }
 
                     if (addressRes?.statusCode === 200 && addressRes?.result) {
@@ -277,8 +287,43 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
           }
      };
 
+     const secondaryPhone = contacts.backup;
+     const linkedPatientId = contacts.backupPatientId;
+     const [secondaryLookup, setSecondaryLookup] = useState('');
+     useEffect(() => {
+          setSecondaryLookup('');
+          if (linkedPatientId || secondaryPhone.replace(/[^0-9]/g, '').length < 9) return;
+          let active = true;
+          const timer = window.setTimeout(async () => {
+               try {
+                    const result = await customFetch(`register/checkmobile?mobileno=${encodeURIComponent(secondaryPhone)}&isGetData=true`);
+                    if (!active) return;
+                    if (result?.status !== 'success' || !Array.isArray(result.result)) throw new Error();
+                    const owners = result.result.filter((record: { patientid: number; matched_priority: string; matched_relationship: string }) =>
+                         record.matched_priority === 'Primary' && record.matched_relationship === 'self' && Number(record.patientid) !== patientId
+                    );
+                    if (owners.length !== 1) {
+                         setSecondaryLookup(owners.length ? 'Several patient records own this number. Check which record is correct.' : 'You can enter the contact name manually.');
+                         return;
+                    }
+                    const owner = owners[0];
+                    setContacts(current => current.backup !== secondaryPhone || current.backupPatientId ? current : {
+                         ...current,
+                         backup: owner.matched_phone,
+                         backupPatientId: Number(owner.patientid),
+                         backupRelationship: current.backupRelationship === 'self' ? 'relative' : current.backupRelationship,
+                         backupOwner: [owner.firstname, owner.middlename, owner.lastname].filter(Boolean).join(' '),
+                    });
+               } catch {
+                    if (active) setSecondaryLookup('Unable to check this number. Check the number or try again.');
+               }
+          }, 350);
+          return () => { active = false; window.clearTimeout(timer); };
+     }, [secondaryPhone, linkedPatientId, patientId]);
+
      // --- STEP 1 SUBMIT (Save Personal Info) ---
      const handleSaveStep1 = async (redirectToBilling = false) => {
+          setContactConflict('');
           const firstname = String(personalData.firstname || '').trim();
           const lastname = String(personalData.lastname || '').trim();
 
@@ -288,6 +333,20 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
           }
           if (!personalData.gender) {
                toast.error("Please select patient's Gender.");
+               return false;
+          }
+
+          const primary = String(personalData.mobile_number || '').replace(/\D/g, '');
+          const enteredBackup = contacts.backup.trim();
+          const backup = enteredBackup.replace(/[\s()+-]/g, '').replace(/^00(?=[1-9])/, '')
+               .replace(/^233(\d{9})$/, '0$1').replace(/^(\d{9})$/, '0$1');
+          if ((primary && !/^\d{10}$/.test(primary)) || (backup && !/^\d{10,15}$/.test(backup))) {
+               toast.error('Check the primary or secondary number you entered.');
+               return false;
+          }
+          if ((primary && contacts.relationship !== 'self' && !contacts.owner.trim()) ||
+               (backup && backup === primary)) {
+               toast.error('Enter the primary contact owner and use a different number for the secondary contact.');
                return false;
           }
 
@@ -307,15 +366,22 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                     age: personalData.age ? parseInt(String(personalData.age), 10) : 0,
                     agetype: personalData.ageType || 'years',
                     gender: personalData.gender,
-                    mobile_number: personalData.mobile_number,
-                    contact_pointer: isMobileExist || personalData.contact_pointer === "relative" ? "relative" : "self",
+                    mobile_number: !primary || contacts.relationship === "self" ? primary || null : undefined,
+                    contact_pointer: !primary || contacts.relationship === "self" ? "self" : "relative",
+                    contact_relationship: primary ? contacts.relationship : "self",
+                    backup_phone: backup,
+                    backup_patient_id: contacts.backupPatientId,
+                    backup_contact_name: backup && contacts.backupRelationship !== 'self' ? contacts.backupOwner.trim() : '',
+                    backup_relationship: backup ? contacts.backupRelationship : '',
                     mobile_country_code: mobileCountryCode,
                     whatsapp_country_code: whatsappCountryCode,
                     registeredby: employeeid,
                };
 
-               if (personalData.relativecontactnumber) payload.relativecontactnumber = personalData.relativecontactnumber;
-               if (personalData.relativecontactname) payload.relativecontactname = personalData.relativecontactname;
+               if (contacts.relationship !== 'self' && primary) {
+                    payload.relativecontactnumber = primary;
+                    payload.relativecontactname = contacts.owner.trim();
+               }
                if (personalData.whatAppcontact) payload.whatAppcontact = personalData.whatAppcontact;
                if (personalData.email) payload.email = personalData.email;
                if (personalData.marital_status) payload.marital_status = personalData.marital_status;
@@ -326,11 +392,24 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                     const parsedYears = parseInt(String(personalData.years), 10) || 0;
                     const parsedMonths = parseInt(String(personalData.months), 10) || 0;
                     const parsedDays = parseInt(String(personalData.days), 10) || 0;
-                    const newDate = new Date().setFullYear(parsedYears, parsedMonths - 1, parsedDays);
-                    payload.dob = new Date(newDate).toISOString();
+                    const date = new Date(Date.UTC(parsedYears, parsedMonths - 1, parsedDays));
+                    if (date.getUTCFullYear() !== parsedYears || date.getUTCMonth() !== parsedMonths - 1 || date.getUTCDate() !== parsedDays) {
+                         toast.error('Enter a valid date of birth, or leave it blank and enter age.');
+                         return false;
+                    }
+                    payload.dob = date.toISOString().slice(0, 10);
                }
 
                const response = await customPost(endpoint, method, payload);
+               if (response?.code === 'PATIENT_PRIMARY_CONTACT_IN_USE') {
+                    setContactConflict(response.message);
+                    toast.error(response.message);
+                    return false;
+               }
+               if (response?.code === 'PATIENT_DUPLICATE_MATCH' && Array.isArray(response.matches)) {
+                    setRegistrationMatches(response.matches);
+                    return false;
+               }
                if (response?.status === true || response?.status === "success") {
                     const registeredId = response.patientid || patientId;
                     if (registeredId) {
@@ -492,6 +571,12 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
      return (
           <div className={styles.wizardContainer}>
                {queueHandoff ? <div className="alert alert-info" role="status">Registering client from queue ticket #{queueHandoff.ticketId}. The saved patient and bill will be linked to this visit. <a href="/operations/queue">Return to queue</a></div> : null}
+               <PatientDuplicateReview key={patientId || 'new'} patientId={patientId} />
+               <RegistrationMatchDrawer matches={registrationMatches} onClose={() => setRegistrationMatches([])} onSelect={match => {
+                    setRegistrationMatches([]);
+                    setPatientId(Number(match.patientid));
+                    setCurrentStep(0);
+               }} />
                {queueWarning ? <div className="alert alert-warning" role="alert">{queueWarning} <a href="/operations/queue">Open queue</a></div> : null}
                {/* Header Stepper Card */}
                <div className={styles.stepperCard}>
@@ -634,20 +719,10 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                               </span>
                          </div>
 
-                         {isMobileExist && (
-                              <Alert variant="warning" className="d-flex align-items-center justify-content-between py-2 px-3 text-xs mb-3">
-                                   <div>
-                                        <strong>Mobile Number Linked:</strong> This phone number belongs to another patient.
-                                   </div>
-                                   <Form.Check
-                                        type="switch"
-                                        id="relative_toggle"
-                                        label="Register as Relative"
-                                        checked={personalData.contact_pointer === 'relative'}
-                                        onChange={(e) => setPersonalData((prev) => ({ ...prev, contact_pointer: e.target.checked ? 'relative' : 'self' }))}
-                                   />
-                              </Alert>
-                         )}
+                         {contactConflict && <Alert variant="warning" role="alert">{contactConflict}</Alert>}
+                         {isMobileExist && !contactConflict && <Alert variant="info" className="mb-3">
+                              This number is already linked to a patient. Select the contact owner below or use phone search to review linked records.
+                         </Alert>}
 
                          {/* 2-COLUMN VERTICAL FORM LAYOUT */}
                          <div className="row g-4">
@@ -814,7 +889,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                    {/* Primary Mobile */}
                                    <div className={styles.formGroup}>
                                         <label className={styles.fieldLabel}>
-                                             Primary Mobile Contact <span className="text-danger">*</span>
+                                             Primary mobile (optional)
                                         </label>
                                         <div className={styles.phoneInputRow}>
                                              <select
@@ -838,7 +913,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                                   placeholder="10-digit mobile number"
                                                   maxLength={10}
                                                   value={personalData.mobile_number || ''}
-                                                  onChange={(e) => setPersonalData((prev) => ({ ...prev, mobile_number: e.target.value }))}
+                                                  onChange={(e) => { setContactConflict(''); setPersonalData((prev) => ({ ...prev, mobile_number: e.target.value })); }}
                                                   onBlur={(e) => handleCheckMobileNumber(e.target.value)}
                                              />
                                         </div>
@@ -930,50 +1005,39 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                         </select>
                                    </div>
 
-                                   {/* Relative Contact (Conditional) */}
-                                   {(isMobileExist || personalData.contact_pointer === 'relative') && (
-                                        <>
-                                             <div className={styles.formGroup}>
-                                                  <label className={styles.fieldLabel}>Relative Name</label>
-                                                  <input
-                                                       tabIndex={20}
-                                                       type="text"
-                                                       className={`form-control form-control-lg ${styles.largeInput}`}
-                                                       placeholder="Full name of relative"
-                                                       value={personalData.relativecontactname || ''}
-                                                       onChange={(e) => setPersonalData((prev) => ({ ...prev, relativecontactname: e.target.value }))}
-                                                  />
-                                             </div>
-                                             <div className={styles.formGroup}>
-                                                  <label className={styles.fieldLabel}>Relative Contact Number</label>
-                                                  <div className={styles.phoneInputRow}>
-                                                       <select
-                                                            tabIndex={21}
-                                                            className={`form-select form-select-lg ${styles.phoneCodeSelect}`}
-                                                            value={relativeCountryCode}
-                                                            onChange={(e) => setRelativeCountryCode(e.target.value)}
-                                                       >
-                                                            {Object.entries(COUNTRY_CODES_GROUPED).map(([region, countries]) => (
-                                                                 <optgroup key={region} label={region}>
-                                                                      {countries.map((c) => (
-                                                                           <option key={c.code} value={c.code}>{c.abbreviation} {c.code}</option>
-                                                                      ))}
-                                                                 </optgroup>
-                                                            ))}
-                                                       </select>
-                                                       <input
-                                                            tabIndex={22}
-                                                            type="tel"
-                                                            className={`form-control form-control-lg ${styles.phoneNumberInput}`}
-                                                            placeholder="Relative's mobile number"
-                                                            maxLength={10}
-                                                            value={personalData.relativecontactnumber || ''}
-                                                            onChange={(e) => setPersonalData((prev) => ({ ...prev, relativecontactnumber: e.target.value }))}
-                                                       />
-                                                  </div>
-                                             </div>
-                                        </>
-                                   )}
+                                   <fieldset className="border rounded p-3">
+                                        <legend className="h6">Contact ownership</legend>
+                                        <label className="d-block mb-2">Who owns the primary number?
+                                             <select className="form-select" value={contacts.relationship} onChange={e => { setContactConflict(''); setContacts({ ...contacts, relationship: e.target.value }); }}>
+                                                  <option value="self">Patient (self)</option>
+                                                  {['mother', 'father', 'guardian', 'relative', 'other'].map(relation => <option className="text-capitalize" key={relation} value={relation}>{relation}</option>)}
+                                             </select>
+                                        </label>
+                                        {contacts.relationship !== 'self' && <label className="d-block mb-3">Primary contact name
+                                             <input className="form-control" value={contacts.owner} onChange={e => setContacts({ ...contacts, owner: e.target.value })} />
+                                        </label>}
+                                        <label className="d-block mb-2">Secondary phone (optional)
+                                             <input type="tel" inputMode="tel" className="form-control" value={contacts.backup} onChange={e => setContacts({ ...contacts, backup: e.target.value, backupPatientId: null })} />
+                                        </label>
+                                        {contacts.backup && <>
+                                             {secondaryLookup && <p className="small text-muted mb-2" role="status">{secondaryLookup}</p>}
+                                             {contacts.backupPatientId && <div className="mb-2">
+                                                  <a href={`/crm/registration/${contacts.backupPatientId}/personal-information`} target="_blank" rel="noreferrer">
+                                                       {contacts.backupOwner} · Patient #{contacts.backupPatientId}
+                                                  </a>
+
+                                             </div>}
+                                             <label className="d-block mb-2">Who owns the backup number?
+                                                  <select className="form-select" value={contacts.backupRelationship} onChange={e => setContacts({ ...contacts, backupRelationship: e.target.value })}>
+                                                       <option value="self" disabled={!!contacts.backupPatientId}>Patient (self)</option>
+                                                       {['mother', 'father', 'guardian', 'relative', 'other'].map(relation => <option key={relation} value={relation}>{relation}</option>)}
+                                                  </select>
+                                             </label>
+                                             {contacts.backupRelationship !== 'self' && <label className="d-block">Backup contact name
+                                                  <input className="form-control" value={contacts.backupOwner} readOnly={!!contacts.backupPatientId} onChange={e => setContacts({ ...contacts, backupOwner: e.target.value })} />
+                                             </label>}
+                                        </>}
+                                   </fieldset>
                               </div>
                          </div>
 
@@ -1411,7 +1475,9 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                              return (
                                                   <tr key={p.patientid || idx}>
                                                        <td className="fw-semibold text-primary">{fullName || 'Unnamed Patient'}</td>
-                                                       <td>{p.mobile_number || 'N/A'}</td>
+                                                       <td>{p.matched_phone || p.mobile_number || 'N/A'}
+                                                            {p.matched_priority && <small className="d-block text-capitalize">{p.matched_priority} � {p.matched_relationship}{p.matched_contact_name ? ` � ${p.matched_contact_name}` : ''}</small>}
+                                                       </td>
                                                        <td className="text-capitalize">{p.gender || 'N/A'} · {p.age || 'N/A'} {p.agetype || ''}</td>
                                                        <td>{p.date ? new Date(p.date).toLocaleDateString() : 'N/A'}</td>
                                                        <td className="text-end">

@@ -1,10 +1,9 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { Alert, Modal, Spinner } from 'react-bootstrap';
+import { Alert, Button, Modal, Spinner } from 'react-bootstrap';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { billingSource } from '../../../../../lib/billingLib';
-import shared from '../../PatientBilling.module.css';
-import s from './BillingSourceSelection.module.css';
 import { RiHealthBookLine, RiArrowRightLine, RiListCheck, RiUser3Line, RiBuildingLine, RiAddLine, RiSearchLine } from '@remixicon/react';
 import { useApplication } from '../../../../../components/Auth/useApplicationContext';
 import { customFetch } from '../../../../../components/Auth/customFetch';
@@ -17,18 +16,29 @@ interface BillingOption {
 	label: string;
 }
 
+const COLOR_ACCENT = 'var(--pls-primary, var(--bs-success))';
+const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
+
+const SOURCE_DESCRIPTIONS: Record<number, string> = {
+	1: 'Direct patient billing using general prices.',
+	2: 'Bill through an organization or corporate account.',
+	3: 'Use a private health insurance scheme.',
+	4: 'Use the National Health Insurance Scheme.',
+	6: 'Bill through a special health care provider.',
+};
+
+const sourceIcon = (value: number) => {
+	if (value === 2) return RiBuildingLine;
+	if (value === 3 || value === 4) return RiHealthBookLine;
+	if (value === 6) return RiUser3Line;
+	return RiListCheck;
+};
+
 export default function BillingTypeSelection() {
 	const [selectedBillingSource, setSelectedBillingSource] = useState<BillingOption | null>(null);
 	const [billingMode, setBillingMode] = useState<'loading' | 'simple' | 'advanced' | 'error'>('loading');
 	const [showAddClinicianModal, setShowAddClinicianModal] = useState(false);
 	const [showAddOrgModal, setShowAddOrgModal] = useState(false);
-	const [showCheckClinicianModal, setShowCheckClinicianModal] = useState(false);
-	const [showCheckOrgModal, setShowCheckOrgModal] = useState(false);
-	const [clinicianSearch, setClinicianSearch] = useState('');
-	const [orgSearch, setOrgSearch] = useState('');
-	const [clinicianResults, setClinicianResults] = useState<any[]>([]);
-	const [orgResults, setOrgResults] = useState<any[]>([]);
-	const [searching, setSearching] = useState(false);
 	const [configurationAttempt, setConfigurationAttempt] = useState(0);
 	const router = useRouter();
 	const patientid = useParams()?.patientid;
@@ -43,7 +53,6 @@ export default function BillingTypeSelection() {
 
 	useEffect(() => {
 		let active = true;
-		setBillingMode('loading');
 		getFacilityBillingMode()
 			.then((mode) => {
 				if (!active) return;
@@ -104,62 +113,6 @@ export default function BillingTypeSelection() {
 		}
 	};
 
-	const searchClinicians = async () => {
-		if (!clinicianSearch.trim()) {
-			toast.warning("Please enter a clinician name or ID");
-			return;
-		}
-		try {
-			setSearching(true);
-			const response = await customFetch(`clinicians?search=${clinicianSearch}&branchid=${branchid}`);
-			if (response?.result) {
-				setClinicianResults(response.result);
-			} else {
-				setClinicianResults([]);
-				toast.info("No clinicians found matching your search");
-			}
-		} catch (error) {
-			toast.error("Error searching for clinicians");
-			console.error(error);
-		} finally {
-			setSearching(false);
-		}
-	};
-
-	const searchOrganizations = async () => {
-		if (!orgSearch.trim()) {
-			toast.warning("Please enter an organization name");
-			return;
-		}
-		try {
-			setSearching(true);
-			const response = await customFetch(`organizations/details?count=10&page=1&organization=${orgSearch}`);
-			if (response?.result) {
-				setOrgResults(response.result);
-			} else {
-				setOrgResults([]);
-				toast.info("No organizations found matching your search");
-			}
-		} catch (error) {
-			toast.error("Error searching for organizations");
-			console.error(error);
-		} finally {
-			setSearching(false);
-		}
-	};
-
-	const handleCheckClinicianNewWindow = () => {
-		setShowCheckClinicianModal(false);
-		const windowUrl = `/billing/clinician-search`;
-		window.open(windowUrl, '_blank');
-	};
-
-	const handleCheckOrgNewWindow = () => {
-		setShowCheckOrgModal(false);
-		const windowUrl = `/billing/organization-search`;
-		window.open(windowUrl, '_blank');
-	};
-
 	const handleAddClinician = () => {
 		window.open('/clinicians?action=new', '_blank');
 		setShowAddClinicianModal(false);
@@ -170,37 +123,234 @@ export default function BillingTypeSelection() {
 		setShowAddOrgModal(false);
 	};
 
+	const openWindow = (url: string) => window.open(url, '_blank');
 
 	return (
 		<>
-            <main className={shared.workspace}>
-                <header className={shared.header}><div><span className={shared.eyebrow}>BILLING &amp; SALES</span><h1>Select Billing Source</h1><p>Choose how this patient's tests and services will be billed.</p></div><a href="/billing/patientid" className={shared.savedLink}><RiUser3Line size={18} aria-hidden="true" /> Change patient</a></header>
-                <ol className={shared.steps} aria-label="Billing setup steps">
-                    <li><span aria-label="Completed">&#10003;</span><div><strong>Patient selected</strong><small>Ready to set up billing</small></div></li>
-                    <li aria-current="step"><span>2</span><div><strong>Choose billing source</strong><small>Select the appropriate payer</small></div></li>
-                    <li><span>3</span><div><strong>Build the bill</strong><small>Add tests and services</small></div></li>
-                </ol>
-                {(billingMode === 'loading' || billingMode === 'simple') ? <div className={s.loading} role="status"><Spinner size="sm" className="me-2" />{billingMode === 'simple' ? 'Opening General billing...' : 'Checking billing configuration...'}</div> : <div className={shared.content}>
-                    <section className={s.selectionPanel} aria-labelledby="source-title">
-                        <div className={s.panelHeading}><span className={shared.icon}><RiHealthBookLine size={24} aria-hidden="true" /></span><div><h2 id="source-title">Who is this bill for?</h2><p>Select one billing source to continue.</p></div></div>
-                        {billingMode === 'error' && <Alert variant="danger" className="m-4">Unable to determine the facility billing configuration. No billing source was selected automatically.<button className="btn btn-outline-danger btn-sm ms-2" onClick={() => setConfigurationAttempt(value => value + 1)}>Retry</button></Alert>}
-                        {billingMode === 'advanced' && <fieldset className={s.sourceList}><legend className={s.srOnly}>Billing source</legend>{options.map(option => {
-                            const descriptions: Record<number, string> = {1: 'Direct patient billing using general prices.', 2: 'Bill through an organization or corporate account.', 3: 'Use a private health insurance scheme.', 4: 'Use the National Health Insurance Scheme.', 6: 'Bill through a special health care provider.'};
-                            const SourceIcon = option.value === 2 ? RiBuildingLine : option.value === 3 || option.value === 4 ? RiHealthBookLine : option.value === 6 ? RiUser3Line : RiListCheck;
-                            return <label key={option.value} className={s.sourceCard} data-selected={selectedBillingSource?.value === option.value}>
-                                <input type="radio" name="billing-source" value={option.value} checked={selectedBillingSource?.value === option.value} onChange={() => setSelectedBillingSource(option)} />
-                                <span className={s.sourceIcon}><SourceIcon size={22} aria-hidden="true" /></span><span className={s.sourceText}><strong>{option.label}</strong><small>{descriptions[option.value]}</small></span>
-                            </label>;
-                        })}</fieldset>}
-                        <div className={s.continueBar}><span>{selectedBillingSource ? selectedBillingSource.label : 'Choose a billing source above'}</span><button className={s.continueButton} onClick={handleGenerateBillingId} disabled={billingMode === 'error' || !selectedBillingSource}>Continue <RiArrowRightLine size={18} aria-hidden="true" /></button></div>
-                    </section>
-                    <aside className={s.toolsPanel} aria-labelledby="billing-tools-title"><h2 id="billing-tools-title">Billing tools</h2><p>Find or add a clinician or organization before continuing.</p>
-                        <div className={s.toolGroup}><h3><RiUser3Line size={18} aria-hidden="true" /> Clinicians</h3><button onClick={() => window.open('/billing/clinician-search', '_blank')}><RiSearchLine size={17} aria-hidden="true" /> Find clinician <RiArrowRightLine size={16} aria-hidden="true" /></button><button onClick={() => setShowAddClinicianModal(true)}><RiAddLine size={17} aria-hidden="true" /> Add clinician <RiArrowRightLine size={16} aria-hidden="true" /></button></div>
-                        <div className={s.toolGroup}><h3><RiBuildingLine size={18} aria-hidden="true" /> Organizations</h3><button onClick={() => window.open('/billing/organization-search', '_blank')}><RiSearchLine size={17} aria-hidden="true" /> Find organization <RiArrowRightLine size={16} aria-hidden="true" /></button><button onClick={() => setShowAddOrgModal(true)}><RiAddLine size={17} aria-hidden="true" /> Add organization <RiArrowRightLine size={16} aria-hidden="true" /></button></div>
-                        <p className={s.toolHelp}>These tools open in a new tab so you can keep your billing setup here.</p>
-                    </aside>
-                </div>}
-            </main>
+			<div className="container-fluid px-3 px-lg-4 py-3 py-lg-4">
+				{/* Page Header */}
+				<div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+					<div className="d-flex align-items-center gap-3">
+						<div
+							className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
+							style={{ width: 46, height: 46, background: `color-mix(in srgb, ${COLOR_ACCENT} 8%, transparent)`, color: COLOR_ACCENT }}
+						>
+							<RiHealthBookLine size={24} />
+						</div>
+
+						<div>
+							<h4 className="mb-0 fw-bold">Select Billing Source</h4>
+							<div className="small" style={{ color: COLOR_TEXT_MUTED }}>
+								Choose how this patient&apos;s tests and services will be billed.
+							</div>
+						</div>
+					</div>
+
+					<Link href="/billing/patientid" className="btn btn-outline-secondary d-inline-flex align-items-center gap-2">
+						<RiUser3Line size={17} />
+						Change patient
+					</Link>
+				</div>
+
+				{(billingMode === 'loading' || billingMode === 'simple') ? (
+					<div className="card border-0 shadow-sm" style={{ borderRadius: '0.75rem' }}>
+						<div className="card-body py-5">
+							<div className="d-flex flex-column align-items-center justify-content-center text-center">
+								<div
+									className="rounded-circle d-flex align-items-center justify-content-center mb-3"
+									style={{ width: 56, height: 56, background: `color-mix(in srgb, ${COLOR_ACCENT} 8%, transparent)`, color: COLOR_ACCENT }}
+								>
+									<Spinner animation="border" size="sm" />
+								</div>
+								<h6 className="fw-semibold mb-1">
+									{billingMode === 'simple' ? 'Opening General billing' : 'Checking billing configuration'}
+								</h6>
+								<p className="small mb-0" style={{ color: COLOR_TEXT_MUTED }}>
+									{billingMode === 'simple'
+										? 'Redirecting to the general billing workspace...'
+										: 'Determining the right billing workspace for this facility...'}
+								</p>
+							</div>
+						</div>
+					</div>
+				) : (
+					<div className="row g-4">
+						<div className="col-12 col-xl-8">
+							<div className="card border-0 shadow-sm h-100" style={{ borderRadius: '0.75rem' }}>
+								<div className="card-body p-3 p-lg-4 d-flex flex-column">
+									<div className="d-flex align-items-center gap-3 mb-3">
+										<div
+											className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
+											style={{ width: 40, height: 40, background: `color-mix(in srgb, ${COLOR_ACCENT} 8%, transparent)`, color: COLOR_ACCENT }}
+										>
+											<RiHealthBookLine size={20} />
+										</div>
+										<div>
+											<h6 className="fw-bold mb-1">Who is this bill for?</h6>
+											<div className="small" style={{ color: COLOR_TEXT_MUTED }}>
+												Select one billing source to continue.
+											</div>
+										</div>
+									</div>
+
+									{billingMode === 'error' && (
+										<Alert variant="danger" className="border-0 d-flex flex-column flex-sm-row align-items-sm-center gap-2">
+											<span className="me-sm-auto">
+												Unable to determine the facility billing configuration. No billing source was selected automatically.
+											</span>
+											<Button
+												variant="outline-danger"
+												size="sm"
+												onClick={() => {
+													setBillingMode('loading');
+													setConfigurationAttempt(value => value + 1);
+												}}
+											>
+												Retry
+											</Button>
+										</Alert>
+									)}
+
+									{billingMode === 'advanced' && (
+										<fieldset className="border-0 p-0 m-0">
+											<legend className="visually-hidden">Billing source</legend>
+											<div className="d-flex flex-column gap-2">
+												{options.map(option => {
+													const selected = selectedBillingSource?.value === option.value;
+													const SourceIcon = sourceIcon(option.value);
+													return (
+														<label
+															key={option.value}
+															className={`d-flex align-items-start gap-3 p-3 rounded-3 border mb-0 ${selected ? 'border-success bg-success bg-opacity-10' : ''}`}
+															style={{ cursor: 'pointer' }}
+														>
+															<input
+																className="form-check-input mt-1 flex-shrink-0"
+																type="radio"
+																name="billing-source"
+																value={option.value}
+																checked={selected}
+																onChange={() => setSelectedBillingSource(option)}
+															/>
+															<span
+																className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0 bg-body-tertiary"
+																style={{ width: 40, height: 40, color: selected ? COLOR_ACCENT : COLOR_TEXT_MUTED }}
+															>
+																<SourceIcon size={20} />
+															</span>
+															<span className="flex-grow-1" style={{ minWidth: 0 }}>
+																<strong className="d-block">{option.label}</strong>
+																<small className="d-block" style={{ color: COLOR_TEXT_MUTED }}>
+																	{SOURCE_DESCRIPTIONS[option.value]}
+																</small>
+															</span>
+														</label>
+													);
+												})}
+											</div>
+										</fieldset>
+									)}
+								</div>
+
+								<div className="card-footer bg-white border-top d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3 p-lg-4">
+									<span className="small" style={{ color: COLOR_TEXT_MUTED }}>
+										{selectedBillingSource ? selectedBillingSource.label : 'Choose a billing source above'}
+									</span>
+									<Button
+										variant="success"
+										className="d-inline-flex align-items-center justify-content-center gap-2"
+										style={{ minHeight: 42 }}
+										onClick={handleGenerateBillingId}
+										disabled={billingMode === 'error' || !selectedBillingSource}
+									>
+										Continue
+										<RiArrowRightLine size={18} />
+									</Button>
+								</div>
+							</div>
+						</div>
+
+						<div className="col-12 col-xl-4">
+							<div className="card border-0 shadow-sm" style={{ borderRadius: '0.75rem' }}>
+								<div className="card-body p-3 p-lg-4">
+									<div className="d-flex align-items-center gap-3 mb-2">
+										<div
+											className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
+											style={{ width: 40, height: 40, background: `color-mix(in srgb, ${COLOR_ACCENT} 8%, transparent)`, color: COLOR_ACCENT }}
+										>
+											<RiSearchLine size={20} />
+										</div>
+										<div>
+											<h6 className="fw-bold mb-1">Billing tools</h6>
+											<div className="small" style={{ color: COLOR_TEXT_MUTED }}>
+												Find or add a clinician or organization before continuing.
+											</div>
+										</div>
+									</div>
+
+									<div className="border-top pt-3 mt-3">
+										<h6 className="small fw-semibold text-uppercase mb-2 d-flex align-items-center gap-2" style={{ color: COLOR_TEXT_MUTED }}>
+											<RiUser3Line size={16} />
+											Clinicians
+										</h6>
+										<div className="list-group list-group-flush">
+											<button
+												type="button"
+												className="list-group-item list-group-item-action d-flex align-items-center gap-2 px-0"
+												onClick={() => openWindow('/billing/clinician-search')}
+											>
+												<RiSearchLine size={17} />
+												Find clinician
+												<RiArrowRightLine size={16} className="ms-auto text-muted" />
+											</button>
+											<button
+												type="button"
+												className="list-group-item list-group-item-action d-flex align-items-center gap-2 px-0"
+												onClick={() => setShowAddClinicianModal(true)}
+											>
+												<RiAddLine size={17} />
+												Add clinician
+												<RiArrowRightLine size={16} className="ms-auto text-muted" />
+											</button>
+										</div>
+									</div>
+
+									<div className="border-top pt-3 mt-3">
+										<h6 className="small fw-semibold text-uppercase mb-2 d-flex align-items-center gap-2" style={{ color: COLOR_TEXT_MUTED }}>
+											<RiBuildingLine size={16} />
+											Organizations
+										</h6>
+										<div className="list-group list-group-flush">
+											<button
+												type="button"
+												className="list-group-item list-group-item-action d-flex align-items-center gap-2 px-0"
+												onClick={() => openWindow('/billing/organization-search')}
+											>
+												<RiSearchLine size={17} />
+												Find organization
+												<RiArrowRightLine size={16} className="ms-auto text-muted" />
+											</button>
+											<button
+												type="button"
+												className="list-group-item list-group-item-action d-flex align-items-center gap-2 px-0"
+												onClick={() => setShowAddOrgModal(true)}
+											>
+												<RiAddLine size={17} />
+												Add organization
+												<RiArrowRightLine size={16} className="ms-auto text-muted" />
+											</button>
+										</div>
+									</div>
+
+									<p className="small border-top pt-3 mt-3 mb-0" style={{ color: COLOR_TEXT_MUTED }}>
+										These tools open in a new tab so you can keep your billing setup here.
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				)}
+			</div>
 
 			{/* Add Clinician Modal */}
 			<Modal show={showAddClinicianModal} onHide={() => setShowAddClinicianModal(false)} size="sm" centered>
@@ -211,12 +361,12 @@ export default function BillingTypeSelection() {
 					<p>You will be redirected to the clinicians page to add a new clinician.</p>
 				</Modal.Body>
 				<Modal.Footer>
-					<button className="btn btn-secondary btn-sm" onClick={() => setShowAddClinicianModal(false)}>
+					<Button variant="secondary" size="sm" onClick={() => setShowAddClinicianModal(false)}>
 						Cancel
-					</button>
-					<button className="btn btn-primary btn-sm" onClick={handleAddClinician}>
+					</Button>
+					<Button variant="primary" size="sm" onClick={handleAddClinician}>
 						Proceed
-					</button>
+					</Button>
 				</Modal.Footer>
 			</Modal>
 
@@ -229,48 +379,12 @@ export default function BillingTypeSelection() {
 					<p>You will be redirected to the organizations page to add a new organization.</p>
 				</Modal.Body>
 				<Modal.Footer>
-					<button className="btn btn-secondary btn-sm" onClick={() => setShowAddOrgModal(false)}>
+					<Button variant="secondary" size="sm" onClick={() => setShowAddOrgModal(false)}>
 						Cancel
-					</button>
-					<button className="btn btn-primary btn-sm" onClick={handleAddOrganization}>
+					</Button>
+					<Button variant="primary" size="sm" onClick={handleAddOrganization}>
 						Proceed
-					</button>
-				</Modal.Footer>
-			</Modal>
-
-			{/* Check Clinician Modal */}
-			<Modal show={showCheckClinicianModal} onHide={() => setShowCheckClinicianModal(false)} size="lg" centered>
-				<Modal.Header closeButton>
-					<Modal.Title>Check Clinician Details</Modal.Title>
-				</Modal.Header>
-				<Modal.Body>
-					<p>You will be redirected to the clinician search page in a new window.</p>
-				</Modal.Body>
-				<Modal.Footer>
-					<button className="btn btn-secondary btn-sm" onClick={() => setShowCheckClinicianModal(false)}>
-						Close
-					</button>
-					<button className="btn btn-primary btn-sm" onClick={handleCheckClinicianNewWindow}>
-						Open in New Window
-					</button>
-				</Modal.Footer>
-			</Modal>
-
-			{/* Check Organization Modal */}
-			<Modal show={showCheckOrgModal} onHide={() => setShowCheckOrgModal(false)} size="lg" centered>
-				<Modal.Header closeButton>
-					<Modal.Title>Check Organization Details</Modal.Title>
-				</Modal.Header>
-				<Modal.Body>
-					<p>You will be redirected to the organization search page in a new window.</p>
-				</Modal.Body>
-				<Modal.Footer>
-					<button className="btn btn-secondary btn-sm" onClick={() => setShowCheckOrgModal(false)}>
-						Close
-					</button>
-					<button className="btn btn-primary btn-sm" onClick={handleCheckOrgNewWindow}>
-						Open in New Window
-					</button>
+					</Button>
 				</Modal.Footer>
 			</Modal>
 		</>

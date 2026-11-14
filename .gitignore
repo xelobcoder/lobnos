@@ -6,7 +6,7 @@
 .pnp.js
 /.next-critique-verification/
 /.next-login-verification
-
+/.next-report-check/
 # testing
 /coverage
 
@@ -31,6 +31,7 @@ deploy.sh
 .DS_Store
 *.pem
 *.zip
+.git
 / VITALSCAN-MEDICAL-CENTER
 /GLOBAL-MEDICAL-CENTER
 
