@@ -85,8 +85,12 @@ export function summarizeDetails(event: Pick<AuditEvent, "action" | "details">):
           ].filter((item) => item.value);
      }
      if (typeof details.stage === "string") return [
-          { label: "Provisioning stage", value: humanize(details.stage) },
+          { label: "Provisioning stage", value: humanize(details.stage.replace(/^failed:/, "")) },
           { label: "Outcome", value: details.failed ? "Failed" : "Completed" },
+          ...(typeof details.errorCode === "string" ? [{ label: "Error code", value: details.errorCode }] : []),
+          ...(details.errorCode === "ER_TOO_LONG_IDENT" ? [{
+               label: "Recovery", value: "Deploy the corrected backend, then retry provisioning from the facility list.",
+          }] : []),
      ];
      if (event.action === "payment_voided" && details.paymentId != null) {
           return [{ label: "Corrected payment", value: `Payment #${text(details.paymentId)}` }];

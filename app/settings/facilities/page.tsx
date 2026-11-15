@@ -9,6 +9,7 @@ import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
 import { customFetch, customFetchMutation } from "../../../components/Auth/customFetch";
 import { useApplication } from "../../../components/Auth/useApplicationContext";
 import FacilityManagement from "./FacilityManagement";
+import FacilityAudit from "./FacilityAudit";
 import FacilityNav from "./FacilityNav";
 import { applyModuleCatalogPrices, FacilityForm, FormErrors, parseModulePricingCatalogEntry, validateFacilityForm, MODULE_LABELS, ModuleName, ModulePricingCatalogEntry, defaultModuleConfiguration, moduleMonthlyTotal } from "./provisioningForm";
 import { applicationProvisioningForm, MarketplaceApplication, marketplaceApplicationsSchema } from "./marketplaceApplications";
@@ -664,6 +665,10 @@ export default function FacilityOnboardingPage() {
                          <h2 className="h6">Retry provisioning {retryFacility.platformId}</h2>
                          <p className="mb-0">The partial tenant database will be permanently removed before this facility is rebuilt. Confirm the locked reservation details and enter the address and administrator credentials for the new attempt.</p>
                     </div>}
+                    {retryFacility && <details className="border rounded bg-white p-3 mb-3">
+                         <summary className="fw-semibold">Provisioning history for {retryFacility.platformId}</summary>
+                         <div className="mt-3"><FacilityAudit key={retryFacility.tenantId} tenantId={retryFacility.tenantId} /></div>
+                    </details>}
                     {provisioningApplication && <div className="alert alert-info">
                          <h2 className="h6">{provisioningApplication.integration_state === "provision_failed" ? "Retrying approved website application" : "Provisioning website application"}: {provisioningApplication.name}</h2>
                          {provisioningApplication.integration_state === "provision_failed"
