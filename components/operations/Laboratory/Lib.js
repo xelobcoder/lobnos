@@ -29,7 +29,7 @@ export async function getAscensionData(ascension_stage, setCollection, queryPara
                             `&&ascensionid=${ascensionid}`+
                             `&&patientid=${patientid}`+
                             `&&billingid=${billingid}`+
-                            `&&patientname=${patientname}`+
+                            `&&patientname=${encodeURIComponent(patientname || '')}`+
                             `&&testid=${testid}`+
                             `&&clinicianId=${clinicianId}`
                      );

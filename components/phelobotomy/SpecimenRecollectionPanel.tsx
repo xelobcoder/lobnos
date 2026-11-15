@@ -7,13 +7,15 @@ import { useApplicationSettings } from '../Auth/useApplicationContext';
 import { roleAllowed } from '../Auth/roles';
 import styles from './SpecimenRecollectionPanel.module.css';
 import { sampleEventTone } from '../../lib/sampleEventTone';
+import CollectionCenterPicker from './CollectionCenterPicker';
 
 export type RecollectionSample = {
      id: number; sample_uid: string; status: string; version?: number;
      rejection_reason?: string; replaces_sample_id?: number | null;
+     collection_center_id?: number;
      tests?: Array<{ ascensionId: number; testName: string }>;
 };
-type Props = { billingid: number; ascensionId?: number; samples?: RecollectionSample[]; onChanged?: () => void | Promise<void>; compact?: boolean };
+type Props = { billingid: number; ascensionId?: number; samples?: RecollectionSample[]; onChanged?: () => void | Promise<void>; compact?: boolean; collectionCenterId?: number };
 type Scope = Pick<Props, 'billingid' | 'ascensionId'> & { suppliedSamples?: RecollectionSample[] };
 
 function requestKey(): string {
@@ -28,10 +30,12 @@ const channels = (value: unknown) => {
      try { return JSON.parse(String(value || '[]')).join(', ') || 'None'; } catch { return 'Not recorded'; }
 };
 
-export default function SpecimenRecollectionPanel({ billingid, ascensionId, samples: suppliedSamples, onChanged, compact = false }: Props) {
+export default function SpecimenRecollectionPanel({ billingid, ascensionId, samples: suppliedSamples, onChanged, compact = false, collectionCenterId }: Props) {
      const { applicationsettings } = useApplicationSettings();
      const canCollect = roleAllowed(applicationsettings?.user?.role, ['admin', 'manager', 'scientist', 'phelobotomist', 'phlebotomist']);
      const [samples, setSamples] = useState<RecollectionSample[]>([]);
+     const [standaloneCenterId, setStandaloneCenterId] = useState<number>();
+     const selectedCenterId = suppliedSamples ? collectionCenterId : standaloneCenterId;
      const [loading, setLoading] = useState(false);
      const [error, setError] = useState('');
      const [busyId, setBusyId] = useState<number | null>(null);
@@ -82,7 +86,10 @@ export default function SpecimenRecollectionPanel({ billingid, ascensionId, samp
           historyRequest.current++; setHistory(null); setHistoryLoading(false);
           setBusyId(sample.id);
           try {
-               const response = await customFetchMutation(`physical-samples/${sample.id}/${action === 'recollect' ? 'recollect' : 'status'}`, action === 'recollect' ? 'POST' : 'PATCH', action === 'recollect' ? {} : { status: 'collected', expectedVersion: sample.version, idempotencyKey: requestKey() });
+               const response = await customFetchMutation(`physical-samples/${sample.id}/${action === 'recollect' ? 'recollect' : 'status'}`, action === 'recollect' ? 'POST' : 'PATCH', action === 'recollect' ? { collectionCenterId: selectedCenterId } : {
+                    status: 'collected', expectedVersion: sample.version, idempotencyKey: requestKey(),
+                    collectionCenterId: sample.collection_center_id ? undefined : selectedCenterId,
+               });
                if (!isCurrent()) return;
                if (!response?.success) throw new Error(response?.message || 'Unable to record recollection.');
                toast.success(action === 'recollect' ? `Replacement ${response.data.sample_uid} started. Complete collection when the sample has been taken.` : `${sample.sample_uid} collected. Reception and validation are still required.`);
@@ -102,6 +109,7 @@ export default function SpecimenRecollectionPanel({ billingid, ascensionId, samp
      if (error) return <div className="alert alert-danger py-2">{error}<button className="btn btn-sm btn-outline-danger ms-2" onClick={load}>Retry</button></div>;
      if (!chain.length) return null;
      return <section className={`${styles.panel} border border-warning rounded p-3 mb-3`} aria-label="Rejected specimens and recollection">
+          {canCollect && !suppliedSamples && <CollectionCenterPicker value={standaloneCenterId} onChange={setStandaloneCenterId} />}
           <h2 className={compact ? 'h6' : 'h5'}>Rejected specimens &amp; recollection</h2>
           <p className="small text-muted">Each replacement has its own sample ID. Processing stays blocked until the replacement meets the laboratory workflow requirements.</p>
           <div className="d-flex flex-column gap-2">{chain.map(sample => {

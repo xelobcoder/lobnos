@@ -312,18 +312,18 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                Cell: ({ row }) => <div>{row.original.name}<br />({row.original.department})</div>
           },
 
-          {
-               Header: 'Delivery',
-               accessor: 'requested_mode',
-               Cell: ({ row }) => (
-                    <DeliveryBadges
-                         requested_mode={row.original.requested_mode}
-                         delivered_mode={row.original.delivered_mode}
-                         delivered_by_username={row.original.delivered_by_username}
-                         delivered_at={row.original.delivered_at}
-                    />
-               )
-          },
+          // {
+          //      Header: 'Delivery',
+          //      accessor: 'requested_mode',
+          //      Cell: ({ row }) => (
+          //           <DeliveryBadges
+          //                requested_mode={row.original.requested_mode}
+          //                delivered_mode={row.original.delivered_mode}
+          //                delivered_by_username={row.original.delivered_by_username}
+          //                delivered_at={row.original.delivered_at}
+          //           />
+          //      )
+          // },
 
           {
                Header: 'Client Status',

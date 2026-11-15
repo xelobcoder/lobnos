@@ -5,10 +5,9 @@ import { useSearchParams } from 'next/navigation';
 import SampleAssessmentModal from '../accessories/SampleAssessmentModal/SampleAssessmentModal';
 import PrimeTable from '../accessories/Datatables/PrimeTable';
 import { handleServerSideProcessingSampleValidation } from '../serverActions/ActionFiltering';
-import { RiInformationLine, RiCheckboxCircleLine, RiCalendarLine, RiRefreshLine } from '@remixicon/react';
+import { RiInformationLine, RiCheckboxCircleLine, RiRefreshLine } from '@remixicon/react';
 import { customFetch } from '../Auth/customFetch';
 import dayjs from 'dayjs';
-import { handleDateRangeSelection } from '../operations/Laboratory/AscensionFilteringComponent';
 import DateFilterReusable from '../operations/Laboratory/ResuableFilter/DateFilterReusable';
 
 
@@ -32,11 +31,12 @@ export default function SampleValidationComponent() {
 	});
 	const [selectedItems, setSelectedItems] = useState([]);
 	const [searchFilter, setSearchFilter] = useState('');
-	const [dateFilter, setDateFilter] = useState('');
+	const [dateFilter, setDateFilter] = useState(urlStartDate === today && urlEndDate === today ? 'Today' : 'Custom Range');
 
 	useEffect(() => {
 		setQueryParams(prev => ({ ...prev, _dateFrom: urlStartDate, _dateEnd: urlEndDate }));
-	}, [urlStartDate, urlEndDate]);
+		setDateFilter(urlStartDate === today && urlEndDate === today ? 'Today' : 'Custom Range');
+	}, [urlStartDate, urlEndDate, today]);
 
 	useEffect(() => {
 		const loadInitialData = async () => {
@@ -92,10 +92,9 @@ export default function SampleValidationComponent() {
 			if (searchFilter) url += `&searchString=${encodeURIComponent(searchFilter)}`;
 			const fetchResponse = await customFetch(url);
 			const { result } = fetchResponse;
-			if (result && Array.isArray(result) && result.length > 0) {
+			if (Array.isArray(result)) {
 				setData(result);
-			} else {
-				console.log('No results returned from API');
+				setSelectedItems([]);
 			}
 		} catch (error) {
 			console.error('Error loading data:', error);
@@ -211,52 +210,26 @@ export default function SampleValidationComponent() {
 					</div>
 				)}
 			</div>
-			<div className='d-flex justify-content-between align-items-center mb-3'>
-				<div className="d-flex align-items-center">
-					<h6 className="p-3 bg-light rounded-3 d-flex align-items-center mb-0">
-						<RiInformationLine className="me-2" />
-						Sample Validation
-					</h6>
-				</div>
-				<div className="col-12 col-lg-2">
+			<div className="d-flex flex-wrap align-items-end gap-3 mb-3">
+				<h6 className="p-3 bg-light rounded-3 d-flex align-items-center mb-0 me-auto">
+					<RiInformationLine className="me-2" /> Sample Validation
+				</h6>
+				<div className="col-12 col-md-auto">
+					<label htmlFor="sample-validation-date-range" className="form-label small mb-1">Date range</label>
 					<DateFilterReusable
+						id="sample-validation-date-range"
 						value={dateFilter}
 						onChange={setDateFilter}
-						onDateRangeChange={(startDate, endDate) => {
-							setQueryParams(prev => ({
-								...prev,
-								_dateFrom: startDate,
-								_dateEnd: endDate
-							}));
-						}}
-						label="Filter by"
+						startDate={queryParams._dateFrom}
+						endDate={queryParams._dateEnd}
+						onDateRangeChange={(startDate, endDate) => setQueryParams(prev => ({
+							...prev, _dateFrom: startDate, _dateEnd: endDate,
+						}))}
+						label="Choose date range"
 						className="w-100"
 					/>
 				</div>
-				{/* Date Range Filter */}
-				<div className="d-flex align-items-center gap-3">
-					<RiCalendarLine className="text-muted" />
-					<div className="d-flex align-items-center gap-2">
-						<label className="form-label mb-0 text-muted small">From:</label>
-						<input
-							type="date"
-							className="form-control form-control-sm"
-							style={{ maxWidth: '150px' }}
-							value={queryParams._dateFrom || ''}
-							onChange={(e) => { setQueryParams(prev => ({ ...prev, _dateFrom: e.target.value })); }}
-						/>
-					</div>
-					<div className="d-flex align-items-center gap-2">
-						<label className="form-label mb-0 text-muted small">To:</label>
-						<input
-							type="date"
-							className="form-control form-control-sm"
-							style={{ maxWidth: '150px' }}
-							value={queryParams._dateEnd || ''}
-							onChange={(e) => { setQueryParams(prev => ({ ...prev, _dateEnd: e.target.value })); }}
-
-						/>
-					</div>
+				<div className="d-flex flex-wrap align-items-center gap-2">
 					<div className="d-flex align-items-center gap-2">
 						<label className="form-label mb-0 text-muted small">Search:</label>
 						<input

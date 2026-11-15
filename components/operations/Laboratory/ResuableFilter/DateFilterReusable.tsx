@@ -11,6 +11,7 @@ interface DateFilterReusableProps {
      disabled?: boolean;
      startDate?: string;
      endDate?: string;
+     clearOnEmpty?: boolean;
 }
 
 const CUSTOM_RANGE_VALUE = 'Custom Range';
@@ -275,7 +276,8 @@ export default function DateFilterReusable({
      className = 'col-12 col-lg-2',
      disabled = false,
      startDate,
-     endDate
+     endDate,
+     clearOnEmpty = false,
 }: DateFilterReusableProps) {
      const [customStartDate, setCustomStartDate] = React.useState(dayjs().startOf('month').format('YYYY-MM-DD'));
      const [customEndDate, setCustomEndDate] = React.useState(dayjs().format('YYYY-MM-DD'));
@@ -283,6 +285,10 @@ export default function DateFilterReusable({
      const handleChange = (filterValue: string) => {
           onChange(filterValue);
           if (onDateRangeChange) {
+               if (!filterValue && clearOnEmpty) {
+                    onDateRangeChange('', '');
+                    return;
+               }
                if (filterValue === CUSTOM_RANGE_VALUE) {
                     onDateRangeChange(startDate ?? customStartDate, endDate ?? customEndDate);
                     return;

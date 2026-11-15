@@ -110,22 +110,24 @@ function ResultDeliveryWorkspace({
 		setLoading(true);
 		setErrors({});
 		try {
-			const results = await Promise.allSettled(operations.map(({ row, mode }) =>
-				customPost('result/delivery/record', 'POST', {
+			const response = await customPost('result/delivery/record/bulk', 'POST', {
+				deliveries: operations.map(({ row, mode }) => ({
 					billingid: row.billingid, ascensionid: row.ascensionid, delivered_mode: mode,
-					delivered_at: new Date(), notes: notes.trim() || null, failurenotes: null,
-				})));
+					notes: notes.trim() || null,
+				})),
+			});
 			if (!active.current) return;
-			const completed = operations.filter((_operation, index) => results[index].status === "fulfilled" && results[index].value?.status === true);
+			if (response?.status !== true || !Array.isArray(response.results) || response.results.length !== operations.length) {
+				throw new Error(response?.message || "The server could not confirm the batch.");
+			}
+			const results: Array<{ status: boolean; message?: string }> = response.results;
+			const completed = operations.filter((_operation, index) => results[index]?.status === true);
 			const failures: Record<string, string[]> = {};
 			results.forEach((result, index) => {
-				if (result.status === "fulfilled" && result.value?.status === true) return;
+				if (result?.status === true) return;
 				const { row, mode } = operations[index];
-				const message = result.status === "rejected"
-					? "Could not confirm this delivery. Review refreshed history before retrying."
-					: typeof result.value?.message === "string" ? result.value.message : "Delivery was not recorded. Please retry.";
+				const message = typeof result?.message === "string" ? result.message : "Delivery was not recorded. Please retry.";
 				(failures[row.key] ||= []).push(`${deliveryMethodLabel(mode)}: ${message}`);
-				if (result.status === "rejected") console.error("Result delivery recording failed", result.reason);
 			});
 			setErrors(failures);
 			setSelectedMethods(current => {
@@ -145,7 +147,7 @@ function ResultDeliveryWorkspace({
 		} catch (error) {
 			console.error("Result delivery submission failed", error);
 			if (active.current) {
-				toast.error("Submission could not be completed. Review refreshed delivery history before retrying.");
+				toast.error(error instanceof Error ? error.message : "Submission could not be completed. Review refreshed delivery history before retrying.");
 				await refreshHistory(billingIds);
 			}
 		} finally {

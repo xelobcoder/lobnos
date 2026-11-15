@@ -49,7 +49,7 @@ export function LaboratoryStagesProvider({ children }) {
               patientid: patientid || '',
               patientname: patientname || '',
               billingid: billingid || '',
-              testid: '',
+              testid: testid || '',
               sortby: 'DESC',
        });
 
@@ -59,17 +59,11 @@ export function LaboratoryStagesProvider({ children }) {
        };
 
        const _getAscensionData = async function (ascension_stage, employeeid, branchid, userprovidedCategory) {
-              const ascensionid = userprovidedCategory?.ascensionid || queryParams.ascensionid;
-              const patientid = userprovidedCategory?.patientid || queryParams.patientid;
-              const billingid = userprovidedCategory?.billingid || queryParams.billingid;
-              const patientname = userprovidedCategory?.patientname || queryParams.patientname;
-              const testid = userprovidedCategory?.testid || queryParams.testid;
-              const clinicianId = userprovidedCategory?.clinicianId || queryParams.clinicianId || null;
-              
-              const  newQueryParams =  {...queryParams};
+              const newQueryParams = { ...queryParams, ...userprovidedCategory };
+              const { ascensionid, patientid, billingid, patientname, testid, clinicianId } = newQueryParams;
 
 
-              if (billingid || ascensionid || testid) {
+              if (billingid || ascensionid) {
                      newQueryParams['_dateEnd']= '';
                      newQueryParams['_dateFrom']= '';
               }

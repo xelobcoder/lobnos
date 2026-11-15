@@ -1,262 +1,137 @@
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import DatePickerRange from "../../../components/accessories/DatePickerRange";
+import React, { useEffect, useId, useRef, useState } from "react";
+import { RiFilter3Line, RiFlaskLine, RiRestartLine, RiSearchLine } from "@remixicon/react";
+import dayjs from "dayjs";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
-import { handleDateRangeSelection } from "./AscensionFilteringComponent";
-import DateFilterReusable from "../../../components/operations/Laboratory/ResuableFilter/DateFilterReusable";
-import { date } from "zod";
+import DateFilterReusable from "./ResuableFilter/DateFilterReusable";
+import styles from "./LaboratoryAscensionFiltering.module.css";
+
+const searchFields = {
+       ascensionid: "Ascension ID",
+       patientname: "Patient name",
+       patientid: "Patient ID",
+       billingid: "Billing ID",
+       testid: "Laboratory test",
+};
+
+const emptySearch = { ascensionid: "", patientname: "", patientid: "", billingid: "", testid: "" };
 
 export default function LaboratoryAscensionFiltering({ ascension_stage, clinicianId, employeeid, branchid }) {
-
-       const router = useRouter();
-       const {
-              queryParams,
-              setQueryParams,
-              _getAscensionData,
-              loadCounter,
-              hasSpecificUrlFilter,
-              setLoadCounter,
-       } = useLaboratoryContext();
-
-
-
-       useEffect(() => {
-              _getAscensionData(ascension_stage, employeeid, branchid, {
-                     clinicianId: clinicianId || null,
-              });
-              setLoadCounter((prev) => prev + 1);
-       }, [ascension_stage, employeeid]);
-       
-       useEffect(() => {
-              setQueryParams((prev) =>
-                     prev.clinicianId === (clinicianId || null)
-                            ? prev
-                            : { ...prev, clinicianId: clinicianId || null }
-              );
-       }, [clinicianId]);
+       const { queryParams, setQueryParams, _getAscensionData, hasSpecificUrlFilter, isLoading } = useLaboratoryContext();
+       const [field, setField] = useState(() => Object.keys(searchFields).find(key => queryParams[key]) || "patientname");
+       const [dateFilter, setDateFilter] = useState(() => {
+              const today = dayjs().format("YYYY-MM-DD");
+              if (queryParams._dateFrom === today && queryParams._dateEnd === today) return "Today";
+              return queryParams._dateFrom || queryParams._dateEnd ? "Custom Range" : "";
+       });
+       const [testName, setTestName] = useState("");
+       const [popupBlocked, setPopupBlocked] = useState(false);
+       const popupRef = useRef(null);
+       const id = useId();
 
        useEffect(() => {
-              if (loadCounter > 0) {
-                     _getAscensionData(ascension_stage, employeeid, branchid, {
-                            clinicianId: clinicianId || null,
-                     });
+              setQueryParams(prev => prev.clinicianId === (clinicianId || null)
+                     ? prev
+                     : { ...prev, clinicianId: clinicianId || null });
+       }, [clinicianId, setQueryParams]);
+
+       useEffect(() => {
+              _getAscensionData(ascension_stage, employeeid, branchid, { clinicianId: clinicianId || null });
+       }, [ascension_stage, employeeid, branchid, clinicianId, queryParams.page, queryParams.count]);
+
+       const applyFilters = (filters = {}) => {
+              setQueryParams(prev => ({ ...prev, ...filters, page: 1, clinicianId: clinicianId || null }));
+              if (queryParams.page === 1) {
+                     _getAscensionData(ascension_stage, employeeid, branchid, { ...filters, clinicianId: clinicianId || null });
               }
-       }, [queryParams.page, queryParams.count, ascension_stage, employeeid]);
-
-       const updateDateValues = (values) => {
-              const [start, end] = values;
-              setQueryParams((prev) => ({ ...prev, _dateFrom: start, _dateEnd: end }));
        };
 
-
-       const [category, setCategory] = useState({
-              section: '', value: ''
+       useEffect(() => {
+              const receiveTest = event => {
+                     if (event.origin !== window.location.origin || !popupRef.current || event.source !== popupRef.current ||
+                            event.data?.type !== "TEST_PANEL_SELECTED") return;
+                     const test = event.data.payload;
+                     if (!Number.isSafeInteger(Number(test?.id)) || Number(test.id) < 1) return;
+                     setTestName(String(test.name || test.testname || "Test #" + test.id));
+                     applyFilters({ ...emptySearch, testid: test.id });
+              };
+              window.addEventListener("message", receiveTest);
+              return () => window.removeEventListener("message", receiveTest);
        });
 
-       const [dateFilter, setDateFilter] = useState('');
-
-
-       const handleSettingCategory = (section, value) => {
-              setCategory({ section, value });
-              setQueryParams((prev) => ({
-                     ...prev,
-                     ascensionid: '',
-                     patientid: '',
-                     testid: '',
-                     billingid: '',
-                     clinicianId: clinicianId,
-                     patientname: "",
-                     [section]: value,
-                     _dateFrom: "",
-                     _dateEnd: "",
-              }));
-       }
-
-       useEffect(() => {
-              const listener = (event) => {
-                     if (event.data?.type === "TEST_PANEL_SELECTED") {
-                            if (event.data.payload && event.data.payload.id) {
-                                   // handleSettingCategory("testid", event.data.payload.id);
-                                   _getAscensionData(ascension_stage, employeeid, branchid, {
-                                          ascensionid: queryParams.ascensionid,
-                                          patientid: queryParams.patientid,
-                                          billingid: queryParams.billingid,
-                                          clinicianId: clinicianId || null,
-                                          [category.section]: category.value,
-                                          testid: event.data.payload.id
-                                   })
-                                   setQueryParams((prev) => ({ ...prev, testid: event.data.payload.id }));
-                                   handleSettingCategory("none", "");
-                            }
-                     }
-              }
-
-              window.addEventListener("message", listener)
-              return () => window.removeEventListener("message", listener)
-       }, [])
-
-       useEffect(() => {
-              const handleKeyDown = (event) => {
-                     if (event.key === 'Enter') {
-                            event.preventDefault();
-                            _getAscensionData(ascension_stage, employeeid, branchid, {
-                                   ascensionid: queryParams.ascensionid,
-                                   patientid: queryParams.patientid,
-                                   billingid: queryParams.billingid,
-                                   clinicianId: clinicianId || null,
-                                   [category.section]: category.value,
-                                   testid: queryParams.testid
-                            });
-                     }
-              };
-
-              window.addEventListener("keydown", handleKeyDown);
-              return () => window.removeEventListener("keydown", handleKeyDown);
-       }, [ascension_stage, employeeid, branchid, queryParams, category]);
-
-       const handleFilterByLabTest = () => {
-              const popup = window.open(
-                     `/labtestfilter?employeeid=${employeeid}&&branchid=${branchid}`,
-                     "LabTestFilter",
-                     "width=600,height=450,resizable=no,scrollbars=yes"
-              )
-
-              if (popup) {
-                     popup.focus()
-              }
-       }
-
-       const handleResetFilters = () => {
-              // Reset all filter states
-              setCategory({ section: '', value: '' });
-              setDateFilter('');
-
-              // Reset query params
-              setQueryParams((prev) => ({
-                     ...prev,
-                     ascensionid: '',
-                     patientid: '',
-                     testid: '',
-                     billingid: '',
-                     clinicianId: clinicianId || null,
-                     patientname: "",
-                     _dateFrom: "",
-                     _dateEnd: "",
-              }));
-
-              // Clean URL by removing query string
-              const pathname = window.location.pathname;
-              if (window.location.search) {
-                     window.history.replaceState({}, '', pathname);
-                     router.replace(pathname);
-              }
+       const openTestPicker = () => {
+              const query = new URLSearchParams({ employeeid, branchid });
+              const popup = window.open("/labtestfilter?" + query, "LabTestFilter", "width=600,height=450,scrollbars=yes");
+              popupRef.current = popup;
+              setPopupBlocked(!popup);
+              popup?.focus();
        };
 
-
-
-
+       if (hasSpecificUrlFilter) return null;
 
        return (
-              <div className="mb-2">
-                     {!hasSpecificUrlFilter && <React.Fragment><div className="row g-2 align-items-end">
-                            <div className="col-12 col-lg-2">
-                                   <select onChange={(ev) => {
-                                          if (ev.target.value == "none") {
-                                                 handleSettingCategory("none", "");
-                                          } else {
-                                                 setCategory({ section: ev.target.value, value: '' });
-                                                 if (ev.target.value == "testname") {
-                                                        handleFilterByLabTest(ev.target.value);
-                                                 }
-                                          }
-
-                                   }} className="form-select ">
-                                          <option value="none">Filter By</option>
-                                          <option value="ascensionid">Ascension ID</option>
-                                          <option value="patientname">Patient Name</option>
-                                          <option value="patientid">Patient ID</option>
-                                          <option value="billingid">Billing ID</option>
-                                          <option value="testname">Laboratory Test</option>
+              <form className={styles.panel} aria-labelledby={id + "-title"} onSubmit={event => {
+                     event.preventDefault();
+                     if (!isLoading && (field !== "testid" || queryParams.testid)) applyFilters();
+              }}>
+                     <div className={styles.heading}>
+                            <span className={styles.icon}><RiFilter3Line size={20} aria-hidden="true" /></span>
+                            <h2 id={id + "-title"}>Filter laboratory requests</h2>
+                     </div>
+                     <div className={styles.fields}>
+                            <div className={styles.field}>
+                                   <label htmlFor={id + "-field"}>Search by</label>
+                                   <select id={id + "-field"} className="form-select" value={field} onChange={event => {
+                                          setField(event.target.value);
+                                          setTestName("");
+                                          setPopupBlocked(false);
+                                          setQueryParams(prev => ({ ...prev, ...emptySearch }));
+                                   }}>
+                                          {Object.entries(searchFields).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
                                    </select>
                             </div>
-                            <div className="col-12 col-lg-2">
-                                   <input className="form-control "
-                                          value={category.value}
-                                          onChange={(ev) => {
-                                                 handleSettingCategory(category.section, ev.target.value);
-
-                                          }}
-                                          placeholder="Enter Value to Filter" />
+                            <div className={styles.field}>
+                                   {field === "testid" ? <>
+                                          <label htmlFor={id + "-test"}>Laboratory test</label>
+                                          <button id={id + "-test"} type="button" className={"btn btn-outline-secondary " + styles.testPicker} onClick={openTestPicker}>
+                                                 <RiFlaskLine size={17} aria-hidden="true" /> <span>{testName || "Choose a test"}</span>
+                                          </button>
+                                          {popupBlocked && <small role="status">Allow pop-ups to open the test picker.</small>}
+                                   </> : <>
+                                          <label htmlFor={id + "-value"}>{searchFields[field]}</label>
+                                          <input id={id + "-value"} className="form-control"
+                                                 inputMode={field === "patientname" ? "search" : undefined}
+                                                 placeholder={field === "patientname" ? "e.g. Ama Mensah" : "Enter " + searchFields[field]}
+                                                 value={queryParams[field] ?? ""}
+                                                 onChange={event => setQueryParams(prev => ({ ...prev, [field]: event.target.value }))} />
+                                   </>}
                             </div>
-                            <div className="col-12 col-lg-2">
-                                   <DateFilterReusable
-                                          value={dateFilter}
-                                          onChange={setDateFilter}
-                                          onDateRangeChange={(startDate, endDate) => {
-                                                 setQueryParams((prev) => ({
-                                                        ...prev,
-                                                        _dateFrom: startDate,
-                                                        _dateEnd: endDate
-                                                 }));
-                                          }}
-                                          label="Filter by"
-                                          className="w-100"
-                                   />
+                            <div className={styles.field}>
+                                   <label htmlFor={id + "-date"}>Date range</label>
+                                   <DateFilterReusable id={id + "-date"} value={dateFilter} onChange={setDateFilter} className="w-100" clearOnEmpty
+                                          label="Any date" startDate={queryParams._dateFrom} endDate={queryParams._dateEnd}
+                                          onDateRangeChange={(_dateFrom, _dateEnd) => setQueryParams(prev => ({ ...prev, _dateFrom, _dateEnd }))} />
                             </div>
-                            <div className="col-12 col-lg-2">
-                                   <DatePickerRange
-                                          start={queryParams._dateFrom}
-                                          end={queryParams._dateEnd}
-                                          getRange={updateDateValues}
-                                   />
-                            </div>
-                            <div className="col-12 col-lg-2">
-                                   <select
-                                          className="form-select "
-                                          value={queryParams.sortby}
-                                          onChange={(ev) =>
-                                                 setQueryParams((prev) => ({
-                                                        ...prev,
-                                                        sortby: ev.target.value,
-                                                 }))
-                                          }
-                                   >
-                                          <option value="DESC">Newest data first </option>
-                                          <option value="ASC">Oldest data first</option>
+                            <div className={styles.field}>
+                                   <label htmlFor={id + "-sort"}>Sort order</label>
+                                   <select id={id + "-sort"} className="form-select" value={queryParams.sortby}
+                                          onChange={event => setQueryParams(prev => ({ ...prev, sortby: event.target.value }))}>
+                                          <option value="DESC">Newest first</option>
+                                          <option value="ASC">Oldest first</option>
                                    </select>
-                            </div>
-                            <div className="col-12 col-lg-2 d-flex gap-2">
-                                   <button
-                                          onClick={() => _getAscensionData(ascension_stage, employeeid, branchid, {
-                                                 ascensionid: queryParams.ascensionid,
-                                                 patientid: queryParams.patientid,
-                                                 billingid: queryParams.billingid,
-                                                 clinicianId: clinicianId || null,
-                                                 [category.section]: category.value,
-                                                 grouped: queryParams.grouped ||
-                                                        "grouped",
-                                                 testid: queryParams.testid
-                                          })}
-                                          className="btn btn-primary flex-grow-1 text-uppercase"
-                                          title="Press Enter key anywhere on the page to load data"
-                                   >
-                                          Load Data
-                                   </button>
-                                   <button
-                                          onClick={handleResetFilters}
-                                          className="btn btn-danger flex-grow-1 text-uppercase fw-bold"
-                                          title="Clear all filters and URL query string"
-                                   >
-                                          🔄 Reset
-                                   </button>
                             </div>
                      </div>
-                            <div className="mt-2">
-                                   <small className="text-muted">
-                                          <span className="badge badge-info">💡 Tip:</span> Press <kbd>Enter</kbd> key anywhere on this page to load data with your filters
-                                   </small>
-                            </div>
-                     </React.Fragment>}
-              </div>
+                     <div className={styles.actions}>
+                            <button type="button" className="btn btn-outline-secondary" disabled={isLoading} onClick={() => {
+                                   setField("patientname");
+                                   setTestName("");
+                                   setPopupBlocked(false);
+                                   setDateFilter("");
+                                   applyFilters({ ...emptySearch, _dateFrom: "", _dateEnd: "", sortby: "DESC" });
+                            }}><RiRestartLine size={16} aria-hidden="true" /> Reset</button>
+                            <button type="submit" className="btn btn-primary" disabled={isLoading || (field === "testid" && !queryParams.testid)}>
+                                   <RiSearchLine size={16} aria-hidden="true" /> {isLoading ? "Loading…" : "Apply filters"}
+                            </button>
+                     </div>
+              </form>
        );
 }

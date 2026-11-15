@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Modal, Spinner } from 'react-bootstrap';
 import { RiCheckboxCircleLine, RiCloseCircleLine, RiFileListLine, RiMailLine, RiRefreshLine, RiSearchLine, RiTestTubeLine, RiTimeLine } from '@remixicon/react';
@@ -13,7 +13,7 @@ import DateFilterReusable from '../operations/Laboratory/ResuableFilter/DateFilt
 
 type ReportMode = 'samples' | 'reviews' | 'communications';
 type Props = { mode: ReportMode };
-type ReportResponse = { summary: Record<string, number>; items: any[]; pagination: { page: number; count: number; total: number; totalPages: number } };
+type ReportResponse = { summary: Record<string, number>; items: any[]; collectionCenters?: Array<{ id: number; name: string; branch_id: number; active: boolean | number }>; pagination: { page: number; count: number; total: number; totalPages: number } };
 
 const today = () => new Date().toISOString().slice(0, 10);
 const formatDate = (value?: string) => value ? new Date(value).toLocaleString() : 'Not recorded';
@@ -59,6 +59,8 @@ export default function SampleReportsWorkspace({ mode }: Props) {
      const [dates, setDates] = useState({ startDate: today(), endDate: today() });
      const [status, setStatus] = useState('all');
      const [search, setSearch] = useState('');
+     const [collectionCenterId, setCollectionCenterId] = useState('');
+     const reportRequest = useRef(0);
      const [page, setPage] = useState(1);
      const [count, setCount] = useState(10);
      const [recollectionBillingId, setRecollectionBillingId] = useState<number | null>(null);
@@ -66,17 +68,21 @@ export default function SampleReportsWorkspace({ mode }: Props) {
      const [auditLoading, setAuditLoading] = useState(false);
 
      const load = useCallback(async () => {
+          const request = ++reportRequest.current;
           setLoading(true);
           try {
                const params = new URLSearchParams({ startDate: dates.startDate, endDate: dates.endDate, status, search, page: String(page), count: String(count) });
+               if (mode === 'samples' && collectionCenterId) params.set('collectionCenterId', collectionCenterId);
                const response = await customFetch(`${config.endpoint}?${params.toString()}`);
+               if (request !== reportRequest.current) return;
                if (!response?.success) throw new Error(response?.message || 'Unable to load sample report.');
                setReport(response.data || { summary: {}, items: [], pagination: { page, count, total: 0, totalPages: 0 } });
           } catch (error: any) {
+               if (request !== reportRequest.current) return;
                toast.error(error?.message || 'Unable to load sample report.');
                setReport({ summary: {}, items: [], pagination: { page, count, total: 0, totalPages: 0 } });
-          } finally { setLoading(false); }
-     }, [config.endpoint, count, dates.endDate, dates.startDate, page, search, status]);
+          } finally { if (request === reportRequest.current) setLoading(false); }
+     }, [collectionCenterId, config.endpoint, count, dates.endDate, dates.startDate, mode, page, search, status]);
 
      useEffect(() => { load(); }, [load]);
 
@@ -105,12 +111,21 @@ export default function SampleReportsWorkspace({ mode }: Props) {
 
           <div className="border bg-body" style={{ borderRadius: 8 }}>
                <div className="p-3 border-bottom"><div className="row g-3 align-items-end"><div className="col-12 col-md-4 col-xl-3"><label className="form-label small fw-semibold mb-1">Date range</label><DateFilterReusable value={dateFilter} onChange={setDateFilter} onDateRangeChange={(startDate, endDate) => { setDates({ startDate, endDate }); setPage(1); }} label="Choose date range" className="w-100" /><div className="small text-muted mt-1">{dates.startDate} to {dates.endDate}</div></div>
-                    <div className="col-12 col-md-5 col-xl-5"><label className="form-label small fw-semibold" htmlFor="sample-report-search"><RiSearchLine size={16} className="me-1" />Search</label><input id="sample-report-search" className="form-control" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Patient, billing ID, patient ID, or sample ID" /></div>
+                    <div className={mode === 'samples' ? 'col-12 col-md-4 col-xl-3' : 'col-12 col-md-5 col-xl-5'}><label className="form-label small fw-semibold" htmlFor="sample-report-search"><RiSearchLine size={16} className="me-1" />Search</label><input id="sample-report-search" className="form-control" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Patient, billing ID, patient ID, or sample ID" /></div>
+                    {mode === 'samples' && <div className="col-12 col-md-4 col-xl-3">
+                         <label className="form-label small fw-semibold" htmlFor="sample-report-center">Collection Center</label>
+                         <select id="sample-report-center" className="form-select" value={collectionCenterId} onChange={event => { setCollectionCenterId(event.target.value); setPage(1); }}>
+                              <option value="">All centers</option>
+                              {report.collectionCenters?.map(center => <option key={center.id} value={center.id}>
+                                   {center.name} · Branch {center.branch_id}{center.active ? '' : ' (inactive)'}
+                              </option>)}
+                         </select>
+                    </div>}
                     <div className="col-8 col-md-2"><label className="form-label small fw-semibold" htmlFor="sample-report-status">Status</label><select id="sample-report-status" className="form-select" value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }}><option value="all">All statuses</option>{Object.keys(statusClasses).map((key) => <option value={key} key={key}>{statusLabel(key)}</option>)}</select></div>
                     <div className="col-4 col-md-1"><button className="btn btn-primary w-100 d-flex align-items-center justify-content-center" title="Refresh report" onClick={load} disabled={loading}><RiRefreshLine size={18} /></button></div></div>
                </div>
                <div className="table-responsive"><table className="table table-hover align-middle mb-0"><thead className="table-light"><tr>{mode === 'samples' ? <><th>Sample</th><th>Patient / Billing</th><th>Container / Tests</th><th>Source</th><th>Status / Decision</th><th>Timeline</th><th></th></> : mode === 'reviews' ? <><th>Request</th><th>Sample / Patient</th><th>Reason</th><th>Status</th><th>Decision</th></> : <><th>Message</th><th>Sample / Patient</th><th>Channels</th><th>Status</th><th>Delivery attempts</th></>}</tr></thead><tbody>
-                    {loading ? <tr><td colSpan={7} className="text-center py-5"><Spinner animation="border" /></td></tr> : report.items.length === 0 ? <tr><td colSpan={7} className="text-center text-muted py-5">No records match these filters.</td></tr> : report.items.map((item) => mode === 'samples' ? <tr key={item.id}><td><strong>{item.sample_uid}</strong><div className="small text-muted">{formatDate(item.created_at)}</div></td><td>{item.patient_name}<div className="small text-muted">{item.fullpatientid} | Billing {item.billingid}</div></td><td>{item.sample_type_name || 'Specimen'} / {item.container_type_name || 'Container'}<div className="small text-muted">{item.test_names || 'No linked tests'}</div></td><td className="text-capitalize">{item.collection_source || 'onsite'}{item.external_facility ? <div className="small text-muted">{item.external_facility}</div> : null}</td><td><StatusText value={item.status} />{item.rejection_reason ? <div className="small text-danger">{item.rejection_reason}</div> : null}<div className="small text-muted">{item.validated_by_name || ''}</div></td><td className="small"><div>Collected: {formatDate(item.collected_at)}</div><div>Received: {formatDate(item.received_at)}</div><div>Validated: {formatDate(item.accepted_at || item.rejected_at)}</div></td><td><button className="btn btn-sm btn-outline-primary" onClick={() => openAudit(item.id)} disabled={auditLoading}>History</button>{canHandleStorage && ['rejected', 'recollection_required'].includes(item.status) && <button className="btn btn-sm btn-warning ms-2" onClick={() => setRecollectionBillingId(Number(item.billingid))}>Recollect sample</button>}{canHandleStorage && ['collected', 'received', 'accepted'].includes(item.status) && item.storage_state !== 'disposed' && <Link className="btn btn-sm btn-primary ms-2" href={`/operations/phelobotomy/specimen-storage?sampleId=${item.id}&action=store`}>{item.storage_state === 'stored' ? 'Move sample' : item.storage_state === 'retrieved' ? 'Return to storage' : 'Store sample'}</Link>}{['accepted', 'rejected'].includes(item.status) && <Link className="btn btn-sm btn-outline-secondary ms-2" href={`/operations/phelobotomy/specimen-storage?sampleId=${item.id}`}>Storage / aliquots</Link>}</td></tr>
+                    {loading ? <tr><td colSpan={7} className="text-center py-5"><Spinner animation="border" /></td></tr> : report.items.length === 0 ? <tr><td colSpan={7} className="text-center text-muted py-5">No records match these filters.</td></tr> : report.items.map((item) => mode === 'samples' ? <tr key={item.id}><td><strong>{item.sample_uid}</strong><div className="small text-muted">{formatDate(item.created_at)}</div></td><td>{item.patient_name}<div className="small text-muted">{item.fullpatientid} | Billing {item.billingid}</div></td><td>{item.sample_type_name || 'Specimen'} / {item.container_type_name || 'Container'}<div className="small text-muted">{item.test_names || 'No linked tests'}</div></td><td className="text-capitalize">{item.collection_source || 'onsite'}{(item.collection_center_name || item.external_facility) && <div className="small text-muted">{item.collection_center_name || item.external_facility}</div>}</td><td><StatusText value={item.status} />{item.rejection_reason ? <div className="small text-danger">{item.rejection_reason}</div> : null}<div className="small text-muted">{item.validated_by_name || ''}</div></td><td className="small"><div>Collected: {formatDate(item.collected_at)}</div><div>Received: {formatDate(item.received_at)}</div><div>Validated: {formatDate(item.accepted_at || item.rejected_at)}</div></td><td><button className="btn btn-sm btn-outline-primary" onClick={() => openAudit(item.id)} disabled={auditLoading}>History</button>{canHandleStorage && ['rejected', 'recollection_required'].includes(item.status) && <button className="btn btn-sm btn-warning ms-2" onClick={() => setRecollectionBillingId(Number(item.billingid))}>Recollect sample</button>}{canHandleStorage && ['collected', 'received', 'accepted'].includes(item.status) && item.storage_state !== 'disposed' && <Link className="btn btn-sm btn-primary ms-2" href={`/operations/phelobotomy/specimen-storage?sampleId=${item.id}&action=store`}>{item.storage_state === 'stored' ? 'Move sample' : item.storage_state === 'retrieved' ? 'Return to storage' : 'Store sample'}</Link>}{['accepted', 'rejected'].includes(item.status) && <Link className="btn btn-sm btn-outline-secondary ms-2" href={`/operations/phelobotomy/specimen-storage?sampleId=${item.id}`}>Storage / aliquots</Link>}</td></tr>
                     : mode === 'reviews' ? <tr key={item.id}><td>{formatDate(item.requested_at)}<div className="small text-muted">By {item.requested_by_name || item.requested_by}</div></td><td><strong>{item.sample_uid}</strong><div>{item.patient_name}</div><div className="small text-muted">Billing {item.billingid} | {item.test_names}</div></td><td>{item.request_reason || item.rejection_reason || 'No reason recorded'}</td><td><StatusText value={item.status} /></td><td>{item.review_notes || 'Pending decision'}<div className="small text-muted">{item.reviewed_by_name ? `${item.reviewed_by_name} - ${formatDate(item.reviewed_at)}` : ''}</div></td></tr>
                     : <tr key={item.id}><td style={{ minWidth: 260 }}>{item.message}<div className="small text-muted">{formatDate(item.created_at)} by {item.requested_by_name || item.requested_by}</div></td><td><strong>{item.sample_uid}</strong><div>{item.patient_name}</div><div className="small text-muted">Billing {item.billingid}</div></td><td className="text-capitalize">{parseChannels(item.requested_channels)}</td><td><StatusText value={item.status} /></td><td>{item.attempts?.length ? item.attempts.map((attempt: any) => <div key={attempt.id} className="small text-capitalize"><RiMailLine size={14} className="me-1" />{attempt.channel}: <StatusText value={attempt.status} /> {attempt.recipient_masked || ''}</div>) : <span className="text-muted">No delivery attempt</span>}</td></tr>)}</tbody></table></div>
                <div className="p-3 border-top d-flex flex-wrap justify-content-between align-items-center gap-2"><div className="d-flex align-items-center gap-2"><label className="small text-muted" htmlFor="sample-report-count">Rows</label><select id="sample-report-count" className="form-select form-select-sm" style={{ width: 80 }} value={count} onChange={(event) => { setCount(Number(event.target.value)); setPage(1); }}><option value={10}>10</option><option value={25}>25</option><option value={50}>50</option><option value={100}>100</option></select><span className="small text-muted">of {report.pagination.total.toLocaleString()}</span></div><div className="d-flex align-items-center gap-2"><button className="btn btn-sm btn-outline-secondary" disabled={loading || page <= 1} onClick={() => setPage((current) => Math.max(1, current - 1))}>Previous</button><span className="small fw-semibold">Page {report.pagination.page} of {Math.max(1, report.pagination.totalPages)}</span><button className="btn btn-sm btn-outline-secondary" disabled={loading || page >= report.pagination.totalPages} onClick={() => setPage((current) => current + 1)}>Next</button></div></div>

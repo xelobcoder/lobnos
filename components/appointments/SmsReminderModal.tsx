@@ -39,17 +39,16 @@ const SmsReminderModal: React.FC<SmsReminderModalProps> = ({
 		const payload = {
 			type: sendType,
 			scheduleDate: sendType === 'schedule' ? scheduleDate : undefined,
-			appointmentId: appointment?.id,
-			appointmentDetails: appointment,
+			appointmentDetails: { refid: appointment?.refid },
 		};
 		try {
 			const resp = await customPost('appointment/reminder', 'POST', payload);
-			const { status, message } = resp;
+			const { status, message, error } = resp;
 			if (status === 'success') {
 				toast.success(message || 'SMS reminder sent successfully.');
 				onSend(payload);
 			} else {
-				toast.error(message || 'Failed to send SMS reminder.');
+				toast.error(message || error || 'Failed to send SMS reminder.');
 			}
 		} catch (e) {
 			toast.error('Failed to send SMS reminder.');
@@ -69,6 +68,8 @@ const SmsReminderModal: React.FC<SmsReminderModalProps> = ({
 						<div><b>Purpose:</b> {appointment.purpose}</div>
 						<div><b>Date:</b> {appointment.appointment_date ? dayjs(appointment.appointment_date).format('DD MMM YYYY') : ''}</div>
 						<div><b>Time:</b> {appointment.appointment_time}</div>
+						<div><b>SMS recipient:</b> {appointment.appointment_sms_phone || 'No eligible saved number'}</div>
+						{appointment.appointment_sms_shared && <small className="text-muted">A general reminder will be sent to the saved contact.</small>}
 					</div>
 				)}
 				<Form>
@@ -109,7 +110,7 @@ const SmsReminderModal: React.FC<SmsReminderModalProps> = ({
 				<Button variant="secondary" onClick={onHide}>
 					Cancel
 				</Button>
-				<Button variant="primary" onClick={handleSend} disabled={disableSend}>
+				<Button variant="primary" onClick={handleSend} disabled={disableSend || !appointment?.appointment_sms_phone}>
 					{sendType === 'now' ? 'Send Now' : 'Schedule'}
 				</Button>
 			</Modal.Footer>

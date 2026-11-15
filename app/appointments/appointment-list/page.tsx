@@ -38,6 +38,8 @@ type Appointment = {
     gender: string;
     marital_status: string;
     mobile_number: string;
+    appointment_sms_phone?: string | null;
+    appointment_sms_shared?: boolean;
     agetype: string;
     occupation: string;
     date: string;
@@ -110,7 +112,9 @@ export default function AppointmentList() {
     );
 
     const contactBodyTemplate = (rowData: Appointment) => (
-        rowData.mobile_number || rowData.whatAppcontact || '-'
+        rowData.inviteMethod?.toLowerCase() === 'sms'
+            ? rowData.appointment_sms_phone ?? '-'
+            : rowData.appointment_sms_phone || rowData.mobile_number || rowData.whatAppcontact || '-'
     );
 
     if (isLoading) return <Loader />;
