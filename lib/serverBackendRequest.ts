@@ -1,4 +1,5 @@
 import 'server-only';
+import { cookies } from 'next/headers';
 import {getServerRequestContext} from './serverRequestContext';
 import {getBackendAuthorization, assertBackendTransport} from './serverBackendAccess';
 import {usesTenantQuery} from './apiBaseUrl';
@@ -31,18 +32,24 @@ export async function serverBackendRequest(endpoint: string, options: RequestIni
         credentialPath = decoded;
     }
     credentialPath = credentialPath.toLowerCase().split('/').filter(Boolean).join('/');
-    if (['prime/refresh-role-session','prime/switch-role'].some(path => credentialPath === path || credentialPath.endsWith('/' + path))) {
-        throw new Error('Use the dedicated authenticated role-session endpoint');
+    if (['prime/refresh-role-session','prime/switch-role','platform/facilities/developer-session','platform/master/login','platform/master/logout'].some(path => credentialPath === path || credentialPath.endsWith('/' + path))) {
+        throw new Error('Use the dedicated authenticated session endpoint');
     }
-    const context = publicRequest ? null : await getServerRequestContext();
+    if (credentialPath.endsWith('/platform/master/account') && (options.method ?? 'GET').toUpperCase() !== 'GET') {
+        throw new Error('Use the dedicated master account endpoint');
+    }
+    const masterRequest = /(?:^|\/)(?:platform\/(?:facilities|payments|master)|marketplace\/platform)(?:\/|$)/.test(credentialPath);
+    const masterToken = !publicRequest && masterRequest ? (await cookies()).get('pls-master-session')?.value : undefined;
+    const context = publicRequest || masterRequest ? null : await getServerRequestContext();
     const authenticated = Boolean(context?.tenantId && context.PLS_SESSION && context.PLS_PRIME_TENANT_SESSION);
     const tenantId = context?.tenantId ?? requestedTenantId;
     if (authenticated && usesTenantQuery(endpoint)) target.searchParams.set('tenantId', String(tenantId));
     else if (publicRequest && Number.isSafeInteger(tenantId) && Number(tenantId) > 0 && usesTenantQuery(endpoint)) target.searchParams.set('tenantId', String(tenantId));
     const headers = new Headers(options.headers);
-    for (const name of ['authorization', 'cookie', 'pls-session', 'pls-prime-tenant-session', 'loginsessionid', 'host', 'connection', 'content-length', 'transfer-encoding']) headers.delete(name);
+    for (const name of ['authorization', 'cookie', 'pls-session', 'pls-prime-tenant-session', 'x-pls-master-session', 'loginsessionid', 'host', 'connection', 'content-length', 'transfer-encoding']) headers.delete(name);
     const authorization = getBackendAuthorization();
     if (authorization) headers.set('Authorization', authorization);
+    if (masterToken) headers.set('x-pls-master-session', masterToken);
     if (authenticated && context) {
         headers.set('pls-session', context.PLS_SESSION);
         headers.set('pls-prime-tenant-session', context.PLS_PRIME_TENANT_SESSION);

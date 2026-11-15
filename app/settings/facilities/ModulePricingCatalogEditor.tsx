@@ -6,7 +6,6 @@ import { useApplication } from "../../../components/Auth/useApplicationContext";
 import {
      MODULE_LABELS, ModuleName, ModulePricingCatalogEntry, parseModulePricingCatalogEntry,
 } from "./provisioningForm";
-import FacilityNav from "./FacilityNav";
 
 const emptyModulePrices = (): Record<ModuleName, string> => {
      const prices = {} as Record<ModuleName, string>;
@@ -124,7 +123,6 @@ export default function ModulePricingCatalogEditor() {
 
      return (
           <main className="p-2" aria-busy={loading || busy}>
-               <FacilityNav />
                <h1 className="h4 mb-2">Universal module pricing</h1>
                <p className="text-muted">Set the monthly rate for each module once. Facility provisioning uses these rates to calculate its estimate. Existing facilities keep saved price snapshots until their module configuration is saved again.</p>
                {error && <div className="alert alert-danger" role="alert">{error}</div>}

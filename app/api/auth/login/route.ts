@@ -81,6 +81,12 @@ export async function POST(request: NextRequest) {
             throw new Error('The authentication session exceeds the supported cookie size');
         }
         const maxAge = Math.max(1, Math.floor((effectiveSessionExpiryTime - Date.now()) / 1000));
+        if (!user.developerSupport) {
+            const jar = await cookies();
+            for (const name of ['PLS-SESSION', 'pls-prime-tenant-session', 'loginsessionId']) {
+                jar.delete('platform-owner-' + name);
+            }
+        }
         // Set cookies
         (await cookies()).set('PLS-SESSION', signedToken, {
             httpOnly: true,

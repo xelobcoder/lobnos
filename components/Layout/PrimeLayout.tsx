@@ -33,11 +33,21 @@ import { FontSelector } from "./FontSelector";
 import { useTheme } from "../ThemeProvider";
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { customFetch, customFetchMutation } from '../Auth/customFetch';
+import { useDeveloperTenantSwitch } from "../Auth/useDeveloperTenantSwitch";
 import { roleAllowed } from '../Auth/roles';
 import { canAccessFacilityModule } from '../../lib/facilityModuleAccess';
 import {canAccessRolePage,roleWorkspace} from '../../lib/roleNavigationPolicy';
 import {roleWorkspaceSidebar,roleSidebarQuickLinks} from './links/RoleSidebars';
 
+
+function hidePlatformLinks(links: LinkType[]): LinkType[] {
+    return links.flatMap(link => {
+        if (link.link === '/settings/facilities' || link.link.startsWith('/settings/facilities/')) return [];
+        if (!link.children?.length) return [link];
+        const children = hidePlatformLinks(link.children);
+        return children.length ? [{ ...link, children }] : [];
+    });
+}
 
 interface PrimeLayoutProps {
     children: React.ReactNode;
@@ -45,6 +55,7 @@ interface PrimeLayoutProps {
 }
 
 const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLinks }) => {
+    const developer = useDeveloperTenantSwitch();
     const { company, user, branchid, tenantId, daysToExpiration, settings } = useApplicationSettings().applicationsettings;
     const [stockAccess,setStockAccess]=useState<string[]>([]);
     const [panelViewAccess,setPanelViewAccess]=useState(false);
@@ -96,11 +107,30 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLink
     const [unreadCount, setUnreadCount] = useState<number>(0);
     const normalizedRole = String(user?.role || '').toLowerCase().trim().replace(/_/g, '-');
     const isSuperAdmin = normalizedRole.replace(/[\s-]/g, '') === 'superadmin';
+    const accountKey = isSuperAdmin && user?.employeeid && tenantId ? `${tenantId}:${user.employeeid}` : null;
+    const [authorizedPlatformAccount, setAuthorizedPlatformAccount] = useState<string | null>(null);
+    useEffect(() => {
+        let active = true;
+        setAuthorizedPlatformAccount(null);
+        if (accountKey) {
+            void customFetch('platform/facilities/access').then(access => {
+                if (active && access?.status === 'success' && access.result?.authorized === true) {
+                    setAuthorizedPlatformAccount(accountKey);
+                }
+            }).catch(() => undefined);
+        }
+        return () => { active = false; };
+    }, [accountKey]);
+    const canManagePlatform = accountKey !== null && authorizedPlatformAccount === accountKey;
+    const workspaceLinks = useMemo(
+        () => canManagePlatform ? suppliedLinks : hidePlatformLinks(suppliedLinks),
+        [canManagePlatform, suppliedLinks],
+    );
     const workspaceRole=roleWorkspace(user?.role);
     const useRoleShortcuts=!['admin','superadmin','manager'].includes(workspaceRole);
-    const roleLinks = (useRoleShortcuts ? roleSidebarQuickLinks(user?.role,suppliedLinks,navigationSettings,modulePath||'') : isSuperAdmin ? SuperAdminRoleLinks : (roleViews[workspaceRole] || [])).filter(item =>
+    const roleLinks = (useRoleShortcuts ? roleSidebarQuickLinks(user?.role,workspaceLinks,navigationSettings,modulePath||'') : isSuperAdmin ? (canManagePlatform ? SuperAdminRoleLinks : AdminRoleLinks) : (roleViews[workspaceRole] || [])).filter(item =>
         canAccessRolePage(user?.role,item.href||'',navigationSettings) && (isSuperAdmin||canAccessFacilityModule(item.href||'',settings?.moduleConfiguration,{smsActivated:settings?.smsActivated})));
-    const visibleLinks = useMemo(() => roleWorkspaceSidebar(user?.role,suppliedLinks,navigationSettings,modulePath||''),[suppliedLinks,user?.role,settings,stockAccess,panelViewAccess,panelManageAccess,panelDelegationAccess,modulePath]);
+    const visibleLinks = useMemo(() => roleWorkspaceSidebar(user?.role,workspaceLinks,navigationSettings,modulePath||''),[workspaceLinks,user?.role,settings,stockAccess,panelViewAccess,panelManageAccess,panelDelegationAccess,modulePath]);
     const canViewNotifications = roleAllowed(user?.role, ['admin', 'manager']);
     const activeNavigationPath = useMemo(() => findActiveNavigationPath(visibleLinks, modulePath || ''), [visibleLinks, modulePath]);
     const employeeid = user?.employeeid || 0;
@@ -581,6 +611,14 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links: suppliedLink
                     </aside>
                 )}
                 <main className={`${styles.mainContent} ${isWorkspaceLayout ? workspaceStyles.main : ''} ${isRibbonLayout ? ribbonStyles.main : ''}`} id="workspace-main" tabIndex={isRibbonLayout ? -1 : undefined} style={!isOpenSideBarShow ? { margin: 0, padding: 0 } : {}}>
+                    {user?.developerSupport && (
+                        <div className="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2" role="status">
+                            <strong>Developer session · {company || `Facility ${tenantId}`}</strong>
+                            <button className="btn btn-sm btn-outline-dark" type="button" disabled={developer.busy}
+                                onClick={() => void developer.switchTenant()}>Return to master platform</button>
+                            {developer.error && <span className="w-100" role="alert">{developer.error}</span>}
+                        </div>
+                    )}
                     <div className={`${styles.contentWrapper} ${isWorkspaceLayout ? workspaceStyles.content : ''} ${isRibbonLayout ? ribbonStyles.content : ''}`} style={!isOpenSideBarShow ? { padding: 0, margin: '10px', maxWidth: '100%' } : {}}>
                         {isRibbonLayout && isOpenSideBarShow && activeNavigationPath.length > 0 && <nav aria-label="Breadcrumb">
                             <ol className={ribbonStyles.breadcrumb}>

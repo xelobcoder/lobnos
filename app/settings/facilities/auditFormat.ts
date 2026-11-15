@@ -37,7 +37,7 @@ export function actionLabel(event: Pick<AuditEvent, "action" | "toStatus">): str
 export const sourceLabel = (source: string) => humanize(source || "");
 
 export const actorLabel = (event: Pick<AuditEvent, "actorTenantId" | "actorEmployeeId">) =>
-     `Staff #${event.actorEmployeeId} (Tenant #${event.actorTenantId})`;
+     event.actorTenantId === 0 ? "Master administrator" : `Staff #${event.actorEmployeeId} (Tenant #${event.actorTenantId})`;
 
 export function formatDateTime(value: string, locale?: string, timeZone?: string): string {
      if (!value) return "-";
@@ -84,6 +84,13 @@ export function summarizeDetails(event: Pick<AuditEvent, "action" | "details">):
                { label: "Paid on", value: text(details.paidAt) },
           ].filter((item) => item.value);
      }
+     if (event.action === "test_setup_copied") return [
+          { label: "Source facility", value: text(details.sourceTenantId) },
+          { label: "Source panel", value: text(details.sourceTestId) },
+          { label: "Destination panel", value: text(details.targetTestId) },
+          { label: "Parameters added", value: text(details.parameterCount) },
+          { label: "Destination audit", value: text(details.targetAuditId) },
+     ];
      if (typeof details.stage === "string") return [
           { label: "Provisioning stage", value: humanize(details.stage.replace(/^failed:/, "")) },
           { label: "Outcome", value: details.failed ? "Failed" : "Completed" },

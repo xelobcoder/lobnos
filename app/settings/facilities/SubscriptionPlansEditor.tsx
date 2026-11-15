@@ -4,7 +4,6 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { customFetch, customFetchMutation } from "../../../components/Auth/customFetch";
 import { useApplication } from "../../../components/Auth/useApplicationContext";
 import { MODULE_LABELS, ModuleName } from "./provisioningForm";
-import FacilityNav from "./FacilityNav";
 
 export interface SubscriptionPlan {
      code: string;
@@ -147,7 +146,6 @@ export default function SubscriptionPlansEditor() {
 
      return (
           <main className="p-2" aria-busy={loading || busy}>
-               <FacilityNav />
                <h1 className="h4 mb-2">Subscription plans</h1>
                <p className="text-muted">Bundle modules into tiers such as Basic, Professional and Enterprise with one monthly price. Higher rank means a higher tier; facilities can only request upgrades to a higher tier.</p>
                {error && <div className="alert alert-danger" role="alert">{error}</div>}

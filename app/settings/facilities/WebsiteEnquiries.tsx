@@ -1,5 +1,6 @@
 "use client";
 
+import { useVisibleRefresh } from "../../../components/useVisibleRefresh";
 import { useEffect, useState } from "react";
 import { customFetch } from "../../../components/Auth/customFetch";
 import { WebsiteEnquiry, websiteEnquiriesSchema } from "./enquirySchemas";
@@ -13,6 +14,7 @@ export default function WebsiteEnquiries() {
      const [loading, setLoading] = useState(true);
      const [error, setError] = useState("");
      const [refresh, setRefresh] = useState(0);
+     useVisibleRefresh(() => setRefresh(value => value + 1), !selected && !loading);
 
      useEffect(() => {
           let active = true;

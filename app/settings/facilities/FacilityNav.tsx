@@ -2,28 +2,34 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { RiBuilding2Line, RiHistoryLine, RiMoneyDollarCircleLine, RiSettings4Line, RiShieldUserLine, RiToolsLine } from "@remixicon/react";
 
-const TABS = [
-     { href: "/settings/facilities", label: "Provisioning" },
-     { href: "/settings/facilities/pricing", label: "Module pricing" },
-     { href: "/settings/facilities/plans", label: "Subscription plans" },
-     { href: "/settings/facilities/applications", label: "Website applications" },
-     { href: "/settings/facilities/payments", label: "Payments & subscriptions" },
-     { href: "/settings/facilities/transactions", label: "Online payments" },
-     { href: "/settings/facilities/sms", label: "SMS configuration" },
-     { href: "/settings/facilities/devices", label: "Medical Device Interfacing" },
-     { href: "/settings/facilities/audit", label: "Audit logs" },
-];
+const base = "/master-platform";
+const sections = [
+    ["", "Client provisioning", RiBuilding2Line],
+    ["/applications", "Website requests", RiBuilding2Line],
+    ["/pricing", "Module pricing", RiMoneyDollarCircleLine],
+    ["/plans", "Subscription plans", RiMoneyDollarCircleLine],
+    ["/payments", "Payments & subscriptions", RiMoneyDollarCircleLine],
+    ["/transactions", "Online payments", RiMoneyDollarCircleLine],
+    ["/sms", "SMS configuration", RiSettings4Line],
+    ["/devices", "Medical device interfacing", RiToolsLine],
+    ["/audit", "Audit logs", RiHistoryLine],
+    ["/copy-test-setup", "Copy test setup", RiToolsLine],
+    ["/account", "Master account", RiShieldUserLine],
+] as const;
 
 export default function FacilityNav() {
-     const pathname = (usePathname() || "").replace(/\/$/, "");
-     return (
-          <nav aria-label="Client platform sections" className="mb-3">
-               <ul className="nav nav-tabs">
-                    {TABS.map((tab) => <li className="nav-item" key={tab.href}>
-                         <Link href={tab.href} className={`nav-link${pathname === tab.href ? " active" : ""}`} aria-current={pathname === tab.href ? "page" : undefined}>{tab.label}</Link>
-                    </li>)}
-               </ul>
-          </nav>
-     );
+    const pathname = usePathname();
+
+    return <nav className="list-group list-group-flush" aria-label="Platform administration">
+        {sections.map(([path, label, Icon]) => {
+            const href = base + path;
+            const active = pathname === href;
+            return <Link href={href} key={href} aria-current={active ? "page" : undefined}
+                className={`list-group-item list-group-item-action d-flex align-items-center gap-2 py-3${active ? " list-group-item-success fw-semibold" : ""}`}>
+                <Icon size={19} aria-hidden="true" />{label}
+            </Link>;
+        })}
+    </nav>;
 }

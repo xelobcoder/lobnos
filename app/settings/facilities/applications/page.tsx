@@ -1,11 +1,11 @@
 "use client";
 
+import { useVisibleRefresh } from "../../../../components/useVisibleRefresh";
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { z } from "zod";
 import { customFetch, customFetchMutation } from "../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
-import FacilityNav from "../FacilityNav";
 import WebsiteEnquiries from "../WebsiteEnquiries";
 import { MarketplaceApplication, marketplaceApplicationsSchema } from "../marketplaceApplications";
 
@@ -30,6 +30,7 @@ export default function WebsiteApplicationsPage() {
      const [error, setError] = useState("");
      const [notice, setNotice] = useState("");
      const [refresh, setRefresh] = useState(0);
+     useVisibleRefresh(() => setRefresh(value => value + 1), isSuperAdmin && !selected && !busy && !loading);
 
      useEffect(() => {
           if (!isSuperAdmin) { setLoading(false); return; }
@@ -88,7 +89,6 @@ export default function WebsiteApplicationsPage() {
      if (!isSuperAdmin) return <main className="p-2"><div className="alert alert-danger" role="alert">Only an authorized platform super administrator can review website applications.</div></main>;
 
      return <main className="p-2" aria-busy={loading || busy}>
-          <FacilityNav />
           <h1 className="h4 mb-3">Website applications &amp; enquiries</h1>
           <WebsiteEnquiries />
           <div className="d-flex flex-wrap justify-content-between gap-3 mb-3">
@@ -127,7 +127,7 @@ export default function WebsiteApplicationsPage() {
                {selected.status === "approved" && selected.integration_state === "independent" && <>
                     <h3 className="h6 border-top pt-3">Provision a new PLS facility</h3>
                     <p>Review the submitted company details, select the official location and modules, and create a separate PLS administrator password. The website password is never retrieved or reused.</p>
-                    <Link className={`btn btn-primary${busy ? " disabled" : ""}`} href={`/settings/facilities?application=${selected.id}`}>Review and provision PLS facility</Link>
+                    <Link className={`btn btn-primary${busy ? " disabled" : ""}`} href={`/master-platform?application=${selected.id}`}>Review and provision PLS facility</Link>
                     <form className="border-top pt-3 mt-3" onSubmit={link}>
                          <h3 className="h6">Link an existing PLS facility</h3>
                          <label htmlFor="application-tenant" className="form-label">Provisioned facility</label>
@@ -143,7 +143,7 @@ export default function WebsiteApplicationsPage() {
                {selected.status === "approved" && selected.integration_state === "provision_failed" && <div className="alert alert-warning" role="status">
                     <h3 className="h6">Facility provisioning failed</h3>
                     <p>The failed tenant database will be removed before another attempt. Review the details and provide a new administrator password.</p>
-                    <Link className={`btn btn-warning${busy ? " disabled" : ""}`} href={`/settings/facilities?application=${selected.id}`}>Retry facility provisioning</Link>
+                    <Link className={`btn btn-warning${busy ? " disabled" : ""}`} href={`/master-platform?application=${selected.id}`}>Retry facility provisioning</Link>
                </div>}
                {selected.status === "approved" && <form className="border-top pt-3 mt-3" onSubmit={suspend}>
                     <h3 className="h6">Suspend marketplace access</h3>

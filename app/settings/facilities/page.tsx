@@ -6,11 +6,11 @@ import type { ElementType } from "react";
 import { RiBuildingLine, RiCheckboxCircleLine, RiErrorWarningLine, RiTimeLine } from "@remixicon/react";
 import Link from "next/link";
 import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
+import { useDeveloperTenantSwitch } from "../../../components/Auth/useDeveloperTenantSwitch";
 import { customFetch, customFetchMutation } from "../../../components/Auth/customFetch";
 import { useApplication } from "../../../components/Auth/useApplicationContext";
 import FacilityManagement from "./FacilityManagement";
 import FacilityAudit from "./FacilityAudit";
-import FacilityNav from "./FacilityNav";
 import { applyModuleCatalogPrices, FacilityForm, FormErrors, parseModulePricingCatalogEntry, validateFacilityForm, MODULE_LABELS, ModuleName, ModulePricingCatalogEntry, defaultModuleConfiguration, moduleMonthlyTotal } from "./provisioningForm";
 import { applicationProvisioningForm, MarketplaceApplication, marketplaceApplicationsSchema } from "./marketplaceApplications";
 
@@ -78,13 +78,56 @@ const EMPTY_FORM: FacilityForm = {
 };
 
 const errorMessage = (error: unknown) => error instanceof Error ? error.message : "Facility onboarding failed. Please try again.";
+type LicenseWindow = { tenantId: number; status: "active" | "expired" | "missing" | "inactive" | "unavailable"; expiresAt: string | null };
+
 const normalizeRole = (role: unknown) => String(role || "").toLowerCase().replace(/[\s_-]/g, "");
 export default function FacilityOnboardingPage() {
+     const developer = useDeveloperTenantSwitch();
      const application = useApplication();
      const isSuperAdmin = normalizeRole(application?.user?.role) === "superadmin";
      const [form, setForm] = useState<FacilityForm>(EMPTY_FORM);
      const [options, setOptions] = useState<LocationOptions>({ countries: [], states: [], districts: [] });
      const [facilities, setFacilities] = useState<Facility[]>([]);
+     const [licenseWindows, setLicenseWindows] = useState<LicenseWindow[] | null>(null);
+     const [licenseMode, setLicenseMode] = useState<"legacy" | "signed">("legacy");
+     const [licenseError, setLicenseError] = useState("");
+     const [licenseTarget, setLicenseTarget] = useState<Facility | null>(null);
+     const [licenseDate, setLicenseDate] = useState("");
+     const [licenseReason, setLicenseReason] = useState("");
+     const [licenseBusy, setLicenseBusy] = useState(false);
+     const [licenseNotice, setLicenseNotice] = useState("");
+     const [expiredOnly, setExpiredOnly] = useState(false);
+     const licenseFormRef = useRef<HTMLFormElement>(null);
+
+     const loadLicenses = useCallback(async () => {
+          try {
+               const response = await customFetch("platform/facilities/license-windows");
+               if (response?.status !== "success" || !Array.isArray(response.result?.facilities)) {
+                    throw new Error(response?.message || "License status is unavailable.");
+               }
+               setLicenseMode(response.result.mode);
+               setLicenseWindows(response.result.facilities);
+               setLicenseError("");
+          } catch (error) { setLicenseError(errorMessage(error)); }
+     }, []);
+     useEffect(() => { if (isSuperAdmin) void loadLicenses(); }, [isSuperAdmin, loadLicenses]);
+     useEffect(() => { if (licenseTarget) licenseFormRef.current?.scrollIntoView({ block: "center" }); }, [licenseTarget]);
+
+     async function saveLicense(event: FormEvent<HTMLFormElement>) {
+          event.preventDefault();
+          if (!licenseTarget || licenseBusy) return;
+          setLicenseBusy(true);
+          setLicenseError("");
+          try {
+               const response = await customFetchMutation(`platform/facilities/${licenseTarget.tenantId}/license-window`, "PUT",
+                    { endDate: licenseDate, reason: licenseReason });
+               if (response?.status !== "success") throw new Error(response?.message || "License expiry could not be saved.");
+               setLicenseNotice(`License expiry updated for ${licenseTarget.name}.`);
+               setLicenseTarget(null);
+               await loadLicenses();
+          } catch (error) { setLicenseError(errorMessage(error)); }
+          finally { setLicenseBusy(false); }
+     }
      const [pricingCatalog, setPricingCatalog] = useState<ModulePricingCatalogEntry[]>([]);
      const [pricingError, setPricingError] = useState("");
      const [loading, setLoading] = useState(true);
@@ -438,7 +481,10 @@ export default function FacilityOnboardingPage() {
      const selectedFacility = facilities.find((facility) => facility.tenantId === selectedTenantId);
      const normalizedQuery = facilityQuery.trim().toLowerCase();
      const clientFacilities = facilities.filter((facility) => !facility.isControlTenant);
+     const licensesByTenant = new Map(licenseWindows?.map(window => [window.tenantId, window]));
+     const expiredCount = licenseWindows?.filter(window => window.status === "expired").length;
      const visibleFacilities = facilities.filter((facility) =>
+          (!expiredOnly || licensesByTenant.get(facility.tenantId)?.status === "expired") &&
           (showControlTenant || !facility.isControlTenant) &&
           (statusFilter === "all" || facility.status.toLowerCase() === statusFilter) &&
           [facility.name, facility.platformId, String(facility.tenantId), facility.status]
@@ -454,6 +500,31 @@ export default function FacilityOnboardingPage() {
      };
      const summaryReady = hasLoadedFacilities && !loading;
      const facilityColumns = [
+          {
+               Header: "License window",
+               id: "licenseWindow",
+               Cell: ({ row }: { row: { original: Facility } }) => {
+                    const facility = row.original;
+                    const license = licensesByTenant.get(facility.tenantId);
+                    if (!license) return <span className="text-muted">—</span>;
+                    return <div>
+                         <span className={license.status === "expired" ? "text-danger fw-semibold" : "text-capitalize"}>{license.status}</span>
+                         {license.expiresAt && <div className="small text-muted">{license.expiresAt.slice(0, 10)}</div>}
+                         {licenseMode === "legacy" && license.status !== "unavailable" && <button type="button" className="btn btn-sm btn-outline-secondary mt-1"
+                              onClick={() => { setLicenseTarget(facility); setLicenseDate(license.expiresAt?.slice(0, 10) || ""); setLicenseReason(""); setLicenseNotice(""); }}>
+                              Change expiry
+                         </button>}
+                    </div>;
+               },
+          },
+          {
+               Header: "Developer access",
+               id: "developerAccess",
+               Cell: ({ row }: { row: { original: Facility } }) => !row.original.isControlTenant && row.original.status.toLowerCase() === "active"
+                    ? <button type="button" className="btn btn-sm btn-outline-primary" disabled={developer.busy}
+                         onClick={() => void developer.switchTenant(row.original.tenantId)}>Open facility</button>
+                    : <span className="text-muted">—</span>,
+          },
           {
                Header: "Retry",
                id: "retry",
@@ -535,7 +606,6 @@ export default function FacilityOnboardingPage() {
                <header className="mb-3">
                     <h1 className="h4 fw-semibold mb-1">Client platform</h1>
                     <p className="text-muted small mb-2">Monitor facility status and open platform-management tasks.</p>
-                    <FacilityNav />
                </header>
                <section className="mb-3" aria-labelledby="facility-overview-title">
                     <h2 id="facility-overview-title" className="h5 fw-semibold mb-2">Facility overview</h2>
@@ -620,7 +690,7 @@ export default function FacilityOnboardingPage() {
                                    
                                    if (provisionOpen) setForm(blankFacilityForm());
                               }}>{provisionOpen ? "Close form" : "+ Provision Facility"}</button>
-                              <Link href="/settings/facilities/pricing" className="btn btn-outline-primary w-100 w-sm-auto">Manage module pricing</Link>
+                              <Link href="/master-platform/pricing" className="btn btn-outline-primary w-100 w-sm-auto">Manage module pricing</Link>
                               <button type="button" className="btn btn-outline-secondary w-100 w-sm-auto" disabled={loading || busy} onClick={() => void load()}>{error ? "Retry" : "Refresh"}</button>
                          </div>
                          <label className="form-check mt-2">
@@ -630,7 +700,31 @@ export default function FacilityOnboardingPage() {
                     </div>
                </section>
                {error && <div className="alert alert-danger mb-3 d-flex justify-content-between gap-2" role="alert"><span>{error}</span><button type="button" className="btn-close" aria-label="Dismiss error" onClick={() => setError("")} /></div>}
-               {pricingError && <div className="alert alert-warning mb-3" role="alert">{pricingError} <Link href="/settings/facilities/pricing">Open the Module pricing tab</Link>.</div>}
+               {licenseWindows && <div className="d-flex flex-wrap gap-2 align-items-center mb-3">
+                    <button type="button" className={`btn btn-sm ${expiredOnly ? "btn-danger" : "btn-outline-danger"}`}
+                         aria-pressed={expiredOnly} onClick={() => { setExpiredOnly(!expiredOnly); setStatusFilter("all"); }}>
+                         Expired license windows ({expiredCount})
+                    </button>
+                    <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => void loadLicenses()}>Refresh licenses</button>
+                    {licenseMode === "signed" && <span className="text-muted small">Signed certificates are managed separately.</span>}
+               </div>}
+               {licenseError && <div className="alert alert-warning" role="alert">{licenseError}</div>}
+               {licenseNotice && <div className="alert alert-success" role="status">{licenseNotice}</div>}
+               {licenseTarget && <form ref={licenseFormRef} className="card card-body mb-3" onSubmit={saveLicense}>
+                    <h2 className="h5">License expiry for {licenseTarget.name}</h2>
+                    <label htmlFor="facility-license-end" className="form-label">Valid through (UTC)</label>
+                    <input id="facility-license-end" type="date" className="form-control mb-2" value={licenseDate} required
+                         onChange={event => setLicenseDate(event.target.value)} />
+                    <label htmlFor="facility-license-reason" className="form-label">Reason for change</label>
+                    <textarea id="facility-license-reason" className="form-control mb-2" value={licenseReason} required maxLength={500}
+                         onChange={event => setLicenseReason(event.target.value)} />
+                    <div className="d-flex gap-2">
+                         <button type="submit" className="btn btn-primary" disabled={licenseBusy}>Save expiry</button>
+                         <button type="button" className="btn btn-outline-secondary" disabled={licenseBusy} onClick={() => setLicenseTarget(null)}>Cancel</button>
+                    </div>
+               </form>}
+               {developer.error && <div className="alert alert-danger" role="alert">{developer.error}</div>}
+               {pricingError && <div className="alert alert-warning mb-3" role="alert">{pricingError} <Link href="/master-platform/pricing">Open the Module pricing tab</Link>.</div>}
                {deletedMessage && <div className="alert alert-success" role="status">{deletedMessage}</div>}
                {deleteFacility && <form ref={cleanupRef} className="border-top border-danger pt-3 mb-3" onSubmit={confirmDelete} aria-label={recoveringProvisioning ? "Confirm interrupted setup recovery" : "Confirm tenant deletion"} aria-describedby="delete-consequences">
                     <h2 className="h5 text-danger">{recoveringProvisioning ? "Recover interrupted setup for" : "Delete"} {deleteFacility.name}</h2>

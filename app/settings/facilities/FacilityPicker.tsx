@@ -3,7 +3,6 @@
 import { ReactNode, useCallback, useEffect, useState } from "react";
 import { customFetch } from "../../../components/Auth/customFetch";
 import { useApplication } from "../../../components/Auth/useApplicationContext";
-import FacilityNav from "./FacilityNav";
 import type { ManagedFacility } from "./FacilityManagement";
 
 const normalizeRole = (role: unknown) => String(role || "").toLowerCase().replace(/[\s_-]/g, "");
@@ -56,7 +55,6 @@ export default function FacilityPicker({ title, description, children }: {
           <main className="p-2">
                <h1 className="h4 fw-semibold mb-1">Client platform</h1>
                <p className="text-muted small">{description}</p>
-               <FacilityNav />
                <h2 className="h5 fw-semibold">{title}</h2>
                {error && <div className="alert alert-danger d-flex justify-content-between gap-2" role="alert"><span>{error}</span><button type="button" className="btn btn-sm btn-outline-danger" onClick={() => void load()}>Retry</button></div>}
                {loading && <p role="status">Loading facilities...</p>}

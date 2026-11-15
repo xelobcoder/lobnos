@@ -1,4 +1,5 @@
 "use client";
+import { useVisibleRefresh } from "../../../components/useVisibleRefresh";
 import NewPasswordInput from '../../../components/Auth/NewPasswordInput';
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
@@ -97,6 +98,12 @@ export function FacilityDashboard() {
     const timer = window.setTimeout(() => { void reload(); }, 0);
     return () => window.clearTimeout(timer);
   }, [reload]);
+
+  useVisibleRefresh(() => {
+    void checkedArray("staff/bookings", "bookings", bookingSchema).then(setBookings).catch(() => {
+      // Keep the last loaded list during a transient refresh failure.
+    });
+  }, context?.facility.integrationState === "independent" && !busy && !loading);
 
   async function logout() {
     setBusy("logout");

@@ -210,7 +210,7 @@ export default function WalkInQueueWorkspace() {
             {mutationError ? <div className="alert alert-danger" role="alert">{mutationError}</div> : null}
             {notice ? <div className="alert alert-success" role="status">{notice}</div> : null}
             {settingsError ? <div className="alert alert-warning" role="alert">Queue settings: {settingsError}</div> : null}
-            {config && !config.facility ? <div className="alert alert-info">No active facility is available for public queue links. An administrator can review <Link href="/settings/facilities">Facility settings</Link>.</div> : null}
+            {config && !config.facility ? <div className="alert alert-info">No active facility is available for public queue links. Contact the platform owner.</div> : null}
         </div>
 
         {settingsOpen && canConfigure && settingsDraft ? <form id="queue-settings-panel" className={styles.settingsPanel} onSubmit={saveSettings} aria-busy={settingsBusy}>

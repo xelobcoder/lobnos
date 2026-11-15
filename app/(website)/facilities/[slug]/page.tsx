@@ -1,3 +1,4 @@
+import { RefreshPublicDirectory } from "../../../../website/components/marketplace/RefreshPublicDirectory";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -25,6 +26,7 @@ export default async function FacilityCatalogPage({ params }: Props) {
   if (result.status === "not-found") notFound();
 
   if (result.status !== "ok") return <>
+    <RefreshPublicDirectory />
     <PageIntro eyebrow="PUBLIC CATALOG" title="Catalog temporarily unavailable." description="The facility catalog could not be loaded. We do not display sample facilities, tests or prices when the live service is unavailable." action={false} />
     <section className="section"><div className="wrap"><Link className="button button-outline" href="/facilities">Back to participating laboratories</Link></div></section>
   </>;
@@ -33,6 +35,7 @@ export default async function FacilityCatalogPage({ params }: Props) {
   const availableTests = tests.filter((item) => item.available);
   const openingHours = Object.entries(facility.openingHours).filter(([, hours]) => hours).map(([day, hours]) => ({ day, hours }));
   return <>
+    <RefreshPublicDirectory />
     <PageIntro eyebrow={facility.facilityType === "pls-integrated" ? "PLS-CONNECTED FACILITY" : "INDEPENDENT FACILITY"} title={facility.name} description={facility.description || "Browse this facility’s currently published laboratory catalog."} action={false} />
     <section className="section facility-profile-section">
       <div className="wrap">

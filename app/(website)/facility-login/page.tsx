@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { portalDestination } from "../../../website/lib/site";
+import { RefreshPublicDirectory } from "../../../website/components/marketplace/RefreshPublicDirectory";
 import { getPublicFacilities } from "../../../website/lib/public-catalog";
 import { FacilityLoginSelector } from "../../../website/components/marketplace/FacilityLoginSelector";
 
@@ -16,6 +17,7 @@ async function OtherFacilityLogins() {
 export default function FacilityLoginPage() {
  const destination = portalDestination("facility");
  return <section className="section facility-login-section client-entry">
+  <RefreshPublicDirectory />
   <div className="wrap facility-login-layout">
    <div className="facility-login-main">
     <span className="eyebrow">CLIENT ACCESS</span>

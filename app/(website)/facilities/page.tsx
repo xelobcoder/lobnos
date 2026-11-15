@@ -1,3 +1,4 @@
+import { RefreshPublicDirectory } from "../../../website/components/marketplace/RefreshPublicDirectory";
 import type { Metadata } from "next";
 import { FacilityListings } from "../../../website/components/marketplace/FacilityListings";
 import { PageIntro } from "../../../website/components/ui/PageIntro";
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
 export default async function FacilitiesPage() {
   const result = await getMarketplaceFacilities();
   return <>
+    <RefreshPublicDirectory />
     <PageIntro eyebrow="PLS LABORATORY MARKETPLACE" title="Explore participating laboratories." description="Compare published tests and panels from approved PLS-connected and independent facilities. Each listing shows its integration model; catalogs and prices are supplied by the facility or its authorized PLS catalog." action={false} />
     <section className="section directory-section"><div className="wrap">
       <div className="directory-intro"><div><span className="eyebrow">PUBLIC FACILITY LISTINGS</span><h2>Find a laboratory to explore.</h2></div><p>Published prices are indicative facility catalog prices. Confirm availability, preparation, final charges and appointment details with the laboratory.</p></div>

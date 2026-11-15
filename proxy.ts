@@ -39,6 +39,9 @@ export async function proxy(request: NextRequest) {
 }
 
 async function routeRequest(request: NextRequest) {
+    if (request.nextUrl.pathname === '/master-platform' || request.nextUrl.pathname.startsWith('/master-platform/')) {
+        return NextResponse.next(); // The master pages validate their dedicated session server-side.
+    }
     if(request.nextUrl.pathname==='/authentication/logout')return NextResponse.next();
     const isLoginPage = request.nextUrl.pathname === '/authentications/login';
     const patientLogin = request.nextUrl.pathname.startsWith('/patientportal');
