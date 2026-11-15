@@ -405,6 +405,9 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path fill="none" d="M0 0h24v24H0z"></path><path d="M2 21l21-9-21-9v7l15 2-15 2z"></path></svg>
                                                        Send Completed SMS
                                                   </Dropdown.Item>
+                                                  <Dropdown.Item as="a" target="_blank" rel="noreferrer" href={`/operations/laboratory/validated/report-history/${row.original.ascensionid}`}>
+                                                       Report versions &amp; amendments
+                                                  </Dropdown.Item>
                                                   <Dropdown.Item className='pls-label d-flex align-items-center gap-2' as="a" target="_blank" href={`/operations/laboratory/validated/printing-tracking/${row.original.ascensionid}`}>
                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path fill="none" d="M0 0h24v24H0z"></path><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 14.93V19h-2v-2.07A8.001 8.001 0 0 1 4.07 13H2v-2h2.07A8.001 8.001 0 0 1 11 4.07V2h2v2.07A8.001 8.001 0 0 1 19.93 11H22v2h-2.07A8.001 8.001 0 0 1 13 19.93zM12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"></path></svg>
                                                        View Result Tracking

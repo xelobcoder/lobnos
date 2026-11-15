@@ -37,6 +37,7 @@ export const LaboratoryOperationsLinks: Link[] = [
             { title: "Completed stage", link: `/operations/laboratory/completed`, icon: <RiCheckboxCircleLine /> },
             { title: "Validation stage", link: `/operations/laboratory/validation`, icon: <RiShieldCheckLine /> },
             { title: "Validated Result", link: `/operations/laboratory/validated`, icon: <RiFileListLine /> },
+            { title: "Report Versions & Amendments", link: "/operations/laboratory/validated/report-history", icon: <RiFileListLine /> },
         ]
     },
     {

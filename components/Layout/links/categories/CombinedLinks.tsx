@@ -692,6 +692,7 @@ const LaboratoryOperationsLinks: Link[] = [
      { title: "Completed stage", link: `/operations/laboratory/completed`, icon: <RiCheckboxCircleLine /> },
      { title: "Validation stage", link: `/operations/laboratory/validation`, icon: <RiShieldCheckLine /> },
      { title: "Validated Result", link: `/operations/laboratory/validated`, icon: <RiFileListLine /> },
+     { title: "Report Versions & Amendments", link: "/operations/laboratory/validated/report-history", icon: <RiFileListLine /> },
      { title: 'Audit Log', link: '/operations/laboratory/auditlogs', icon: <RiFileListLine /> },
      { title: 'Patient Archives', link: '/operations/laboratory/patientarchives', icon: <RiFileListLine /> },
      { title: "Critical Values Alert", link: `/operations/laboratory/criticalvaluesAlert`, icon: <RiAlarmWarningLine /> },

@@ -13,6 +13,7 @@ import VersionFooter from '../../../../components/accessories/VersionFooter';
 import UseClinicalLiteratureReview from '../../../../components/ResutlUI/UseClinicalLiteratureReview';
 import UseCustomResultTemplatingPreview from '../../../../components/ResutlUI/useCustomResultTemplatingPreview';
 import UseDisclaimer from '../../../../components/ResutlUI/useDisclaimer';
+import ReportAmendmentNotice from '../../../../components/ResultView/ReportAmendmentNotice';
 import UseResultCommentSinglePreview from '../../../../components/ResutlUI/useResultCommentSinglePreview';
 import UseResultEntryScientist from '../../../../components/ResutlUI/UseResultEntryFormat';
 import { defaultResultSettings, ResultSettings } from '../../../../components/ResultView/result-settings';
@@ -313,7 +314,14 @@ const MDSLancetTemplate: React.FC = () => {
     }, [pdfUrl, showPdfControls, showPdf, ascensionid, employeeid]);
 
     if (loader) return <h4>Loading .....</h4>;
-    if (!resultdata?.records) return <h4></h4>;
+    if (!resultdata?.records) {
+        const message = (resultdata as { message?: string } | null)?.message;
+        return <main className="container py-4">
+            <h1 className="h4">Laboratory report unavailable</h1>
+            <p role="status">{message || 'The report could not be loaded.'}</p>
+            {ascensionid && <a href={`/operations/laboratory/validated/report-history/${encodeURIComponent(String(ascensionid))}`}>Open report versions and amendments</a>}
+        </main>;
+    }
 
     let pdfControls;
     if (pdfUrl && showPdfControls) {
@@ -477,7 +485,8 @@ const MDSLancetTemplate: React.FC = () => {
                                     {resultdata.hasDrugs && Array.isArray(resultdata.drugList) && resultdata.drugList.length > 0 && <DrugsList hadDrugs={resultdata.hasDrugs} drugList={resultdata.drugList} />}
                                     {!isScan && (<>
                                         <UseClinicalLiteratureReview literature={resultdata?.literatureReview} />
-                                        <UseResultCommentSinglePreview comments={resultdata?.comments} resultsettings={resultSettings} />
+                                        <ReportAmendmentNotice version={(resultdata as any)?.reportVersion} />
+                            <UseResultCommentSinglePreview comments={resultdata?.comments} resultsettings={resultSettings} />
                                     </>)}
                                 </section>
                                 <section>

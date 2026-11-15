@@ -8,6 +8,7 @@ import CompanyHeaders from '../../../components/ResultView/CompanyHeaders';
 import PersonalInformation from '../../../components/ResultView/PersonalInformation';
 import UseClinicalLiteratureReview from '../../../components/ResutlUI/UseClinicalLiteratureReview';
 import UseCustomResultTemplatingPreview from '../../../components/ResutlUI/useCustomResultTemplatingPreview';
+import ReportAmendmentNotice from '../../../components/ResultView/ReportAmendmentNotice';
 import UseResultCommentSinglePreview from '../../../components/ResutlUI/useResultCommentSinglePreview';
 import VersionFooter from '../../../components/accessories/VersionFooter';
 import UseDisclaimer from '../../../components/ResutlUI/useDisclaimer';
@@ -198,7 +199,14 @@ export default function RESULT_FOR_PRINTING() {
     }, [loader, resultdata]);
 
     if (loader) return <h4>Loading .....</h4>;
-    if (!resultdata?.records) return <h4></h4>;
+    if (!resultdata?.records) {
+        const message = (resultdata as { message?: string } | null)?.message;
+        return <main className="container py-4">
+            <h1 className="h4">Laboratory report unavailable</h1>
+            <p role="status">{message || 'The report could not be loaded.'}</p>
+            {ascensionid && <a href={`/operations/laboratory/validated/report-history/${encodeURIComponent(String(ascensionid))}`}>Open report versions and amendments</a>}
+        </main>;
+    }
 
     // Show the PDF iframe once ready
     if (pdfUrl) {
@@ -259,6 +267,7 @@ export default function RESULT_FOR_PRINTING() {
                                 records={resultdata?.records}
                                 resultsettings={resultSettings}
                             />
+                            <ReportAmendmentNotice version={(resultdata as any)?.reportVersion} />
                             <UseResultCommentSinglePreview comments={resultdata?.comments} resultsettings={resultSettings} />
                             <UseClinicalLiteratureReview literature={resultdata?.literatureReview} />
                         </section>
