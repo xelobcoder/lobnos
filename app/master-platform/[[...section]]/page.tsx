@@ -16,9 +16,10 @@ import MasterCredentialForm from "../MasterCredentialForm";
 import { RiShieldCrossFill } from "@remixicon/react";
 
 import styles from "../platform.module.css";
+import FacilityBackups from "../FacilityBackups";
 import CopyTestSetup from "../CopyTestSetup";
 
-const pages = { "": FacilityDirectory, applications: Applications, audit: Audit, devices: Devices, payments: Payments, plans: Plans, pricing: Pricing, sms: Sms, transactions: Transactions, "copy-test-setup": CopyTestSetup };
+const pages = { "": FacilityDirectory, applications: Applications, audit: Audit, devices: Devices, payments: Payments, plans: Plans, pricing: Pricing, sms: Sms, transactions: Transactions, "copy-test-setup": CopyTestSetup, backups: FacilityBackups };
 
 export default async function MasterPlatform({ params }: { params: Promise<{ section?: string[] }> }) {
     const { section = [] } = await params;

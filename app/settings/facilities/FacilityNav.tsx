@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { RiBuilding2Line, RiHistoryLine, RiMoneyDollarCircleLine, RiSettings4Line, RiShieldUserLine, RiToolsLine } from "@remixicon/react";
+import { RiBuilding2Line, RiDatabase2Line, RiHistoryLine, RiMoneyDollarCircleLine, RiSettings4Line, RiShieldUserLine, RiToolsLine } from "@remixicon/react";
 
 const base = "/master-platform";
 const sections = [
@@ -14,6 +14,7 @@ const sections = [
     ["/transactions", "Online payments", RiMoneyDollarCircleLine],
     ["/sms", "SMS configuration", RiSettings4Line],
     ["/devices", "Medical device interfacing", RiToolsLine],
+    ["/backups", "Facility backups", RiDatabase2Line],
     ["/audit", "Audit logs", RiHistoryLine],
     ["/copy-test-setup", "Copy test setup", RiToolsLine],
     ["/account", "Master account", RiShieldUserLine],
