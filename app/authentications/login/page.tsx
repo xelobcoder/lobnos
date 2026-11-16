@@ -3,7 +3,8 @@ import { errorMessage } from '../../../lib/errorMessage';
 import NewPasswordInput from '../../../components/Auth/NewPasswordInput';
 import {loginDestination} from '../../../lib/workspaceDestination';
 import styles from './login.module.css';
-import { RiShieldCrossFill, RiUserLine, RiLockLine, RiEyeLine, RiEyeOffLine, RiHospitalLine, RiStethoscopeLine, RiUserHeartLine } from '@remixicon/react';
+import LoginBranding from './LoginBranding';
+import { RiUserLine, RiLockLine, RiEyeLine, RiEyeOffLine, RiHospitalLine, RiStethoscopeLine, RiUserHeartLine } from '@remixicon/react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -320,23 +321,7 @@ export default function PrimeLabLoginPage() {
 
 	return (
 		<div className={styles.splitLayout}>
-			{/* Left side - Branding */}
-			<div className={styles.brandingSide}>
-				<div className={styles.brandOverlay}>
-					<div className={styles.brandContent}>
-						<div className={styles.brandLogo}>
-							<RiShieldCrossFill size={48} className={styles.logoIcon} />
-							<span className={styles.brandTitle}>Prime Laboratory Software (PLS)</span>
-						</div>
-						<div className={styles.brandText}>
-							<h1 className={styles.heroTitle}>Advanced Laboratory Management System</h1>
-							<p className={styles.heroSubtitle}>
-								Streamline your laboratory operations, enhance patient care, and drive efficiency with our comprehensive LIMS solution.
-							</p>
-						</div>
-					</div>
-				</div>
-			</div>
+			<LoginBranding />
 
 			{/* Right side - Login Form */}
 			<div className={styles.formSide}>

@@ -3,6 +3,10 @@ import { assertBackendTransport, getBackendAuthorization } from "../../../../lib
 import { isSameOriginRequest } from "../../../../lib/requestOrigin";
 import { secureSessionCookies } from "../../../../lib/sessionCookies";
 
+function redirectTo(path: string) {
+    return new NextResponse(null, { status: 303, headers: { Location: path } });
+}
+
 export async function POST(request: NextRequest) {
     if (!request.headers.get("origin") || !isSameOriginRequest(request)) {
         return NextResponse.json({ error: "Invalid request origin" }, { status: 403 });
@@ -10,7 +14,7 @@ export async function POST(request: NextRequest) {
     const isForm = request.headers.get("content-type")?.startsWith("application/x-www-form-urlencoded");
     function failure(message: string, status: number) {
         const code = status === 401 ? "invalid" : status === 429 ? "rate" : "unavailable";
-        return isForm ? NextResponse.redirect(new URL("/master-platform/login?error=" + code, request.url), 303)
+        return isForm ? redirectTo("/master-platform/login?error=" + code)
             : NextResponse.json({ error: message }, { status });
     }
     try {
@@ -42,7 +46,7 @@ export async function POST(request: NextRequest) {
             return output;
         }
         if (!response.ok) return failure(result.message || "Master sign-in is unavailable", response.status);
-        const output = isForm ? NextResponse.redirect(new URL("/master-platform", request.url), 303) : NextResponse.json({ success: true });
+        const output = isForm ? redirectTo(logout ? "/master-platform/login" : "/master-platform") : NextResponse.json({ success: true });
         if (logout) output.cookies.delete("pls-master-session");
         else {
             const expires = new Date(result.expiresAt);

@@ -8,7 +8,7 @@ type Panel = { id: number; name: string };
 type Parameter = { id: number; name: string; units?: string | null };
 type Value = { unit: string | null; range: (string | null)[]; type: string };
 type Preview = {
-    previewId: string; sourceName: string; destinationName: string | null; blockers: string[];
+    previewId: string; sourceName: string; destinationName: string | null; blockers: string[]; warnings?: string[];
     parameters: { id: number; name: string; status: "add" | "conflict" | "exists" | "blocked";
         differences: string[]; reason?: string; source: Value; destination: Value | null }[];
 };
@@ -67,6 +67,7 @@ export default function CopyTestSetup() {
     const [targetTest, setTargetTest] = useState("");
     const [mode, setMode] = useState<"panel" | "parameters">("panel");
     const [price, setPrice] = useState("");
+    const [standardSetup, setStandardSetup] = useState(false);
     const [parameters, setParameters] = useState<Parameter[]>([]);
     const [selected, setSelected] = useState<number[]>([]);
     const [preview, setPreview] = useState<{ data: Preview; request: object } | null>(null);
@@ -95,6 +96,12 @@ export default function CopyTestSetup() {
         return () => { active = false; };
     }, [source, sourceTest, mode]);
 
+    function updateSelection(ids: number[]) {
+        setSelected(ids);
+        setPreview(null);
+        setNotice("");
+    }
+
     async function showPreview(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         setBusy(true);
@@ -102,7 +109,7 @@ export default function CopyTestSetup() {
         setNotice("");
         setPreview(null);
         const request = { mode, sourceTenantId: Number(source), targetTenantId: Number(target), sourceTestId: Number(sourceTest),
-            ...(mode === "panel" ? { price: Number(price) } : { targetTestId: Number(targetTest), fieldIds: selected }) };
+            ...(mode === "panel" ? { price: Number(price), standardSetup } : { targetTestId: Number(targetTest), fieldIds: selected }) };
         try {
             const response = await customFetchMutation("platform/facilities/test-setup/preview", "POST", request);
             if (response?.status !== "success") throw Error(response?.message || "Preview failed.");
@@ -124,6 +131,8 @@ export default function CopyTestSetup() {
         } catch (failure) { setError(failure instanceof Error ? failure.message : "Copy failed."); }
         finally { setBusy(false); }
     }
+
+    const additions = preview?.data.parameters.filter(row => row.status === "add").length ?? 0;
 
     return <section className="p-3">
         <h1 className="h4">Copy test setup</h1>
@@ -163,23 +172,39 @@ export default function CopyTestSetup() {
                         {mode === "parameters" ? <PanelPicker key={target} tenant={target} side="Destination" value={targetTest} onChange={setTargetTest} />
                             : <><label className="form-label" htmlFor="copy-price">Destination price</label>
                                 <input className="form-control mb-3" id="copy-price" type="number" min={0} max={2147483647}
-                                    step={1} required value={price} onChange={event => setPrice(event.target.value)} /></>}
+                                    step={1} required value={price} onChange={event => setPrice(event.target.value)} />
+                                <label className="form-check mb-3">
+                                    <input type="checkbox" className="form-check-input" checked={standardSetup}
+                                        onChange={event => setStandardSetup(event.currentTarget.checked)} />
+                                    <span className="form-check-label fw-semibold">Copy as standard setup</span>
+                                    <span className="d-block small text-muted">Copy the parameters and supported rules. Create missing departments, sample types and containers when needed. Custom templates and device mappings require destination setup.</span>
+                                </label></>}
                     </div>
                 </div>
                 {mode === "parameters" && parameters.length > 0 && <fieldset className="border rounded p-3 mb-3">
                     <legend className="h6">Select source parameters</legend>
+                    <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
+                        <button type="button" className="btn btn-sm btn-outline-primary"
+                            disabled={selected.length === parameters.length}
+                            onClick={() => updateSelection(parameters.map(parameter => parameter.id))}>Add All</button>
+                        <button type="button" className="btn btn-sm btn-outline-secondary"
+                            disabled={!selected.length} onClick={() => updateSelection([])}>Clear selection</button>
+                        <span className="small text-muted" aria-live="polite">{selected.length} selected for preview</span>
+                    </div>
                     {parameters.map(parameter => <div className="form-check" key={parameter.id}>
                         <input type="checkbox" className="form-check-input" id={`copy-parameter-${parameter.id}`} checked={selected.includes(parameter.id)}
-                            onChange={event => setSelected(current => event.target.checked ? [...current, parameter.id] : current.filter(id => id !== parameter.id))} />
+                            onChange={event => updateSelection(event.currentTarget.checked
+                                ? [...selected, parameter.id] : selected.filter(id => id !== parameter.id))} />
                         <label className="form-check-label" htmlFor={`copy-parameter-${parameter.id}`}>{parameter.name}{parameter.units ? ` (${parameter.units})` : ""}</label>
                     </div>)}
                 </fieldset>}
-                <button className="btn btn-outline-primary" disabled={mode === "parameters" && !selected.length}>Preview copy</button>
+                <button type="submit" className="btn btn-outline-primary" disabled={mode === "parameters" && !selected.length}>Preview copy</button>
             </fieldset>
         </form>
         {preview && <section className="border rounded p-3 mt-4" aria-label="Copy preview">
             <h2 className="h5">Preview: {preview.data.sourceName}{preview.data.destinationName ? ` → ${preview.data.destinationName}` : ""}</h2>
             {!!preview.data.blockers.length && <ul className="alert alert-warning">{preview.data.blockers.map(blocker => <li className="ms-3" key={blocker}>{blocker}</li>)}</ul>}
+            {!!preview.data.warnings?.length && <ul className="alert alert-info">{preview.data.warnings.map(warning => <li className="ms-3" key={warning}>{warning}</li>)}</ul>}
             <div className="table-responsive"><table className="table table-sm">
                 <thead><tr><th>Parameter</th><th>Source setup</th><th>Destination setup</th><th>Action</th></tr></thead>
                 <tbody>{preview.data.parameters.map(row => <tr key={row.id}>
@@ -188,9 +213,12 @@ export default function CopyTestSetup() {
                         {row.reason && <div>{row.reason}</div>}</td>
                 </tr>)}</tbody>
             </table></div>
-            <button className="btn btn-primary" type="button" onClick={() => void apply()}
-                disabled={busy || !!preview.data.blockers.length || !preview.data.parameters.some(row => row.status === "add")}>
-                Apply {preview.data.parameters.filter(row => row.status === "add").length} addition(s)
+            {preview.data.blockers.length > 0 ? <p className="small text-muted" id="copy-apply-status">Resolve the issues above and preview again before copying.</p>
+                : additions === 0 ? <p className="small text-muted" id="copy-apply-status">This selection has no missing parameters eligible to add. Review the actions above or choose different parameters.</p>
+                    : <p className="small text-muted" id="copy-apply-status">{additions} eligible to add. Existing destination parameters will be kept.</p>}
+            <button className="btn btn-primary" type="button" aria-describedby="copy-apply-status" onClick={() => void apply()}
+                disabled={busy || !!preview.data.blockers.length || !additions}>
+                {mode === "panel" ? "Copy full panel" : `Add ${additions} missing parameter${additions === 1 ? "" : "s"}`}
             </button>
         </section>}
     </section>;

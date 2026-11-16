@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { assertBackendTransport, getBackendAuthorization } from "../../../../lib/serverBackendAccess";
-import { isSameOriginRequest } from "../../../../lib/requestOrigin";
+import { isSameOriginRequest, requestOrigin } from "../../../../lib/requestOrigin";
 import { POST as establishSession } from "../login/route";
 
 const sessionCookies = ["PLS-SESSION", "pls-prime-tenant-session", "loginsessionId"];
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
         if (!response.ok || result?.status !== "success") {
             return NextResponse.json({ error: result?.message || "The facility could not be opened" }, { status: response.ok ? 502 : response.status });
         }
-        const session = await establishSession(new NextRequest(new URL("/api/auth/login", request.url), {
+        const session = await establishSession(new NextRequest(new URL("/api/auth/login", requestOrigin(request)), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ status: true, ...result.result }),

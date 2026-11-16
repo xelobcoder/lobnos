@@ -22,12 +22,12 @@ const sections = [
 export default function FacilityNav() {
     const pathname = usePathname();
 
-    return <nav className="list-group list-group-flush" aria-label="Platform administration">
+    return <nav className="list-group list-group-flush p-2 gap-1" aria-label="Platform administration">
         {sections.map(([path, label, Icon]) => {
             const href = base + path;
             const active = pathname === href;
             return <Link href={href} key={href} aria-current={active ? "page" : undefined}
-                className={`list-group-item list-group-item-action d-flex align-items-center gap-2 py-3${active ? " list-group-item-success fw-semibold" : ""}`}>
+                className={`list-group-item list-group-item-action d-flex align-items-center gap-2 rounded border-0 px-2 py-2${active ? " list-group-item-success fw-semibold" : ""}`}>
                 <Icon size={19} aria-hidden="true" />{label}
             </Link>;
         })}

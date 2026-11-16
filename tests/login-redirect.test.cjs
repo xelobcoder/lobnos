@@ -60,6 +60,7 @@ function harness({ context, role = "admin", blockedStorage = false, search = "",
             if (name.endsWith("workspaceDestination")) return destinations;
             if (name.endsWith(".css")) return {};
             if (name === "@remixicon/react") return new Proxy({}, { get: () => "Icon" });
+            if (name === './LoginBranding') return { __esModule: true, default: () => null };
             if (name.endsWith('/NewPasswordInput')) return { __esModule: true, default: () => null };
             throw new Error(`Unexpected dependency: ${name}`);
         },
@@ -74,7 +75,7 @@ function harness({ context, role = "admin", blockedStorage = false, search = "",
 }
 
 for (const [role, target] of [
-    ["admin", "/analytics"], ["super-admin", "/settings/facilities"], ["scientist", "/operations/laboratory"],
+    ["admin", "/analytics"], ["super-admin", "/analytics"], ["scientist", "/operations/laboratory"],
     ["patient", "/patientportal"], ["clinician", "/doctor"], ["manager", "/crm/overview"],
     ["marketer", "/crm/acquisition"], ["customer service representative", "/crm/overview"], ["sonographer", "/operations/imaging"],
     ["storekeeper", "/inventory"], ["accountant", "/accounting"], ["unknown", "/unauthorized"],

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
+import { requestOrigin } from './lib/requestOrigin';
 import {getBackendAuthorization, assertBackendTransport} from './lib/serverBackendAccess';
 import {canAccessRolePage,canAccessDepartmentRequisitions,isMasterPlatformPath,roleWorkspace} from './lib/roleNavigationPolicy';
 
@@ -43,10 +44,13 @@ async function routeRequest(request: NextRequest) {
         return NextResponse.next(); // The master pages validate their dedicated session server-side.
     }
     if(request.nextUrl.pathname==='/authentication/logout')return NextResponse.next();
+    let origin: URL;
+    try { origin = requestOrigin(request); }
+    catch { return new NextResponse(null, { status: 400 }); }
     const isLoginPage = request.nextUrl.pathname === '/authentications/login';
     const patientLogin = request.nextUrl.pathname.startsWith('/patientportal');
     const adminPortal = request.nextUrl.pathname === '/patient-portal-admin' || request.nextUrl.pathname.startsWith('/patient-portal-admin/');
-    const loginUrl = new URL(patientLogin ? '/patient-access/login' : '/authentications/login', request.url);
+    const loginUrl = new URL(patientLogin ? '/patient-access/login' : '/authentications/login', origin);
     if (adminPortal) loginUrl.searchParams.set('returnTo', request.nextUrl.pathname);
     const sessionToken = request.cookies.get('PLS-SESSION')?.value;
 
@@ -100,7 +104,7 @@ async function routeRequest(request: NextRequest) {
                 payload.user?.role || '',
                 verifiedConfiguration,
                 new URL(request.url).searchParams.get('returnTo'),
-            ), request.url));
+            ), origin));
         }
 
         if (isValid && payload && !isLoginPage) {
@@ -109,19 +113,19 @@ async function routeRequest(request: NextRequest) {
             const currentPath = request.nextUrl.pathname;
             const normalizedRole = role.toString().toLowerCase().trim();
             const activeRole=roleWorkspace(role);
-            if(isMasterPlatformPath(currentPath)&&activeRole!=='superadmin')return NextResponse.redirect(new URL('/unauthorized',request.url));
-            if(activeRole==='manager'&&currentPath.startsWith('/patientportal'))return NextResponse.redirect(new URL('/patient-portal-admin',request.url));
+            if(isMasterPlatformPath(currentPath)&&activeRole!=='superadmin')return NextResponse.redirect(new URL('/unauthorized',origin));
+            if(activeRole==='manager'&&currentPath.startsWith('/patientportal'))return NextResponse.redirect(new URL('/patient-portal-admin',origin));
             if(['admin','superadmin'].includes(activeRole)){
-                if(currentPath.startsWith('/patientportal'))return NextResponse.redirect(new URL('/patient-portal-admin',request.url));
+                if(currentPath.startsWith('/patientportal'))return NextResponse.redirect(new URL('/patient-portal-admin',origin));
                 return NextResponse.next();
             }
             if(['/operations/laboratory/requisitions','/operations/imaging/ultrasound/requisitions'].includes(currentPath)){
                 const department=currentPath.includes('/imaging/')?'imaging':'laboratory';
-                if(!canAccessDepartmentRequisitions(role,department))return NextResponse.redirect(new URL('/unauthorized',request.url));
+                if(!canAccessDepartmentRequisitions(role,department))return NextResponse.redirect(new URL('/unauthorized',origin));
                 // Require live, session-bound branch/department permission, even for head roles.
                 const tenantToken=request.cookies.get('pls-prime-tenant-session')?.value;
                 const tenantId=Number(payload.tenantId);
-                if(!tenantToken||!Number.isSafeInteger(tenantId)||tenantId<=0)return NextResponse.redirect(new URL('/unauthorized',request.url));
+                if(!tenantToken||!Number.isSafeInteger(tenantId)||tenantId<=0)return NextResponse.redirect(new URL('/unauthorized',origin));
                 try{
                     const base=process.env.NODE_ENV==='development'?process.env.DEVELOPMENT_BASEURL:process.env.PRODUCTION_BASEURL;
                     if(!base)throw Error('Backend unavailable');
@@ -130,14 +134,14 @@ async function routeRequest(request: NextRequest) {
                     const response=await fetch(url,{headers:{...(getBackendAuthorization()?{Authorization:getBackendAuthorization()!}:{}),'pls-prime-tenant-session':tenantToken,'pls-session':sessionToken!},cache:'no-store',signal:AbortSignal.timeout(5000)});
                     const access=await response.json();
                     if(response.ok&&access?.success&&Number(access.employeeid)===Number(user.employeeid)&&Number(access.tenantId)===tenantId&&Number(access.branchid)>0&&(user.branch==null||Number(access.branchid)===Number(user.branch))&&Array.isArray(access.data)&&access.data.some((grant:any)=>grant.department===department&&(grant.can_request===true||grant.can_receive===true||grant.can_consume===true)))return NextResponse.next();
-                    if(department==='imaging'&&response.ok&&access?.success&&Number(access.employeeid)===Number(user.employeeid)&&Number(access.tenantId)===tenantId&&Number(access.branchid)>0&&(user.branch==null||Number(access.branchid)===Number(user.branch))&&Array.isArray(access.data))return NextResponse.redirect(new URL('/operations/imaging?stockAccess=required',request.url));
+                    if(department==='imaging'&&response.ok&&access?.success&&Number(access.employeeid)===Number(user.employeeid)&&Number(access.tenantId)===tenantId&&Number(access.branchid)>0&&(user.branch==null||Number(access.branchid)===Number(user.branch))&&Array.isArray(access.data))return NextResponse.redirect(new URL('/operations/imaging?stockAccess=required',origin));
                 }catch(error){console.error('Unable to verify department access:',error);}
-                return NextResponse.redirect(new URL('/unauthorized',request.url));
+                return NextResponse.redirect(new URL('/unauthorized',origin));
             }
             if(currentPath==='/operations/laboratory/test-panels'||currentPath.startsWith('/operations/laboratory/test-panels/')||currentPath==='/settings/applicationsettings/testpanels'||currentPath.startsWith('/settings/applicationsettings/testpanels/')){
                 const tenantToken=request.cookies.get('pls-prime-tenant-session')?.value;
                 const tenantId=Number(payload.tenantId);
-                if(!tenantToken||!Number.isSafeInteger(tenantId)||tenantId<=0)return NextResponse.redirect(new URL('/unauthorized',request.url));
+                if(!tenantToken||!Number.isSafeInteger(tenantId)||tenantId<=0)return NextResponse.redirect(new URL('/unauthorized',origin));
                 try{
                     const base=process.env.NODE_ENV==='development'?process.env.DEVELOPMENT_BASEURL:process.env.PRODUCTION_BASEURL;
                     if(!base)throw Error('Backend unavailable');
@@ -151,14 +155,14 @@ async function routeRequest(request: NextRequest) {
                     const rolePageSettings={...settings,testPanelsView:access?.can_view===true,testPanelsManagement:access?.can_manage===true,testPanelsDelegation:access?.can_delegate===true};
                     if(response.ok&&access?.success&&(access.can_view===true||access.can_delegate===true)&&(!isPanelEditor||access.can_manage===true)&&Number(access.employeeid)===Number(user.employeeid)&&Number(access.tenantId)===tenantId&&(access.branchid==null||Number(access.branchid)>0)&&(user.branch==null||Number(access.branchid)===Number(user.branch))&&canAccessRolePage(role,currentPath,rolePageSettings))return NextResponse.next();
                 }catch(error){console.error('Unable to verify test-panel access:',error);}
-                return NextResponse.redirect(new URL('/unauthorized',request.url));
+                return NextResponse.redirect(new URL('/unauthorized',origin));
             }
-            if(!canAccessRolePage(role,currentPath,settings||{}))return NextResponse.redirect(new URL('/unauthorized',request.url));
+            if(!canAccessRolePage(role,currentPath,settings||{}))return NextResponse.redirect(new URL('/unauthorized',origin));
 
             // Redirect /billing/expenses to /billing/expenses/expenselist for admin
             if (['admin', 'manager', 'accountant'].includes(role.toString().toLowerCase().trim()) &&
                 currentPath === '/billing/expenses'
-            ) { return NextResponse.redirect(new URL('/billing/expenses/expenselist', request.url)); }
+            ) { return NextResponse.redirect(new URL('/billing/expenses/expenselist', origin)); }
 
             // Add response headers to prevent caching of authenticated pages
             const response = NextResponse.next();

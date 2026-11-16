@@ -17,7 +17,8 @@ export function useDeveloperTenantSwitch() {
             });
             const result = await response.json();
             if (!response.ok || result.success !== true) throw new Error(result.error || "The session could not be changed");
-            localStorage.removeItem("applicationsettings");
+            try { localStorage.removeItem("applicationsettings"); }
+            catch { /* The authenticated workspace will load its own settings. */ }
             window.location.assign(tenantId ? "/dashboard" : "/master-platform");
         } catch (failure) {
             setError(failure instanceof Error ? failure.message : "The session could not be changed");
