@@ -10,12 +10,9 @@ import Plans from "../../settings/facilities/plans/page";
 import Pricing from "../../settings/facilities/pricing/page";
 import Sms from "../../settings/facilities/sms/page";
 import Transactions from "../../settings/facilities/transactions/page";
-import MasterSignOut from "../MasterSignOut";
-import FacilityNav from "../../settings/facilities/FacilityNav";
 import MasterCredentialForm from "../MasterCredentialForm";
-import { RiShieldCrossFill } from "@remixicon/react";
 
-import styles from "../platform.module.css";
+import MasterWorkspace from "../MasterWorkspace";
 import FacilityBackups from "../FacilityBackups";
 import CopyTestSetup from "../CopyTestSetup";
 
@@ -33,24 +30,11 @@ export default async function MasterPlatform({ params }: { params: Promise<{ sec
     </main>;
     const account = key === "account" ? await requestBackendJson("platform/master/account") : null;
     return <ApplicationProvider initialSettings={{ user: { role: "super-admin" } }}>
-        <header className={`sticky-top px-3 d-flex justify-content-between align-items-center gap-3 ${styles.header}`}>
-            <strong className="d-flex align-items-center gap-2"><RiShieldCrossFill size={25} aria-hidden="true" />Platform Administration</strong>
-            <MasterSignOut />
-        </header>
-        <div className={styles.layout}>
-            <aside className={`bg-body ${styles.sidebar}`}>
-                <div className={styles.desktopMenu}><FacilityNav /></div>
-                <details className={`border-bottom ${styles.mobileMenu}`}>
-                    <summary className="px-3 py-2 fw-semibold">Platform menu</summary>
-                    <FacilityNav />
-                </details>
-            </aside>
-            <div className={styles.content}>
-                {key === "account" ? (account?.result?.username
-                    ? <MasterCredentialForm username={account.result.username} />
-                    : <p className="alert alert-warning" role="alert">Master account settings could not be loaded.</p>)
-                    : Page && <Page />}
-            </div>
-        </div>
+        <MasterWorkspace>
+            {key === "account" ? (account?.result?.username
+                ? <MasterCredentialForm username={account.result.username} />
+                : <p className="alert alert-warning" role="alert">Master account settings could not be loaded.</p>)
+                : Page && <Page />}
+        </MasterWorkspace>
     </ApplicationProvider>;
 }

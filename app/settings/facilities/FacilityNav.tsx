@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import workspace from "../../../components/Layout/WorkspaceLayout.module.css";
 import { usePathname } from "next/navigation";
 import { RiBuilding2Line, RiDatabase2Line, RiHistoryLine, RiMoneyDollarCircleLine, RiSettings4Line, RiShieldUserLine, RiToolsLine } from "@remixicon/react";
 
@@ -20,16 +21,16 @@ const sections = [
     ["/account", "Master account", RiShieldUserLine],
 ] as const;
 
-export default function FacilityNav() {
+export default function FacilityNav({ onNavigate }: { onNavigate?: () => void } = {}) {
     const pathname = usePathname();
 
-    return <nav className="list-group list-group-flush p-2 gap-1" aria-label="Platform administration">
+    return <nav className={workspace.navigation} aria-label="Platform administration">
         {sections.map(([path, label, Icon]) => {
             const href = base + path;
             const active = pathname === href;
             return <Link href={href} key={href} aria-current={active ? "page" : undefined}
-                className={`list-group-item list-group-item-action d-flex align-items-center gap-2 rounded border-0 px-2 py-2${active ? " list-group-item-success fw-semibold" : ""}`}>
-                <Icon size={19} aria-hidden="true" />{label}
+                onClick={onNavigate} className={`${workspace.item}${active ? ` ${workspace.active}` : ""}`}>
+                <span className={workspace.icon}><Icon aria-hidden="true" /></span>{label}
             </Link>;
         })}
     </nav>;

@@ -1,44 +1,115 @@
-.header {
-    min-height: 54px;
-    background: var(--theme-header-bg);
+.layout.layout {
+    --header-height: 58px;
+    grid-template-areas: "header header" "sidebar content";
+    grid-template-rows: var(--header-height) minmax(0, 1fr);
+    min-height: 100dvh;
+}
+
+.layout .header {
+    position: sticky;
+    top: 0;
+    z-index: 120;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-inline: 1rem;
     color: var(--theme-header-text);
-    border-bottom: 1px solid var(--theme-header-border);
+    border-bottom-color: var(--theme-header-border);
 }
 
-.layout {
-    display: grid;
-    grid-template-columns: 14rem minmax(0, 1fr);
-    min-height: 100vh;
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    min-width: 0;
 }
 
-.sidebar {
-    border-inline-end: 1px solid var(--bs-border-color);
+.heading {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.layout .sidebar {
+    position: sticky;
+    top: var(--header-height);
+    align-self: start;
+    display: flex;
+    flex-direction: column;
 }
 
 .content {
+    grid-area: content;
     min-width: 0;
     padding: 1rem 0.75rem;
 }
 
-.mobileMenu {
+.menuToggle {
     display: none;
 }
 
-@media (max-width: 767px) {
-    .layout {
+.skipLink {
+    position: fixed;
+    top: 0.5rem;
+    z-index: 130;
+    padding: 0.5rem 0.75rem;
+    background: var(--theme-header-bg);
+    color: var(--theme-header-text);
+    transform: translateY(-150%);
+}
+
+.skipLink:focus {
+    transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+    .layout.layout {
+        grid-template-areas: "header" "content";
         grid-template-columns: minmax(0, 1fr);
-        align-content: start;
+        grid-template-rows: var(--header-height) minmax(0, 1fr);
     }
 
-    .sidebar {
-        border-inline-end: 0;
+    .layout .header {
+        gap: 0.5rem;
+        padding-inline: 0.625rem;
     }
 
-    .desktopMenu {
+    .headerLeft {
+        gap: 0.5rem;
+    }
+
+    .layout .brand {
+        padding: 0;
+        border: 0;
+    }
+
+    .brand > :last-child {
         display: none;
     }
 
-    .mobileMenu {
-        display: block;
+    .menuToggle {
+        display: grid;
+        place-items: center;
+        flex: 0 0 2.25rem;
+        height: 2.25rem;
+        border: 1px solid var(--theme-header-border);
+        border-radius: 6px;
+        background: transparent;
+        color: inherit;
+    }
+
+    .layout.layout .sidebar {
+        position: fixed;
+        display: none;
+    }
+
+    .layout.layout .sidebar[data-open="true"] {
+        display: flex;
+        transform: translateX(0);
+    }
+
+    .content {
+        padding: 0.5rem;
     }
 }
