@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import positionEditorDropdowns from "./positionEditorDropdowns";
 
 const editorConfiguration = {
 	toolbar: {
@@ -31,13 +32,13 @@ const editorConfiguration = {
 	},
 	heading: {
 		options: [
-			{ model: "paragraph", title: "Paragraph" },
-			{ model: "heading1", view: "h1", title: "Heading 1" },
-			{ model: "heading2", view: "h2", title: "Heading 2" },
-			{ model: "heading3", view: "h3", title: "Heading 3" },
-			{ model: "heading4", view: "h4", title: "Heading 4" },
-			{ model: "heading5", view: "h5", title: "Heading 5" },
-			{ model: "heading6", view: "h6", title: "Heading 6" },
+			{ model: "paragraph", title: "Paragraph", class: "ck-heading_paragraph" },
+			{ model: "heading1", view: "h1", title: "Heading 1", class: "ck-heading_heading1" },
+			{ model: "heading2", view: "h2", title: "Heading 2", class: "ck-heading_heading2" },
+			{ model: "heading3", view: "h3", title: "Heading 3", class: "ck-heading_heading3" },
+			{ model: "heading4", view: "h4", title: "Heading 4", class: "ck-heading_heading4" },
+			{ model: "heading5", view: "h5", title: "Heading 5", class: "ck-heading_heading5" },
+			{ model: "heading6", view: "h6", title: "Heading 6", class: "ck-heading_heading6" },
 		],
 	},
 	image: {
@@ -220,21 +221,31 @@ export default function MARKDOWN_EDITOR(props) {
                 .ck.ck-toolbar__separator {
                     height: 28px !important;
                 }
-                /* Ensure heading dropdown shows all options */
-                .ck.ck-dropdown__panel {
-                    max-height: 500px !important;
-                    overflow-y: auto !important;
+                .ck.ck-dropdown .ck.ck-dropdown__panel.pls-editor-popup {
+                    position: fixed;
+                    inset: auto;
+                    top: var(--editor-menu-top, 0px);
+                    left: var(--editor-menu-left, 0px);
+                    max-width: var(--editor-menu-width, calc(100vw - 12px));
+                    max-height: var(--editor-menu-height, calc(100dvh - 12px));
+                    margin: 0;
+                    padding: 0;
+                    overflow: auto;
+                    overscroll-behavior: contain;
+                    z-index: 1200;
                 }
-                .ck.ck-list {
-                    max-height: none !important;
+                .ck.ck-dropdown .ck.ck-dropdown__panel.pls-editor-popup .ck-list__item .ck-button {
+                    min-height: 36px;
+                    padding: 6px 12px;
                 }
-                .ck.ck-list__item {
-                    min-width: 200px !important;
-                    padding: 8px 12px !important;
-                }
-                /* Better spacing for dropdown items */
-                [data-bs-theme="dark"] .ck.ck-list__item:last-child {
-                    margin-bottom: 4px !important;
+                [data-bs-theme="dark"] .ck.ck-dropdown .ck.ck-dropdown__panel.pls-editor-popup {
+                    background-color: var(--bs-body-bg);
+                    border-color: var(--bs-border-color);
+                    color: var(--bs-body-color);
+                    --ck-color-base-border: var(--bs-border-color);
+                    --ck-color-button-on-background: var(--bs-secondary-bg);
+                    --ck-color-button-on-hover-background: var(--bs-tertiary-bg);
+                    --ck-color-button-default-hover-background: var(--bs-secondary-bg);
                 }
                 /* Table styling improvements */
                 .ck-editor__editable table {
@@ -292,6 +303,7 @@ export default function MARKDOWN_EDITOR(props) {
 					height={props.height || 700}
 					editor={ClassicEditor}
 					config={editorConfiguration}
+					onReady={positionEditorDropdowns}
 					data={props.initialData || ""}
 					onChange={(event, editor) => {
 						const data = editor.getData();

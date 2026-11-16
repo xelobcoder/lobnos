@@ -23,9 +23,6 @@ export default function CommentSection({
     <>
       <div
         style={{
-          height: "auto",
-          overflowY: "auto",
-          overflowX: "hidden",
           padding: "3px",
         }}
       >
