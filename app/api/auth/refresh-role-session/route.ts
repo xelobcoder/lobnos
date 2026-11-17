@@ -2,8 +2,9 @@ import {NextRequest,NextResponse} from 'next/server';
 import {getServerRequestContext as getRequestContext} from '../../../../lib/serverRequestContext';
 import {getBackendAuthorization, assertBackendTransport} from '../../../../lib/serverBackendAccess';
 import {POST as establishSession} from '../login/route';
+import {isSameOriginRequest} from '../../../../lib/requestOrigin';
 export async function POST(request:NextRequest){
- if(request.headers.get('origin')!==request.nextUrl.origin)return NextResponse.json({error:'Invalid request origin'},{status:403});
+ if(!request.headers.get('origin')||!isSameOriginRequest(request))return NextResponse.json({error:'Invalid request origin'},{status:403});
  try{
   const context=await getRequestContext();if(!context?.PLS_PRIME_TENANT_SESSION||!context.tenantId)return NextResponse.json({error:'Sign in again to switch roles'},{status:401});
   const base=process.env.NODE_ENV==='development'?process.env.DEVELOPMENT_BASEURL:process.env.PRODUCTION_BASEURL;

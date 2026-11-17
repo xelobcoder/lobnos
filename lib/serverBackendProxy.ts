@@ -1,10 +1,11 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {serverBackendRequest} from './serverBackendRequest';
+import {isSameOriginRequest} from './requestOrigin';
 
 export async function proxyBackendRequest(request: NextRequest, path: string[], baseUrl: string | undefined) {
     if (!baseUrl) return NextResponse.json({error:'Backend URL is not configured'}, {status:500});
     const origin = request.headers.get('origin');
-    if (!['GET','HEAD','OPTIONS'].includes(request.method) && origin && origin !== new URL(request.url).origin) {
+    if (!['GET','HEAD','OPTIONS'].includes(request.method) && origin && !isSameOriginRequest(request)) {
         return NextResponse.json({error:'Invalid request origin'}, {status:403});
     }
     try {

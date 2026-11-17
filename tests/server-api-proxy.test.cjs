@@ -52,6 +52,7 @@ function loadProxy({ env, fetch, context={PLS_SESSION:'signed-session',PLS_PRIME
                 const nested={};
                 vm.runInNewContext(ts.transpileModule(readFileSync(path.join(root,'lib/serverBackendRequest.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,{exports:nested,URL,Headers,AbortSignal,process:{env},fetch,require:dependency=>{
                     if(dependency==='server-only')return {};
+                    if(dependency==='next/headers')return {cookies:async()=>({get:()=>undefined})};
                     if(dependency==='./serverRequestContext')return {getServerRequestContext:async()=>context||{}};
                     if(dependency==='./serverBackendAccess')return accessExports;
                     if(dependency==='./apiBaseUrl')return {usesTenantQuery:endpoint=>!endpoint.startsWith('marketplace/')};
@@ -62,6 +63,14 @@ function loadProxy({ env, fetch, context={PLS_SESSION:'signed-session',PLS_PRIME
             if (name === "./serverBackendAccess") {
 				return accessExports;
 			}
+            if (name === "./requestOrigin") {
+                const originExports = {};
+                vm.runInNewContext(ts.transpileModule(
+                    readFileSync(path.join(root, "lib/requestOrigin.ts"), "utf8"),
+                    { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } },
+                ).outputText, { exports: originExports, URL });
+                return originExports;
+            }
 			throw new Error(`Unexpected dependency: ${name}`);
 		},
 		Headers,
@@ -138,6 +147,97 @@ test("server API proxy forwards session-authenticated requests without a global 
 	assert.equal(await response.text(), "backend response");
 	assert.equal(fetchCalled, true);
 });
+
+test("server API proxy accepts the public HTTPS origin behind a reverse proxy", async () => {
+	let fetchCalled = false;
+	const proxy = loadProxy({
+		env: {},
+		fetch: async () => {
+			fetchCalled = true;
+			return new Response("ok", { status: 200 });
+		},
+	});
+	const response = await proxy({
+		method: "POST",
+		url: "http://localhost:2377/api/v1/settings/companyprofile/images?tenantId=42",
+		headers: new Headers({
+			origin: "https://app.example.test",
+			"x-forwarded-host": "app.example.test",
+			"x-forwarded-proto": "https",
+		}),
+		arrayBuffer: async () => new ArrayBuffer(0),
+	}, ["settings", "companyprofile", "images"], "http://backend.test/api/v1/");
+
+	assert.equal(response.status, 200);
+	assert.equal(fetchCalled, true);
+});
+
+test("server API proxy rejects an origin that differs from the public reverse-proxy origin", async () => {
+	let fetchCalled = false;
+	const proxy = loadProxy({
+		env: {},
+		fetch: async () => {
+			fetchCalled = true;
+			return new Response("ok", { status: 200 });
+		},
+	});
+	const response = await proxy({
+		method: "POST",
+		url: "http://localhost:2377/api/v1/settings/companyprofile/images?tenantId=42",
+		headers: new Headers({
+			origin: "https://attacker.example",
+			"x-forwarded-host": "app.example.test",
+			"x-forwarded-proto": "https",
+		}),
+		arrayBuffer: async () => new ArrayBuffer(0),
+	}, ["settings", "companyprofile", "images"], "http://backend.test/api/v1/");
+
+	assert.equal(response.status, 403);
+	assert.equal(fetchCalled, false);
+});
+
+for (const route of ["switch-role", "refresh-role-session"]) {
+	test(`${route} origin guard accepts the public reverse-proxy origin and still rejects missing or hostile origins`, async () => {
+		const exports = {};
+		const source = readFileSync(path.join(root, `app/api/auth/${route}/route.ts`), "utf8");
+		vm.runInNewContext(ts.transpileModule(source, {
+			compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+		}).outputText, {
+			exports,
+			process: { env: {} },
+			require(name) {
+				if (name === "next/server") return { NextResponse: { json: (body, options) => ({ body, status: options.status }) } };
+				if (name === "../../../../lib/serverRequestContext") return { getServerRequestContext: async () => null };
+				if (name === "../../../../lib/serverBackendAccess") return {};
+				if (name === "../login/route") return { POST: async () => ({ status: 200 }) };
+				if (name === "../../../../lib/requestOrigin") {
+					const originExports = {};
+					vm.runInNewContext(ts.transpileModule(
+						readFileSync(path.join(root, "lib/requestOrigin.ts"), "utf8"),
+						{ compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } },
+					).outputText, { exports: originExports, URL });
+					return originExports;
+				}
+				throw new Error(`Unexpected dependency: ${name}`);
+			},
+			URL,
+		});
+
+		const request = origin => ({
+			url: "http://localhost:2377/api/auth/" + route,
+			nextUrl: new URL("http://localhost:2377/api/auth/" + route),
+			headers: new Headers({
+				...(origin ? { origin } : {}),
+				"x-forwarded-host": "app.example.test",
+				"x-forwarded-proto": "https",
+			}),
+		});
+
+		assert.equal((await exports.POST(request("https://app.example.test"))).status, 401);
+		assert.equal((await exports.POST(request("https://attacker.example"))).status, 403);
+		assert.equal((await exports.POST(request(null))).status, 403);
+	});
+}
 
 test("Next.js build-time environment contains no authentication secrets", () => {
 	const config = require(path.join(root, "next.config.js"));
