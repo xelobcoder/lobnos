@@ -77,6 +77,15 @@ test('amendment history is not mounted in laboratory printout pages', () => {
     const history = fs.readFileSync(path.join(root, 'app/operations/laboratory/validated/report-history/[ascensionid]/page.tsx'), 'utf8');
     assert.match(history, /ReportAmendmentNotice/);
 });
+test('laboratory report rendering never mounts ultrasound report content for the lab print branch', () => {
+    const source = fs.readFileSync(path.join(root, 'app/result/labreport/4/page.tsx'), 'utf8');
+    assert.match(source, /!isScan\s*\?\s*<LaboratoryReport/);
+    const match = source.match(/!isScan\s*\?\s*<LaboratoryReport/);
+    const labBranch = source.slice(match?.index ?? 0);
+    assert.doesNotMatch(labBranch.split(": <div className='result'")[0], /ResultViewHtmlGeneratorUltrasound/);
+    const multiple = fs.readFileSync(path.join(root, 'app/result/lab-report-multiple/page.tsx'), 'utf8');
+    assert.doesNotMatch(multiple, /ResultViewHtmlGeneratorUltrasound/);
+});
 test('canonical report retains facility, patient, panel/category, values, units, ranges, flags and actual validators', () => {
     const html = render(fixture);
     for (const text of ['Example', 'Laboratory', 'Facility address', 'P021', 'Ama', 'Haematology report',
