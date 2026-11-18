@@ -63,6 +63,12 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                if (request !== snapshotRequest.current) return;
                const invalidDetails = details.find(item => !Array.isArray(item?.staff) || !Number.isSafeInteger(item.approval_revision));
                if (invalidDetails) throw new Error(invalidDetails.message || 'Unable to load the current result revision. Reload before validating.');
+               const minimumResultValidation = Number(nextSettings?.minimumResultValidation);
+               const maximumResultValidation = Number(nextSettings?.maximumResultValidation);
+               if (!Number.isInteger(minimumResultValidation) || minimumResultValidation < 1 ||
+                    !Number.isInteger(maximumResultValidation) || maximumResultValidation < minimumResultValidation) {
+                    throw new Error('Unable to load result validation settings. Reload before approving.');
+               }
                setResultSettings(nextSettings);
                setSnapshots(Object.fromEntries(ascensions.map((asc, index) => [asc.ascensionid, details[index]])));
                if (!isBulk) setStaff(details[0].staff);
@@ -240,7 +246,7 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                                              const recorded = snapshots[asc.ascensionid]?.staff || [];
                                              return <div key={asc.ascensionid} className="mb-3">
                                                   {isBulk && <div className="small fw-semibold mb-1">{asc.name || asc.test || `Test #${asc.ascensionid}`}</div>}
-                                                  <div className="small text-muted mb-2">{recorded.length} recorded{Number(resultSettings.minimumResultValidation) > 0 ? ` / ${resultSettings.minimumResultValidation} required` : ''} for this revision</div>
+                                                  <div className="small text-muted mb-2">{recorded.length} recorded{Number(resultSettings?.minimumResultValidation) > 0 ? ` / ${resultSettings.minimumResultValidation} required` : ''} for this revision</div>
                                                   {recorded.length ? <ul className="list-unstyled mb-0">{recorded.map(item => <li key={item.employeeid} className="small border rounded px-2 py-2 mb-1">{item.username || `Employee #${item.employeeid}`}{Number(item.employeeid) === Number(employeeid) ? ' (you)' : ''}</li>)}</ul> : <p className="small text-muted mb-0">No approvals recorded yet.</p>}
                                              </div>;
                                         })}

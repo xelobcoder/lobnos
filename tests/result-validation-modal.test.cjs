@@ -13,7 +13,7 @@ const text = tree => tree == null || typeof tree === "boolean" ? "" : typeof tre
     : Array.isArray(tree) ? tree.map(text).join("") : text(tree.props?.children);
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
-function harness({ pin = false, bulk = false, error = false, finalized = false } = {}) {
+function harness({ pin = false, bulk = false, error = false, finalized = false, settingsUnavailable = false } = {}) {
     let cursor = 0;
     const states = [], effects = [], deps = [], writes = [], closes = [];
     const react = {
@@ -33,7 +33,7 @@ function harness({ pin = false, bulk = false, error = false, finalized = false }
     bootstrap.Modal = Object.assign(function Modal() {}, { Header: "Header", Title: "Title", Body: "Body", Footer: "Footer" });
     const api = {
         ResultEntrydefaultData: { maximumResultValidation: 3, minimumResultValidation: 2 },
-        getResultEntrySettings: async () => ({ maximumResultValidation: 3, minimumResultValidation: 2 }),
+        getResultEntrySettings: async () => settingsUnavailable ? undefined : ({ maximumResultValidation: 3, minimumResultValidation: 2 }),
         customFetch: async () => {
             if (error) throw new Error("Current review unavailable");
             return { staff: [{ employeeid: 2, username: "Recorded reviewer" }], approval_revision: 4, requires_revalidation: true };
@@ -122,6 +122,13 @@ test("a failed revision load leaves approval unavailable and presents retry guid
     h.render(); h.flush(); await tick(); const tree = h.render();
     assert.match(text(tree), /Current review unavailable/);
     assert.equal(nodes(tree, n => n.type === "button" && text(n) === "Record approval")[0].props.disabled, true);
+    assert.equal(nodes(tree, n => n.type === "Patient").length, 0);
+});
+test("missing validation settings show an actionable error instead of crashing the review", async () => {
+    const h = harness({ settingsUnavailable: true });
+    h.render(); h.flush(); await tick(); const tree = h.render();
+    assert.match(text(tree), /Unable to load result validation settings/);
+    assert.match(text(tree), /Approval is unavailable until the review loads/);
     assert.equal(nodes(tree, n => n.type === "Patient").length, 0);
 });
 for (const bulk of [false, true]) {
