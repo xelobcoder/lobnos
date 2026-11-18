@@ -79,6 +79,7 @@ export default function UpdateStaffPasswordPage() {
                          <NewPasswordInput
                               id="new-password"
                               name="newPassword"
+                              controlClassName={styles.passwordControl}
                               value={newPassword}
                               onChange={event => setNewPassword(event.target.value)}
                               required

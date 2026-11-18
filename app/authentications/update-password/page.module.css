@@ -1,15 +1,16 @@
 .page {
      min-height: 100vh;
+     min-height: 100svh;
      display: grid;
      place-items: center;
-     padding: 32px 18px;
+     padding: 14px 16px;
      background: radial-gradient(circle at 12% 8%, #e8f4ff 0, transparent 35%), #f4f7fb;
      color: #16263a;
 }
 
 .card {
      width: min(100%, 470px);
-     padding: clamp(26px, 6vw, 44px);
+     padding: clamp(20px, 4vh, 30px);
      border: 1px solid #e1e8f0;
      border-radius: 20px;
      background: #fff;
@@ -17,12 +18,12 @@
 }
 
 .brandMark {
-     width: 48px;
-     height: 48px;
+     width: 40px;
+     height: 40px;
      display: grid;
      place-items: center;
-     margin-bottom: 22px;
-     border-radius: 14px;
+     margin-bottom: 12px;
+     border-radius: 12px;
      background: #e8f1ff;
      color: #1559a6;
      font-size: 15px;
@@ -47,14 +48,14 @@
 }
 
 .description {
-     margin: 12px 0 26px;
+     margin: 8px 0 16px;
      color: #61758b;
-     line-height: 1.6;
+     line-height: 1.45;
 }
 
 .label {
      display: block;
-     margin: 18px 0 7px;
+     margin: 12px 0 5px;
      color: #2f4358;
      font-size: 13px;
      font-weight: 650;
@@ -62,8 +63,8 @@
 
 .input {
      width: 100%;
-     min-height: 48px;
-     padding: 10px 13px;
+     min-height: 42px;
+     padding: 8px 12px;
      border: 1px solid #cbd6e2;
      border-radius: 10px;
      color: #172b40;
@@ -75,10 +76,104 @@
      outline: 3px solid rgba(52, 120, 200, .15);
 }
 
+.passwordControl {
+     gap: 6px;
+}
+
+.passwordControl > div:first-child {
+     gap: 8px;
+     align-items: stretch;
+}
+
+.passwordControl > div:first-child > input,
+.passwordControl [data-password-confirmation] input {
+     width: 100%;
+     min-width: 0;
+     min-height: 40px;
+     padding: 7px 11px;
+     border: 1px solid #cbd6e2;
+     border-radius: 10px;
+     background: #fff;
+     color: #172b40;
+     font-size: 15px;
+}
+
+.passwordControl > div:first-child > input:focus,
+.passwordControl [data-password-confirmation] input:focus {
+     border-color: #3478c8;
+     outline: 3px solid rgba(52, 120, 200, .15);
+}
+
+.passwordControl > div:first-child > button {
+     flex: 0 0 64px;
+     min-height: 40px;
+     border: 1px solid #cbd6e2;
+     border-radius: 10px;
+     background: #f7f9fc;
+     color: #31516f;
+     font-size: 13px;
+     font-weight: 650;
+}
+
+.passwordControl > div:first-child > button:hover,
+.passwordControl [data-password-tools] button:hover:not(:disabled) {
+     border-color: #8db4dc;
+     background: #edf5fd;
+}
+
+.passwordControl meter {
+     height: 7px;
+     accent-color: #1767b1;
+}
+
+.passwordControl > small {
+     color: #61758b;
+     font-size: 12px;
+     line-height: 1.5;
+}
+
+.passwordControl [data-password-tools] {
+     display: grid;
+     grid-template-columns: repeat(2, minmax(0, 1fr));
+     gap: 6px;
+     margin-top: 1px;
+}
+
+.passwordControl [data-password-tools] button {
+     min-height: 34px;
+     padding: 5px 8px;
+     border: 1px solid #d5e0eb;
+     border-radius: 9px;
+     background: #fff;
+     color: #31516f;
+     font-size: 12px;
+     font-weight: 600;
+}
+
+.passwordControl [data-password-tools] button:disabled {
+     cursor: wait;
+     opacity: .6;
+}
+
+.passwordControl [data-password-confirmation] {
+     display: grid;
+     gap: 5px;
+     margin-top: 4px;
+     color: #2f4358;
+     font-size: 13px;
+     font-weight: 650;
+}
+
+.passwordControl [data-password-confirmation] small {
+     color: #a32828;
+     font-size: 12px;
+     font-weight: 400;
+}
+
 .submit {
      width: 100%;
-     min-height: 49px;
-     margin-top: 26px;
+     min-height: 44px;
+     margin-top: 16px;
      border: 0;
      border-radius: 10px;
      background: #1767b1;
@@ -110,8 +205,36 @@
 }
 
 .footer {
-     margin: 22px 0 0;
+     margin: 12px 0 0;
      color: #74869a;
      font-size: 12px;
      line-height: 1.5;
+}
+
+@media (max-height: 700px) {
+     .page {
+          padding-block: 8px;
+     }
+
+     .card {
+          padding-block: 16px;
+     }
+
+     .brandMark {
+          width: 34px;
+          height: 34px;
+          margin-bottom: 8px;
+     }
+
+     .description {
+          margin-bottom: 10px;
+     }
+
+     .label {
+          margin-top: 8px;
+     }
+
+     .footer {
+          margin-top: 8px;
+     }
 }

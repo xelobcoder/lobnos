@@ -8,7 +8,7 @@ export function validatePasswordControl(id: string): boolean {
     return Boolean(control) && Array.from(control!.querySelectorAll('input')).every(input => input.reportValidity());
 }
 
-const NewPasswordInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & { confirmation?: boolean }>(function NewPasswordInput({ confirmation = false, ...props }, externalRef) {
+const NewPasswordInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & { confirmation?: boolean; controlClassName?: string }>(function NewPasswordInput({ confirmation = false, controlClassName, ...props }, externalRef) {
     const [local, setLocal] = useState('');
     const [visible, setVisible] = useState(false);
     const [sounds, setSounds] = useState(false);
@@ -50,14 +50,14 @@ const NewPasswordInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLIn
             } catch { /* Sound availability never prevents password entry. */ }
         }
     }
-    return <div className={styles.control} data-password-control data-strength={value ? problem ? 'weak' : 'strong' : 'empty'}>
+    return <div className={[styles.control, controlClassName].filter(Boolean).join(' ')} data-password-control data-strength={value ? problem ? 'weak' : 'strong' : 'empty'}>
         <div className={styles.row}><input {...props} ref={element => { field.current = element; if (typeof externalRef === 'function') externalRef(element); else if (externalRef) externalRef.current = element; }} value={value} onChange={changed} type={visible ? 'text' : 'password'} autoComplete="new-password" minLength={12} maxLength={72} style={{ ...props.style, fontFamily: 'ui-monospace, monospace' }} />
             <button type="button" onClick={() => setVisible(!visible)} aria-pressed={visible} aria-label={visible ? 'Hide password' : 'Show password'}>{visible ? 'Hide' : 'Show'}</button></div>
         <meter min={0} max={3} value={!value ? 0 : problem ? 1 : value.length >= 20 ? 3 : 2} aria-label="Password strength" />
         <small>{value ? problem || (value.length >= 20 ? 'Strong password' : 'Meets password rules') : 'At least 12 characters, a letter and a number. Avoid common passwords. Maximum 72 UTF-8 bytes.'}</small>
         {suggestionError && <small role="status">{suggestionError}</small>}
-        <div className={styles.tools}><button type="button" disabled={props.disabled} onClick={suggest}>Suggest secure password</button><button type="button" aria-pressed={sounds} onClick={() => setSounds(!sounds)}>Sound {sounds ? 'on' : 'off'}</button></div>
-        {confirmation && <div role="group" aria-label="Password confirmation"><span>Confirm password</span><input aria-label="Confirm password" ref={confirmationField} type="password" autoComplete="new-password" maxLength={72} value={confirm} onChange={event => setConfirm(event.target.value)} required={Boolean(value) || props.required} disabled={props.disabled} className={props.className} />{confirm && confirm !== value && <small>Passwords do not match.</small>}</div>}
+        <div className={styles.tools} data-password-tools><button type="button" disabled={props.disabled} onClick={suggest}>Suggest secure password</button><button type="button" aria-pressed={sounds} onClick={() => setSounds(!sounds)}>Sound {sounds ? 'on' : 'off'}</button></div>
+        {confirmation && <div role="group" aria-label="Password confirmation" data-password-confirmation><span>Confirm password</span><input aria-label="Confirm password" ref={confirmationField} type="password" autoComplete="new-password" maxLength={72} value={confirm} onChange={event => setConfirm(event.target.value)} required={Boolean(value) || props.required} disabled={props.disabled} className={props.className} />{confirm && confirm !== value && <small>Passwords do not match.</small>}</div>}
     </div>;
 });
 export default NewPasswordInput;

@@ -190,6 +190,10 @@ export default function PrimeLabLoginPage() {
 				if (!contextResponse.ok || !contextData?.user || Number(contextData.tenantId) !== resolvedTenantId) {
 					throw new Error(errorMessage(contextData?.error, 'Your browser did not retain the login session. Please try again.'));
 				}
+				if (contextData.passwordChangeRequired === true) {
+					window.location.replace('/authentications/update-password');
+					return;
+				}
 				verifiedConfiguration = contextData.moduleConfiguration || contextData.settings?.moduleConfiguration;
 				try {
 					localStorage.setItem('applicationsettings', JSON.stringify({
