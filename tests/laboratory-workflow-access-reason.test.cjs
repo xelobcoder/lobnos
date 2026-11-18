@@ -9,7 +9,7 @@ function createWorkspace() {
     const calls = [];
     const states = [];
     let stateIndex = 0;
-    const settings = { visibility: 'team', editing: 'team', allow_claim: false, allow_sonographer_amendment_signing: false, version: 1, can_manage: true };
+    const settings = { visibility: 'team', editing: 'team', allow_claim: false, allow_sonographer_amendment_signing: false, require_amendment_signoff: true, version: 1, can_manage: true };
     const react = {
         useState(initial) {
             const index = stateIndex++;
@@ -133,4 +133,21 @@ test('facilities can opt in to sonographer amendment signing for their own ultra
     await form.props.onSubmit({ preventDefault() {} });
 
     assert.equal(workspace.calls[0][2].allow_sonographer_amendment_signing, true);
+});
+
+test('facilities can turn off amendment sign-off independently of sonographer signing', async () => {
+    const workspace = createWorkspace();
+    const signoffLabel = nodes(workspace.render()).find(node => node.type === 'label' &&
+        text(node).includes('Require electronic sign-off for amended reports'));
+    const signoffCheckbox = nodes(signoffLabel).find(node => node.type === 'input');
+
+    assert.equal(signoffCheckbox.props.checked, true);
+    signoffCheckbox.props.onChange({ target: { checked: false } });
+    const reasonSelect = nodes(findLabel(workspace.render(), 'Reason for change')).find(node => node.type === 'select');
+    reasonSelect.props.onChange({ target: { value: 'Facility workflow policy update' } });
+    const form = nodes(workspace.render()).find(node => node.type === 'form');
+    await form.props.onSubmit({ preventDefault() {} });
+
+    assert.equal(workspace.calls[0][2].require_amendment_signoff, false);
+    assert.equal(workspace.calls[0][2].allow_sonographer_amendment_signing, false);
 });

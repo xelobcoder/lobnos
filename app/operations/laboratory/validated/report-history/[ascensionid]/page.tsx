@@ -23,12 +23,14 @@ export default function ReportHistory() {
      const [error, setError] = useState('');
      const [notice, setNotice] = useState('');
      const [isUltrasound, setIsUltrasound] = useState(false);
+     const [requireAmendmentSignoff, setRequireAmendmentSignoff] = useState(true);
      const lock = useRef(false);
      async function load() {
           const data = await controlApi(`${base}/versions`);
           setVersions(data.versions);
           setCanSign(data.canSign);
           setIsUltrasound(Boolean(data.isUltrasound));
+          setRequireAmendmentSignoff(data.requireAmendmentSignoff !== false);
           if (data.versions.length) {
                setSelected(await controlApi(`${base}/versions/${data.versions[0].version}`));
           } else {
@@ -88,6 +90,7 @@ export default function ReportHistory() {
                          </div>
                          {canSign && <button type="button" className={styles.reviewButton} disabled={busy}
                               onClick={() => run(async () => { setDraft(await controlApi(`${base}/amendment`)); setReason(''); setConfirmed(false); })}>Review pending amendment</button>}
+                         {!requireAmendmentSignoff && <p className={styles.signoffOff} role="status">Facility policy does not require amendment sign-off. After revalidation, the amended report can be printed without a separate signature.</p>}
                     </section>
                </aside>
                <div className={styles.content}>

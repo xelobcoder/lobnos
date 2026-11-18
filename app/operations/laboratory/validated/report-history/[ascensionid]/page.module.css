@@ -485,6 +485,17 @@
     line-height: 1.55;
 }
 
+.signoffOff {
+    margin: 14px 0 0;
+    padding: 11px 12px;
+    border: 1px solid color-mix(in srgb, var(--pls-primary, #2e7d32) 24%, var(--bs-border-color));
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--pls-primary, #2e7d32) 6%, var(--bs-body-bg));
+    color: var(--bs-body-color);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
 .emptyDetail {
     padding-block: 36px;
     text-align: center;
