@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { controlApi } from '../../../../../../components/operations/OperationalControlsWorkspace';
 import ReportAmendmentNotice, { ReportChangesTable, type ReportChange, type ReportVersion } from '../../../../../../components/ResultView/ReportAmendmentNotice';
+import ReportRichText, { containsReportMarkup } from '../../../../../../components/ResultView/ReportRichText';
 
 type Amendment = { revision: number; reviewHash: string; changes: ReportChange[] };
 type Archived = ReportVersion & { report: any };
@@ -37,6 +38,9 @@ export default function ReportHistory() {
      }
      useEffect(() => { void run(load); }, [base]);
      const currentVersion = versions[0]?.version;
+     const records = selected?.report.records || [];
+     const hasRichTextReport = records.some((row: any) => containsReportMarkup(row.value));
+     const isUltrasoundReport = /ultrasound/i.test(selected?.report.testname || '');
      return <main className="container py-4">
           <h1 className="h3">Laboratory report history</h1>
           <p className="text-muted">Ordered test #{ascensionid}</p>
@@ -79,15 +83,31 @@ export default function ReportHistory() {
                          <p>{selected.version !== currentVersion ? 'Superseded report · retained for reference' : 'Latest archived report'}</p>
                          <p>{selected.report.patientInformation?.fullpatientid} · Billing #{selected.report.billingid}</p>
                          <ReportAmendmentNotice version={selected} />
-                         <table className="table table-sm">
+                         {hasRichTextReport || isUltrasoundReport ? <div className="archived-report-content">
+                              {records.map((row: any, index: number) => <div key={index} className="mb-3">
+                                   {row.field && <strong>{row.field}</strong>}
+                                   {containsReportMarkup(row.value)
+                                        ? <ReportRichText html={row.value} />
+                                        : <div>{row.value}{row.units ? ` ${row.units}` : ''}</div>}
+                              </div>)}
+                         </div> : <table className="table table-sm">
                               <thead><tr><th scope="col">Result field</th><th scope="col">Value</th><th scope="col">Unit</th></tr></thead>
-                              <tbody>{(selected.report.records || []).map((row: any, index: number) => <tr key={index}>
+                              <tbody>{records.map((row: any, index: number) => <tr key={index}>
                                    <th scope="row">{row.field}</th><td>{row.value}</td><td>{row.units}</td>
                               </tr>)}</tbody>
-                         </table>
-                         {selected.report.comments && <p style={{ whiteSpace: 'pre-wrap' }}><strong>Report comments</strong> {selected.report.comments}</p>}
+                         </table>}
+                         {selected.report.comments && <div className="mb-3">
+                              <strong>Report comments</strong>
+                              {containsReportMarkup(selected.report.comments)
+                                   ? <ReportRichText html={selected.report.comments} />
+                                   : <p style={{ whiteSpace: 'pre-wrap' }}>{selected.report.comments}</p>}
+                         </div>}
                          {!!selected.report.drugList?.length && <ul>{selected.report.drugList.map((row: any, index: number) => <li key={index}>{row.drug} · {row.sensitivity}</li>)}</ul>}
-                         {selected.report.literatureReview && <details><summary>Interpretation</summary><p>{selected.report.literatureReview}</p></details>}
+                         {selected.report.literatureReview && <details><summary>Interpretation</summary>
+                              {containsReportMarkup(selected.report.literatureReview)
+                                   ? <ReportRichText html={selected.report.literatureReview} />
+                                   : <p>{selected.report.literatureReview}</p>}
+                         </details>}
                     </section>}
                </div>
           </div>

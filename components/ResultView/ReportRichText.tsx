@@ -5,6 +5,16 @@ import { useEffect, useState } from 'react';
 const TAGS = new Set('P DIV SPAN BR STRONG B EM I U S SUB SUP UL OL LI TABLE THEAD TBODY TFOOT TR TH TD BLOCKQUOTE H1 H2 H3 H4 H5 H6 HR'.split(' '));
 const STYLES = new Set('color background-color font-family font-size font-weight font-style text-align text-decoration vertical-align line-height white-space margin margin-left margin-right margin-top margin-bottom padding border border-collapse width max-width'.split(' '));
 
+export function containsReportMarkup(value: unknown): value is string {
+    return typeof value === 'string' && (/<\/?[a-z][^>]*>/i.test(value) || /&lt;\/?[a-z][^&]*&gt;/i.test(value));
+}
+
+function decodeReportHtml(html: string): string {
+    const text = document.createElement('textarea');
+    text.innerHTML = html;
+    return text.value;
+}
+
 export function sanitizeReportHtml(html: string): string {
     const document = new DOMParser().parseFromString(html, 'text/html');
     for (const element of Array.from(document.body.querySelectorAll('*')).reverse()) {
@@ -32,6 +42,6 @@ export function sanitizeReportHtml(html: string): string {
 
 export default function ReportRichText({ html }: { html: string }) {
     const [safe, setSafe] = useState<{ source: string; html: string } | null>(null);
-    useEffect(() => { setSafe({ source: html, html: sanitizeReportHtml(html) }); }, [html]);
+    useEffect(() => { setSafe({ source: html, html: sanitizeReportHtml(decodeReportHtml(html)) }); }, [html]);
     return safe?.source === html ? <div dangerouslySetInnerHTML={{ __html: safe.html }} /> : <div aria-busy="true" />;
 }

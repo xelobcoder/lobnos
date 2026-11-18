@@ -9,7 +9,7 @@ function createWorkspace() {
     const calls = [];
     const states = [];
     let stateIndex = 0;
-    const settings = { visibility: 'team', editing: 'team', allow_claim: false, version: 1, can_manage: true };
+    const settings = { visibility: 'team', editing: 'team', allow_claim: false, allow_sonographer_amendment_signing: false, version: 1, can_manage: true };
     const react = {
         useState(initial) {
             const index = stateIndex++;
@@ -117,4 +117,20 @@ test('workflow access saves a selected preset reason directly', async () => {
     await form.props.onSubmit({ preventDefault() {} });
 
     assert.equal(workspace.calls[0][2].reason, 'Access correction');
+});
+
+test('facilities can opt in to sonographer amendment signing for their own ultrasound reports', async () => {
+    const workspace = createWorkspace();
+    const policyLabel = nodes(workspace.render()).find(node => node.type === 'label' &&
+        text(node).includes('Allow sonographers to sign amendments'));
+    const policyCheckbox = nodes(policyLabel).find(node => node.type === 'input');
+
+    assert.equal(policyCheckbox.props.checked, false);
+    policyCheckbox.props.onChange({ target: { checked: true } });
+    const reasonSelect = nodes(findLabel(workspace.render(), 'Reason for change')).find(node => node.type === 'select');
+    reasonSelect.props.onChange({ target: { value: 'Facility workflow policy update' } });
+    const form = nodes(workspace.render()).find(node => node.type === 'form');
+    await form.props.onSubmit({ preventDefault() {} });
+
+    assert.equal(workspace.calls[0][2].allow_sonographer_amendment_signing, true);
 });
