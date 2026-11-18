@@ -61,7 +61,8 @@ const ValidationModal = ({ show, onClose, selectedAscension, isBulk }) => {
                     Promise.all(ascensions.map(asc => customFetch(`test/approval/get/staffQualifiedToValidationResult?ascensionid=${asc.ascensionid}`))),
                ]);
                if (request !== snapshotRequest.current) return;
-               if (details.some(item => !Array.isArray(item?.staff) || !Number.isSafeInteger(item.approval_revision))) throw new Error('Unable to load the current result revision. Reload before validating.');
+               const invalidDetails = details.find(item => !Array.isArray(item?.staff) || !Number.isSafeInteger(item.approval_revision));
+               if (invalidDetails) throw new Error(invalidDetails.message || 'Unable to load the current result revision. Reload before validating.');
                setResultSettings(nextSettings);
                setSnapshots(Object.fromEntries(ascensions.map((asc, index) => [asc.ascensionid, details[index]])));
                if (!isBulk) setStaff(details[0].staff);

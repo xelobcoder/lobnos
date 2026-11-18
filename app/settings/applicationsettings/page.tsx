@@ -174,6 +174,7 @@ export default function ApplicationSettings() {
 	const { applicationsettings, setApplicationSettings } = useApplicationSettings();
 	const { user } = applicationsettings;
 	const canManageWorkspaceLayout = roleAllowed(user?.role, ['admin']);
+	const canManageLaboratoryAccess = roleAllowed(user?.role, ['admin', 'manager']);
 
 	const [settings, setSettings] = useState<ApplicationSettingsData | null>(null);
 	const [workspaceLayout, setWorkspaceLayout] = useState<'classic' | 'zoho' | 'claude' | 'ribbon' | 'slack' | 'portal'>(
@@ -630,6 +631,11 @@ export default function ApplicationSettings() {
 					<p className="text-muted mb-0">Configure system-wide settings and preferences</p>
 				</div>
 				<div className="d-flex gap-2">
+					{canManageLaboratoryAccess && (
+						<Link href="/operations/laboratory/settings" className="btn btn-outline-primary">
+							Laboratory Workflow Access
+						</Link>
+					)}
 					<Link href="/settings/applicationsettings/discount-limits" className="btn btn-outline-secondary">
 						Discount Limits
 					</Link>

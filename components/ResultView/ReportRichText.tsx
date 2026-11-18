@@ -33,5 +33,5 @@ export function sanitizeReportHtml(html: string): string {
 export default function ReportRichText({ html }: { html: string }) {
     const [safe, setSafe] = useState<{ source: string; html: string } | null>(null);
     useEffect(() => { setSafe({ source: html, html: sanitizeReportHtml(html) }); }, [html]);
-    return safe?.source === html ? <div dangerouslySetInnerHTML={{ __html: safe.html }} /> : <div>{html}</div>;
+    return safe?.source === html ? <div dangerouslySetInnerHTML={{ __html: safe.html }} /> : <div aria-busy="true" />;
 }

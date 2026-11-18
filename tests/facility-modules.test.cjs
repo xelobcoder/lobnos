@@ -72,6 +72,13 @@ test("application settings exposes the operational SMS activation switch", () =>
     assert.match(page, /SMS module active/);
     assert.match(page, /canAccessFacilityModule\('\/communications\/sms'/);
 });
+test("application settings exposes laboratory workflow access to supervisors", () => {
+    const page = readFileSync(path.join(root, "app", "settings", "applicationsettings", "page.tsx"), "utf8");
+    const links = readFileSync(path.join(root, "components", "Layout", "links", "categories", "ApplicationSettingsLinks.tsx"), "utf8");
+    assert.match(page, /canManageLaboratoryAccess = roleAllowed\(user\?\.role, \['admin', 'manager'\]\)/);
+    assert.match(page, /href="\/operations\/laboratory\/settings"/);
+    assert.match(links, /title: "Laboratory Workflow Access", link: "\/operations\/laboratory\/settings".*roles: \['admin', 'manager'\]/);
+});
 test("provisioning includes billing, registration and laboratory operations modules", () => {
     const page = readFileSync(path.join(root, "app", "settings", "facilities", "page.tsx"), "utf8");
     assert.match(page, /moduleConfiguration: form\.moduleConfiguration/);
