@@ -27,6 +27,7 @@ function load(filename, react) {
     }).outputText, {
         exports,
         require(name) {
+            if (name.endsWith('.module.css')) return new Proxy({}, { get: (_, key) => String(key) });
             if (name === 'react') return react || {};
             if (name === 'react/jsx-runtime') return { jsx: createJsx, jsxs: createJsx };
             if (name === 'next/navigation') return { useParams: () => ({ ascensionid: '25659' }) };
@@ -86,8 +87,17 @@ test('archived HTML reports render as rich report content instead of a laborator
 
 test('ultrasound reports use report layout even when archived values contain no markup', () => {
     const archived = {
-        version: 1,
-        report: { testname: 'Ultrasound Abdomen', records: [{ field: 'Impression', value: 'Normal' }] },
+        version: 3,
+        signedBy: 22,
+        reason: 'Corrected measurement',
+        signerName: 'Sonographer',
+        recordedAt: '2026-11-18T18:48:56Z',
+        changes: [{ field: 'GENERAL OBS USG', before: '# Previous report', after: '# Current report' }],
+        isUltrasound: true,
+        report: {
+            testname: 'GENERAL OBS USG',
+            records: [{ field: 'GENERAL OBS USG', value: '## Technique\n\n##### **Fetal status**\n\n- Single viable fetus' }],
+        },
     };
     const state = [[], archived, false, null, '', false, false, '', ''];
     let stateIndex = 0;
@@ -100,7 +110,10 @@ test('ultrasound reports use report layout even when archived values contain no 
     const rendered = nodes(page());
 
     assert.equal(rendered.some(node => node.type === 'table'), false);
-    assert.ok(rendered.some(node => node.type === 'div' && node.props.children?.[0]?.type === 'strong'));
+    const reportText = rendered.find(node => node.type?.name === 'ReportRichText');
+    assert.match(reportText.props.html, /<h4>Technique<\/h4>/);
+    assert.match(reportText.props.html, /<strong>Fetal status<\/strong>/);
+    assert.doesNotMatch(reportText.props.html, /##|#####/);
 });
 
 test('ordinary laboratory results keep their archived values in a table', () => {
@@ -135,8 +148,34 @@ test('amendment HTML values use the rich-text renderer while ordinary values rem
     assert.doesNotMatch(text(tree), /<p>Earlier<\/p>/);
 });
 
+test('ultrasound amendment review uses report blocks rather than a comparison table', () => {
+    const { ReportChangesReview } = load('components/ResultView/ReportAmendmentNotice.tsx');
+    const tree = ReportChangesReview({
+        changes: [{ field: 'GENERAL OBS USG', before: '# Previous report', after: '## Current report' }],
+    });
+    const rendered = nodes(tree);
+    const reportTexts = rendered.filter(node => node.type?.name === 'ReportRichText').map(node => node.props.html);
+
+    assert.equal(rendered.some(node => node.type === 'table'), false);
+    assert.ok(reportTexts.some(value => /<h3>Previous report<\/h3>/.test(value)));
+    assert.ok(reportTexts.some(value => /<h4>Current report<\/h4>/.test(value)));
+});
+
 test('HTML-escaped report tags are detected for safe decoding and rendering', () => {
     const { containsReportMarkup } = load('components/ResultView/ReportRichText.tsx');
     assert.equal(containsReportMarkup('&lt;p&gt;Encoded report&lt;/p&gt;'), true);
     assert.equal(containsReportMarkup('A plain result value'), false);
+});
+
+test('Markdown ultrasound reports become safe formatted report markup', () => {
+    const { markdownReportToHtml } = load('components/ResultView/ReportRichText.tsx');
+    const rendered = markdownReportToHtml('## Impression\n\n**Single live fetus**\n\n- Normal appearance');
+    const escaped = markdownReportToHtml('# <img src=x onerror=alert(1)>');
+
+    assert.match(rendered, /<h4>Impression<\/h4>/);
+    assert.match(rendered, /<strong>Single live fetus<\/strong>/);
+    assert.match(rendered, /<ul><li>Normal appearance<\/li><\/ul>/);
+    assert.doesNotMatch(rendered, /##|\*\*|^- /);
+    assert.doesNotMatch(escaped, /<img/);
+    assert.match(escaped, /&lt;img/);
 });

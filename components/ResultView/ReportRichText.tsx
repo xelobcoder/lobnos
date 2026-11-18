@@ -9,6 +9,60 @@ export function containsReportMarkup(value: unknown): value is string {
     return typeof value === 'string' && (/<\/?[a-z][^>]*>/i.test(value) || /&lt;\/?[a-z][^&]*&gt;/i.test(value));
 }
 
+export function containsReportMarkdown(value: unknown): value is string {
+    return typeof value === 'string' && /(?:^|\n)\s{0,3}#{1,6}\s|(?:^|\n)\s*[-*+]\s|\*\*[^*]+\*\*/m.test(value);
+}
+
+function escapeHtml(value: string): string {
+    return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function formatMarkdownLine(value: string): string {
+    return escapeHtml(value)
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+        .replace(/\*([^*\s][^*]*?)\*/g, '<em>$1</em>')
+        .replace(/_([^_\s][^_]*?)_/g, '<em>$1</em>');
+}
+
+export function markdownReportToHtml(markdown: string): string {
+    const blocks: string[] = [];
+    let paragraph: string[] = [];
+    let list: string[] = [];
+    const flushParagraph = () => {
+        if (paragraph.length) blocks.push(`<p>${paragraph.map(formatMarkdownLine).join('<br>')}</p>`);
+        paragraph = [];
+    };
+    const flushList = () => {
+        if (list.length) blocks.push(`<ul>${list.map(item => `<li>${formatMarkdownLine(item)}</li>`).join('')}</ul>`);
+        list = [];
+    };
+
+    for (const line of markdown.replace(/\r\n?/g, '\n').split('\n')) {
+        const heading = line.match(/^\s{0,3}(#{1,6})\s+(.*)$/);
+        const item = line.match(/^\s*[-*+]\s+(.*)$/);
+        if (heading) {
+            flushParagraph();
+            flushList();
+            const level = Math.min(5, Math.max(3, heading[1].length + 2));
+            blocks.push(`<h${level}>${formatMarkdownLine(heading[2])}</h${level}>`);
+        } else if (item) {
+            flushParagraph();
+            list.push(item[1]);
+        } else if (!line.trim()) {
+            flushParagraph();
+            flushList();
+        } else {
+            flushList();
+            paragraph.push(line);
+        }
+    }
+
+    flushParagraph();
+    flushList();
+    return blocks.join('');
+}
+
 function decodeReportHtml(html: string): string {
     const text = document.createElement('textarea');
     text.innerHTML = html;
@@ -44,4 +98,12 @@ export default function ReportRichText({ html }: { html: string }) {
     const [safe, setSafe] = useState<{ source: string; html: string } | null>(null);
     useEffect(() => { setSafe({ source: html, html: sanitizeReportHtml(decodeReportHtml(html)) }); }, [html]);
     return safe?.source === html ? <div dangerouslySetInnerHTML={{ __html: safe.html }} /> : <div aria-busy="true" />;
+}
+
+export function ReportContent({ value }: { value: unknown }) {
+    if (value === null || value === undefined || value === '') return null;
+    const text = String(value);
+    if (containsReportMarkup(value)) return <ReportRichText html={text} />;
+    if (containsReportMarkdown(text)) return <ReportRichText html={markdownReportToHtml(text)} />;
+    return <div style={{ whiteSpace: 'pre-wrap' }}>{text}</div>;
 }
