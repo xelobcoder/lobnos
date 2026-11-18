@@ -11,7 +11,6 @@ import MdsCompanyInformation from "../../../components/ResultView/MdsCompanyInfo
 import MdsPersonalInformation from "../../../components/ResultView/MdsPersonalInformation"
 import UseCustomResultTemplatingPreview from "../../../components/ResutlUI/useCustomResultTemplatingPreview"
 import UseClinicalLiteratureReview from "../../../components/ResutlUI/UseClinicalLiteratureReview"
-import ReportAmendmentNotice from '../../../components/ResultView/ReportAmendmentNotice';
 import UseResultCommentSinglePreview from "../../../components/ResutlUI/useResultCommentSinglePreview"
 import { useApplication } from "../../../components/Auth/useApplicationContext";
 import { trackReportView, trackReportPrint } from "../../../lib/printingTracker";
@@ -860,7 +859,6 @@ export default function LabReportPrintingMultiple() {
 															</div>
 														)}
 
-														<ReportAmendmentNotice version={(resultdata.test[idx] as any)?.reportVersion} />
 														{commentFor(idx) && (
 															<div className="test-comments" style={{ marginTop: 12 }}>
 															    <UseResultCommentSinglePreview comments={commentFor(idx)} resultsettings={resultSettings} />

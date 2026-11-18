@@ -64,6 +64,19 @@ test('staff and patient report pages use one canonical renderer and A4 PDF expor
     assert.doesNotMatch(source, /result\/printout\/ascension\/getResult/);
     assert.match(source, /patient-portal\/results\/\$\{billingid\}\/report/);
 });
+test('amendment history is not mounted in laboratory printout pages', () => {
+    for (const file of [
+        'app/result/labreport/page.tsx',
+        'app/result/labreport/4/page.tsx',
+        'app/result/lab-report-multiple/page.tsx',
+    ]) {
+        const source = fs.readFileSync(path.join(root, file), 'utf8');
+        assert.doesNotMatch(source, /ReportAmendmentNotice/);
+        assert.doesNotMatch(source, /reportVersion/);
+    }
+    const history = fs.readFileSync(path.join(root, 'app/operations/laboratory/validated/report-history/[ascensionid]/page.tsx'), 'utf8');
+    assert.match(history, /ReportAmendmentNotice/);
+});
 test('canonical report retains facility, patient, panel/category, values, units, ranges, flags and actual validators', () => {
     const html = render(fixture);
     for (const text of ['Example', 'Laboratory', 'Facility address', 'P021', 'Ama', 'Haematology report',

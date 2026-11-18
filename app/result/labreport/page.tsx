@@ -8,7 +8,6 @@ import CompanyHeaders from '../../../components/ResultView/CompanyHeaders';
 import PersonalInformation from '../../../components/ResultView/PersonalInformation';
 import UseClinicalLiteratureReview from '../../../components/ResutlUI/UseClinicalLiteratureReview';
 import UseCustomResultTemplatingPreview from '../../../components/ResutlUI/useCustomResultTemplatingPreview';
-import ReportAmendmentNotice from '../../../components/ResultView/ReportAmendmentNotice';
 import UseResultCommentSinglePreview from '../../../components/ResutlUI/useResultCommentSinglePreview';
 import VersionFooter from '../../../components/accessories/VersionFooter';
 import UseDisclaimer from '../../../components/ResutlUI/useDisclaimer';
@@ -267,7 +266,6 @@ export default function RESULT_FOR_PRINTING() {
                                 records={resultdata?.records}
                                 resultsettings={resultSettings}
                             />
-                            <ReportAmendmentNotice version={(resultdata as any)?.reportVersion} />
                             <UseResultCommentSinglePreview comments={resultdata?.comments} resultsettings={resultSettings} />
                             <UseClinicalLiteratureReview literature={resultdata?.literatureReview} />
                         </section>
