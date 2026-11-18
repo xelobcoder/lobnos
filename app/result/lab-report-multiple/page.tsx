@@ -24,6 +24,7 @@ import { reportCanvasPng } from "../../../lib/pdfCanvas";
 export default function LabReportPrintingMultiple() {
 	const [loader, setLoader] = useState(false);
 	const [resultdata, setResultData] = useState<any>(null);
+	const [skippedReportCount, setSkippedReportCount] = useState(0);
 	const prefix = useApplication()?.settings?.billingidPrefix || '';
 	const employeeid = useApplication()?.user?.employeeid;
 	const makepdfprintingcompulsory = useApplication()?.settings?.makepdfprintingcompulsory === 1;
@@ -47,6 +48,7 @@ export default function LabReportPrintingMultiple() {
 		let active = true;
 		if (billingid && testid && ascensionid && employeeid) {
 			setLoader(true);
+			setSkippedReportCount(0);
 			customFetch(url)
 				.then((data) => {
 					if (!active) return;
@@ -97,7 +99,9 @@ export default function LabReportPrintingMultiple() {
 								});
 							}
 						}
-						setResultData(data);
+						const skippedCount = Array.isArray(data.skippedTests) ? data.skippedTests.length : 0;
+						setSkippedReportCount(skippedCount);
+						setResultData(data.test.length ? data : null);
 					}
 				})
 				.catch((err) => console.error(err))
@@ -658,6 +662,11 @@ export default function LabReportPrintingMultiple() {
 					<div style={{ display: 'flex', flexDirection: 'row', width: '100vw', minHeight: '100vh' }}>
 						<aside className="no-print" style={{ width: 240, fontFamily: 'Rajdhani, sans-serif', borderRight: '1px solid #e0e0e0', padding: 16, minHeight: '100vh', position: 'sticky', top: 0 }}>
 							<h4 style={{ marginBottom: 16, fontWeight: 700, fontSize: 18 }}>Select Tests</h4>
+							{Array.isArray(resultdata.skippedTests) && resultdata.skippedTests.length > 0 && (
+								<div className="alert alert-warning" role="status">
+									{resultdata.skippedTests.length} amended {resultdata.skippedTests.length === 1 ? 'report was' : 'reports were'} skipped because electronic sign-off is required. Other eligible reports are available below.
+								</div>
+							)}
 							<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 								{resultdata.test.map((testItem: {testname: string}, idx: number) => (
 									<label key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500, cursor: 'pointer', background: selectedTests.includes(idx) ? '#e6f0ff' : 'transparent', borderRadius: 4, padding: '4px 8px' }}>
@@ -918,7 +927,9 @@ export default function LabReportPrintingMultiple() {
 					</div>
 				) : (
 					<div style={{ textAlign: 'center', marginTop: 40 }}>
-						<span>No report data found.</span>
+						<span>{skippedReportCount > 0
+							? `No reports are available to print. ${skippedReportCount} amended ${skippedReportCount === 1 ? 'report requires' : 'reports require'} electronic sign-off.`
+							: 'No report data found.'}</span>
 					</div>
 				)
 			)}
