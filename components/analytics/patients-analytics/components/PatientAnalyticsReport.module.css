@@ -1,0 +1,192 @@
+.report {
+	width: 100%;
+	min-width: 0;
+	color: var(--bs-body-color);
+}
+
+.intro {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	margin: 0 0 20px;
+}
+
+.eyebrow {
+	margin: 0 0 5px;
+	color: var(--bs-secondary-color);
+	font-size: 0.72rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.title {
+	margin: 0;
+	color: var(--bs-emphasis-color);
+	font-size: clamp(1.25rem, 2vw, 1.65rem);
+	font-weight: 750;
+	letter-spacing: -0.025em;
+}
+
+.description {
+	max-width: 680px;
+	margin: 7px 0 0;
+	color: var(--bs-secondary-color);
+	font-size: 0.92rem;
+	line-height: 1.55;
+}
+
+.actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 8px;
+}
+
+.panel {
+	min-width: 0;
+	padding: clamp(16px, 2vw, 24px);
+	border: 1px solid var(--bs-border-color);
+	border-radius: 14px;
+	background: var(--bs-body-bg);
+	box-shadow: 0 3px 14px rgba(28, 54, 82, 0.035);
+}
+
+.panelTitle {
+	margin: 0 0 4px;
+	color: var(--bs-emphasis-color);
+	font-size: 1rem;
+	font-weight: 700;
+}
+
+.panelHint {
+	margin: 0 0 15px;
+	color: var(--bs-secondary-color);
+	font-size: 0.82rem;
+}
+
+.chart {
+	width: 100%;
+	height: clamp(280px, 38vw, 380px);
+	min-width: 0;
+}
+
+.state {
+	display: flex;
+	min-height: 250px;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 28px 18px;
+	border: 1px dashed var(--bs-border-color);
+	border-radius: 14px;
+	background: var(--bs-tertiary-bg);
+	text-align: center;
+}
+
+.stateIcon {
+	display: grid;
+	width: 46px;
+	height: 46px;
+	place-items: center;
+	margin-bottom: 12px;
+	border-radius: 50%;
+	background: color-mix(in srgb, var(--bs-primary) 11%, transparent);
+	color: var(--bs-primary);
+}
+
+.state h2 {
+	margin: 0;
+	color: var(--bs-emphasis-color);
+	font-size: 1.05rem;
+	font-weight: 700;
+}
+
+.state p {
+	max-width: 440px;
+	margin: 7px 0 0;
+	color: var(--bs-secondary-color);
+	font-size: 0.88rem;
+}
+
+.spinner {
+	animation: report-spin 1s linear infinite;
+}
+
+.tableWrap {
+	max-width: 100%;
+	overflow-x: auto;
+}
+
+.tableWrap table {
+	min-width: 420px;
+}
+
+.filterBar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 12px;
+	padding: 14px;
+	border: 1px solid var(--bs-border-color);
+	border-radius: 12px;
+	background: var(--bs-tertiary-bg);
+}
+
+.filterField {
+	display: flex;
+	min-width: min(100%, 180px);
+	flex: 1 1 180px;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.filterField label {
+	color: var(--bs-secondary-color);
+	font-size: 0.75rem;
+	font-weight: 700;
+}
+
+@keyframes report-spin {
+	to { transform: rotate(360deg); }
+}
+
+@media (max-width: 767.98px) {
+	.intro {
+		flex-direction: column;
+	}
+
+	.actions {
+		width: 100%;
+		justify-content: flex-start;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.spinner {
+		animation-duration: 2s;
+	}
+}
+
+@media print {
+	.actions,
+	.filterBar {
+		display: none !important;
+	}
+
+	.panel,
+	.state {
+		break-inside: avoid;
+		box-shadow: none;
+	}
+
+	.tableWrap {
+		overflow: visible;
+	}
+
+	.tableWrap table {
+		min-width: 0;
+	}
+}

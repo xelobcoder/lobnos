@@ -1,0 +1,211 @@
+.shell {
+	--patient-analytics-accent: #3478c8;
+	--patient-analytics-paper: var(--theme-card-bg, var(--bs-body-bg, #fff));
+	--patient-analytics-soft: var(--bs-tertiary-bg, #f6f9fc);
+	--patient-analytics-line: var(--bs-border-color, #e1e8f0);
+	--patient-analytics-ink: var(--bs-emphasis-color, #172d45);
+	--patient-analytics-body: var(--bs-body-color, #344a62);
+	--patient-analytics-muted: var(--bs-secondary-color, #718096);
+	min-width: 0;
+	width: 100%;
+	color: var(--patient-analytics-body);
+}
+
+.shell :global(.container-fluid) {
+	min-height: 0 !important;
+	padding: clamp(16px, 2.4vw, 30px) !important;
+	background: transparent !important;
+}
+
+.shell :global(.card) {
+	overflow: hidden;
+	border: 1px solid var(--patient-analytics-line) !important;
+	border-radius: 15px !important;
+	background: var(--patient-analytics-paper) !important;
+	box-shadow: 0 5px 18px rgba(28, 54, 82, 0.045) !important;
+}
+
+.shell :global(.card-header) {
+	padding: 17px 20px !important;
+	border-bottom: 1px solid var(--patient-analytics-line) !important;
+	background: var(--patient-analytics-paper) !important;
+}
+
+.shell :global(.card-header h2),
+.shell :global(.card-header h3),
+.shell :global(.card-header h4) {
+	color: var(--patient-analytics-ink);
+	font-size: 0.96rem;
+	font-weight: 700 !important;
+	letter-spacing: -0.01em;
+}
+
+.shell :global(.card-body) {
+	color: var(--patient-analytics-body);
+}
+
+.shell :global(.card .card) {
+	border-radius: 12px !important;
+	background: var(--patient-analytics-paper);
+	box-shadow: 0 2px 9px rgba(28, 54, 82, 0.035) !important;
+}
+
+.shell :global(.table-responsive) {
+	border-radius: 10px;
+}
+
+.shell :global(.table) {
+	margin-bottom: 0;
+	border-collapse: separate;
+	border-spacing: 0;
+	color: var(--patient-analytics-body);
+	font-size: 0.84rem;
+}
+
+.shell :global(.table thead th) {
+	padding-top: 12px;
+	padding-bottom: 12px;
+	background: var(--patient-analytics-soft) !important;
+	color: var(--patient-analytics-muted) !important;
+	font-size: 0.7rem;
+	font-weight: 700 !important;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.shell :global(.table tbody td),
+.shell :global(.table tbody th) {
+	padding-top: 11px;
+	padding-bottom: 11px;
+	border-color: var(--patient-analytics-line);
+}
+
+.shell :global(.table-hover tbody tr:hover > *) {
+	background: var(--patient-analytics-soft);
+}
+
+.shell :global(.form-control),
+.shell :global(.form-select) {
+	min-height: 40px;
+	border-color: var(--patient-analytics-line);
+	border-radius: 9px;
+	background-color: var(--patient-analytics-paper);
+	color: var(--patient-analytics-body);
+}
+
+.shell :global(.form-control:focus),
+.shell :global(.form-select:focus) {
+	border-color: #6ea3d8;
+	box-shadow: 0 0 0 3px rgba(52, 120, 200, 0.13);
+}
+
+.shell :global(.btn) {
+	border-radius: 9px;
+	font-weight: 650;
+	transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.shell :global(.btn-primary) {
+	border-color: var(--patient-analytics-accent) !important;
+	background-color: var(--patient-analytics-accent) !important;
+}
+
+.shell :global(.btn-primary:hover:not(:disabled)) {
+	border-color: #245f9d !important;
+	background-color: #286bad !important;
+}
+
+.shell :global(.btn-outline-primary) {
+	border-color: var(--patient-analytics-line);
+	color: var(--patient-analytics-ink);
+}
+
+.shell :global(.btn-outline-primary:hover:not(:disabled)) {
+	border-color: #3478c8;
+	background: var(--patient-analytics-soft);
+	color: var(--patient-analytics-ink);
+}
+
+.shell :global(.container-fluid > .row > .col-12 > div:not(.card)) {
+	color: var(--patient-analytics-muted);
+}
+
+.shell :global(.recharts-cartesian-axis-tick text) {
+	fill: var(--patient-analytics-muted);
+}
+
+.shell :global(.recharts-cartesian-grid line) {
+	stroke: var(--patient-analytics-line);
+}
+
+.shell :global(.recharts-default-tooltip) {
+	border-color: var(--patient-analytics-line) !important;
+	border-radius: 10px !important;
+	background: var(--patient-analytics-paper) !important;
+	color: var(--patient-analytics-body) !important;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+}
+
+:global([data-bs-theme="dark"]) .shell {
+	--patient-analytics-accent: #78aee8;
+}
+
+:global([data-bs-theme="dark"]) .shell :global(.card) {
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16) !important;
+}
+
+:global([data-bs-theme="dark"]) .shell :global(.card-header h2),
+:global([data-bs-theme="dark"]) .shell :global(.card-header h3),
+:global([data-bs-theme="dark"]) .shell :global(.card-header h4),
+:global([data-bs-theme="dark"]) .shell :global(.card h1),
+:global([data-bs-theme="dark"]) .shell :global(.card h2),
+:global([data-bs-theme="dark"]) .shell :global(.card h3),
+:global([data-bs-theme="dark"]) .shell :global(.card h4),
+:global([data-bs-theme="dark"]) .shell :global(.card h5),
+:global([data-bs-theme="dark"]) .shell :global(.card h6) {
+	color: var(--patient-analytics-ink) !important;
+}
+
+:global([data-bs-theme="dark"]) .shell :global(.table) {
+	--bs-table-color: var(--patient-analytics-body);
+	--bs-table-bg: var(--patient-analytics-paper);
+	--bs-table-border-color: var(--patient-analytics-line);
+}
+
+:global([data-bs-theme="dark"]) .shell :global(.table-hover tbody tr:hover > *) {
+	--bs-table-bg-state: var(--patient-analytics-soft);
+}
+
+:global([data-bs-theme="dark"]) .shell :global(.btn-primary) {
+	border-color: #397cbd !important;
+	background-color: #397cbd !important;
+	color: #fff !important;
+}
+
+:global([data-bs-theme="dark"]) .shell :global(.btn-primary:hover:not(:disabled)) {
+	border-color: #4a8fd0 !important;
+	background-color: #4a8fd0 !important;
+}
+
+:global([data-bs-theme="dark"]) .shell :global(.btn-outline-primary) {
+	border-color: #52779b;
+	color: #c1d9f3;
+}
+
+:global([data-bs-theme="dark"]) .shell :global(.btn-outline-primary:hover:not(:disabled)) {
+	border-color: #6ea3d8;
+	background: #20364e;
+	color: #e1efff;
+}
+
+@media (max-width: 575px) {
+	.shell :global(.card-header) {
+		padding: 15px 16px !important;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.shell :global(.btn) {
+		transition: none;
+	}
+}

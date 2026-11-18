@@ -1,248 +1,145 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { RiErrorWarningLine, RiPhoneLine, RiPrinterLine, RiRefreshLine, RiUserLine } from '@remixicon/react';
 import { customFetch } from '../../../Auth/customFetch';
-import { RiPrinterLine, RiErrorWarningLine, RiInbox2Line, RiLoader4Line, RiUserLine, RiPhoneLine } from "@remixicon/react";
+import styles from './PatientAnalyticsReport.module.css';
 
 interface ContactCompletenessData {
-     total: number;
-     complete_contact: string;
+	total: number;
+	complete_contact: string | number;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
-const COLOR_SUCCESS = '#198754'; // Green for complete
-const COLOR_WARNING = '#fd7e14'; // Orange for incomplete
-const COLOR_BORDER = 'var(--bs-border-color)';
-const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
-const COLOR_TOOLTIP_BG = 'var(--bs-body-bg)';
-const COLOR_TOOLTIP_FG = 'var(--bs-body-color)';
+interface ContactMetrics {
+	total: number;
+	complete: number;
+	incomplete: number;
+	rate: number;
+}
 
 const ContactCompleteness: React.FC = () => {
-     const [data, setData] = useState<ContactCompletenessData | null>(null);
-     const [loading, setLoading] = useState<boolean>(true);
-     const [error, setError] = useState<string | null>(null);
+	const [metrics, setMetrics] = useState<ContactMetrics | null>(null);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 
-     const fetchContactCompleteness = async () => {
-          setLoading(true);
-          setError(null);
-          try {
-               const result = await customFetch('patient-analytics/contact-completeness');
-               if (Array.isArray(result) && result.length > 0) {
-                    setData(result[0]);
-               } else {
-                    setError('No contact completeness data available.');
-               }
-          } catch (err: any) {
-               setError(err?.message || 'Error fetching contact completeness data');
-          } finally {
-               setLoading(false);
-          }
-     };
+	const load = useCallback(async () => {
+		setLoading(true);
+		setError(null);
+		try {
+			const result = await customFetch('patient-analytics/contact-completeness');
+			const row = Array.isArray(result) ? result[0] : result;
+			if (!row || typeof row !== 'object') {
+				setMetrics(null);
+				return;
+			}
+			const response = row as ContactCompletenessData;
+			if (response.total === undefined || response.total === null || response.complete_contact === undefined || response.complete_contact === null) {
+				throw new Error('Unexpected data format received.');
+			}
+			const total = Number(response.total);
+			const complete = Number(response.complete_contact);
+			if (!Number.isFinite(total) || !Number.isFinite(complete) || total < 0 || complete < 0) {
+				throw new Error('Unexpected data format received.');
+			}
+			setMetrics({
+				total,
+				complete,
+				incomplete: Math.max(0, total - complete),
+				rate: total > 0 ? Math.min(100, Math.round((complete / total) * 1000) / 10) : 0,
+			});
+		} catch (requestError) {
+			console.error('Unable to load patient contact completeness', requestError);
+			setError('We couldn’t load contact completeness. Check your connection and try again.');
+		} finally {
+			setLoading(false);
+		}
+	}, []);
 
-     useEffect(() => {
-          fetchContactCompleteness();
-     }, []);
+	useEffect(() => {
+		const timer = window.setTimeout(() => { void load(); }, 0);
+		return () => window.clearTimeout(timer);
+	}, [load]);
 
-     const calculateMetrics = (data: ContactCompletenessData) => {
-          const total = data.total;
-          const complete = parseInt(data.complete_contact);
-          const incomplete = total - complete;
-          const completionRate = total > 0 ? ((complete / total) * 100) : 0;
+	const tone = metrics && metrics.rate >= 95 ? 'success' : metrics && metrics.rate >= 80 ? 'warning' : 'danger';
+	const progressColor = tone === 'success' ? '#198754' : tone === 'warning' ? '#d97706' : '#dc3545';
 
-          return {
-               total,
-               complete,
-               incomplete,
-               completionRate: Math.round(completionRate * 10) / 10 // Round to 1 decimal place
-          };
-     };
+	return (
+		<section className={styles.report} aria-labelledby="contact-completeness-title">
+			<header className={styles.intro}>
+				<div>
+					<p className={styles.eyebrow}>Prime Laboratory Software · Patient analytics</p>
+					<h1 className={styles.title} id="contact-completeness-title">Contact completeness</h1>
+					<p className={styles.description}>Measure how many registered patient records include the contact information required by this report.</p>
+				</div>
+				<div className={styles.actions}>
+					<button className="btn btn-sm btn-outline-primary" type="button" onClick={() => window.print()}><RiPrinterLine size={17} className="me-1" aria-hidden="true" />Print report</button>
+					{error && <button className="btn btn-sm btn-outline-secondary" type="button" onClick={() => void load()}><RiRefreshLine size={17} className="me-1" aria-hidden="true" />Try again</button>}
+				</div>
+			</header>
 
-     const metrics = data ? calculateMetrics(data) : null;
-
-     return (
-          <div className="card" style={{
-               borderRadius: '0.75rem',
-               borderColor: COLOR_BORDER,
-               boxShadow: '0 2px 8px 0 rgba(0,0,0,0.03)',
-               background: 'var(--bs-body-bg)'
-          }}>
-               <div className="card-header py-3 px-4" style={{
-                    backgroundColor: 'var(--bs-tertiary-bg)',
-                    borderColor: COLOR_BORDER
-               }}>
-                    <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center">
-                         <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
-                              <RiPhoneLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
-                              Patient Contact Information Completeness
-                         </h2>
-                         <div className="d-flex gap-2">
-                              <button
-                                   className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
-                                   onClick={() => window.print()}
-                                   title="Print this report"
-                              >
-                                   <RiPrinterLine size={16} />
-                                   Print
-                              </button>
-                         </div>
-                    </div>
-               </div>
-
-               <div className="card-body p-3 p-md-4">
-                    {loading ? (
-                         <div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '300px' }}>
-                              <RiLoader4Line size={48} className="animate-spin mb-3" style={{ color: COLOR_ACCENT }} />
-                              <p className="text-muted">Loading contact completeness data...</p>
-                         </div>
-                    ) : error ? (
-                         <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '300px' }}>
-                              <RiErrorWarningLine size={48} className="mb-3 text-danger" />
-                              <h5 className="fw-medium mb-1">Error Loading Data</h5>
-                              <p className="text-muted px-3">{error}</p>
-                         </div>
-                    ) : !data ? (
-                         <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '300px' }}>
-                              <RiInbox2Line size={48} className="mb-3 text-muted" />
-                              <h5 className="fw-medium mb-1">No Data Available</h5>
-                              <p className="text-muted px-3">No contact completeness data found.</p>
-                         </div>
-                    ) : (
-                         <div className="row g-4">
-                              {/* Summary Cards */}
-                              <div className="col-md-6 col-lg-3">
-                                   <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                        <div className="d-flex align-items-center mb-2">
-                                             <RiUserLine size={20} className="me-2" style={{ color: COLOR_ACCENT }} />
-                                             <span className="fw-medium text-muted small">Total Patients</span>
-                                        </div>
-                                        <div className="fs-4 fw-bold text-body-emphasis">{metrics?.total.toLocaleString()}</div>
-                                   </div>
-                              </div>
-
-                              <div className="col-md-6 col-lg-3">
-                                   <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                        <div className="d-flex align-items-center mb-2">
-                                           
-                                             <span className="fw-medium text-muted small">Complete Contact</span>
-                                        </div>
-                                        <div className="fs-4 fw-bold text-success">{metrics?.complete.toLocaleString()}</div>
-                                   </div>
-                              </div>
-
-                              <div className="col-md-6 col-lg-3">
-                                   <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                        <div className="d-flex align-items-center mb-2">
-                                            
-                                             <span className="fw-medium text-muted small">Incomplete Contact</span>
-                                        </div>
-                                        <div className="fs-4 fw-bold text-warning">{metrics?.incomplete.toLocaleString()}</div>
-                                   </div>
-                              </div>
-
-                              <div className="col-md-6 col-lg-3">
-                                   <div className="border rounded p-3 h-100" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                        <div className="d-flex align-items-center mb-2">
-                                             <RiPhoneLine size={20} className="me-2" style={{ color: COLOR_ACCENT }} />
-                                             <span className="fw-medium text-muted small">Completion Rate</span>
-                                        </div>
-                                        <div className="fs-4 fw-bold" style={{ color: COLOR_ACCENT }}>{metrics?.completionRate}%</div>
-                                   </div>
-                              </div>
-
-                              {/* Progress Bar */}
-                              <div className="col-12">
-                                   <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                        <div className="d-flex justify-content-between align-items-center mb-3">
-                                             <h5 className="mb-0 fw-medium">Contact Information Completion</h5>
-                                             <span className="badge fs-6" style={{
-                                                  backgroundColor: metrics && metrics.completionRate >= 95 ? COLOR_SUCCESS :
-                                                       metrics && metrics.completionRate >= 80 ? COLOR_WARNING : '#dc3545',
-                                                  color: 'white'
-                                             }}>
-                                                  {metrics?.completionRate}% Complete
-                                             </span>
-                                        </div>
-
-                                        <div className="progress mb-3" style={{ height: '24px' }}>
-                                             <div
-                                                  className="progress-bar"
-                                                  role="progressbar"
-                                                  style={{
-                                                       width: `${metrics?.completionRate}%`,
-                                                       backgroundColor: metrics && metrics.completionRate >= 95 ? COLOR_SUCCESS :
-                                                            metrics && metrics.completionRate >= 80 ? COLOR_WARNING : '#dc3545'
-                                                  }}
-                                                  aria-valuenow={metrics?.completionRate}
-                                                  aria-valuemin={0}
-                                                  aria-valuemax={100}
-                                             >
-                                                  <span className="fw-medium">{metrics?.completionRate}%</span>
-                                             </div>
-                                        </div>
-
-                                        <div className="row text-center">
-                                             <div className="col-6">
-                                                  <div className="d-flex align-items-center justify-content-center mb-1">
-                                                       <div
-                                                            className="rounded-circle me-2"
-                                                            style={{
-                                                                 width: '12px',
-                                                                 height: '12px',
-                                                                 backgroundColor: COLOR_SUCCESS
-                                                            }}
-                                                       ></div>
-                                                       <span className="small fw-medium text-success">Complete</span>
-                                                  </div>
-                                                  <div className="fs-5 fw-bold text-success">{metrics?.complete.toLocaleString()}</div>
-                                             </div>
-                                             <div className="col-6">
-                                                  <div className="d-flex align-items-center justify-content-center mb-1">
-                                                       <div
-                                                            className="rounded-circle me-2"
-                                                            style={{
-                                                                 width: '12px',
-                                                                 height: '12px',
-                                                                 backgroundColor: COLOR_WARNING
-                                                            }}
-                                                       ></div>
-                                                       <span className="small fw-medium text-warning">Incomplete</span>
-                                                  </div>
-                                                  <div className="fs-5 fw-bold text-warning">{metrics?.incomplete.toLocaleString()}</div>
-                                             </div>
-                                        </div>
-                                   </div>
-                              </div>
-                         </div>
-                    )}
-               </div>
-
-               <style jsx global>{`
-				.animate-spin {
-					animation: spin 1s linear infinite;
-				}
-				@keyframes spin {
-					from { transform: rotate(0deg); }
-					to { transform: rotate(360deg); }
-				}
-
-				@media print {
-					.card-header {
-						background-color: white !important;
-						-webkit-print-color-adjust: exact;
-						color-adjust: exact;
-					}
-					.btn {
-						display: none !important;
-					}
-					.progress {
-						-webkit-print-color-adjust: exact;
-						color-adjust: exact;
-					}
-				}
-			`}</style>
-          </div>
-     );
+			{loading ? (
+				<div className={styles.state} role="status" aria-live="polite" aria-busy="true">
+					<span className={styles.stateIcon}><span className={styles.spinner} aria-hidden="true">◌</span></span>
+					<h2>Loading report</h2><p>Calculating patient contact completion…</p>
+				</div>
+			) : error ? (
+				<div className={styles.state} role="alert">
+					<span className={styles.stateIcon}><RiErrorWarningLine size={22} aria-hidden="true" /></span>
+					<h2>Report unavailable</h2><p>{error}</p>
+				</div>
+			) : !metrics ? (
+				<div className={styles.state}>
+					<span className={styles.stateIcon}><RiPhoneLine size={22} aria-hidden="true" /></span>
+					<h2>No contact data available</h2><p>There are no patient records in the contact completeness response.</p>
+				</div>
+			) : metrics.total === 0 ? (
+				<div className={styles.state}>
+					<span className={styles.stateIcon}><RiUserLine size={22} aria-hidden="true" /></span>
+					<h2>No patients to assess</h2><p>Patient contact metrics will appear when patient records are available.</p>
+				</div>
+			) : (
+				<div className="row g-3">
+					<div className="col-12 col-sm-6 col-xl-3">
+						<article className="card h-100"><div className="card-body p-3">
+							<p className="small text-body-secondary mb-1">Patients assessed</p><p className="h3 fw-bold mb-0">{metrics.total.toLocaleString()}</p>
+						</div></article>
+					</div>
+					<div className="col-12 col-sm-6 col-xl-3">
+						<article className="card h-100"><div className="card-body p-3">
+							<p className="small text-body-secondary mb-1">Complete contact</p><p className="h3 fw-bold text-success mb-0">{metrics.complete.toLocaleString()}</p>
+						</div></article>
+					</div>
+					<div className="col-12 col-sm-6 col-xl-3">
+						<article className="card h-100"><div className="card-body p-3">
+							<p className="small text-body-secondary mb-1">Incomplete contact</p><p className="h3 fw-bold text-warning mb-0">{metrics.incomplete.toLocaleString()}</p>
+						</div></article>
+					</div>
+					<div className="col-12 col-sm-6 col-xl-3">
+						<article className="card h-100"><div className="card-body p-3">
+							<p className="small text-body-secondary mb-1">Completion rate</p><p className="h3 fw-bold mb-0" style={{ color: progressColor }}>{metrics.rate.toFixed(1)}%</p>
+						</div></article>
+					</div>
+					<div className="col-12">
+						<section className={styles.panel} aria-labelledby="contact-progress-title">
+							<div className="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+								<div><h2 className={styles.panelTitle} id="contact-progress-title">Patient contact coverage</h2>
+									<p className={styles.panelHint}>Completion rate is complete-contact records divided by all assessed patient records.</p></div>
+								<span className={`badge text-bg-${tone}`}>{metrics.rate.toFixed(1)}% complete</span>
+							</div>
+							<div className="progress" style={{ height: 18 }} role="progressbar" aria-label="Contact completion rate" aria-valuenow={metrics.rate} aria-valuemin={0} aria-valuemax={100}>
+								<div className="progress-bar" style={{ width: `${metrics.rate}%`, backgroundColor: progressColor }} />
+							</div>
+							<div className="d-flex flex-wrap justify-content-between gap-2 mt-3 small">
+								<span className="text-success">Complete: {metrics.complete.toLocaleString()}</span>
+								<span className="text-warning">Incomplete: {metrics.incomplete.toLocaleString()}</span>
+							</div>
+							{metrics.complete > metrics.total && <p className="text-warning small mt-3 mb-0" role="note">The returned complete count exceeds the total patient count; percentage is capped at 100% and incomplete count is shown as zero. Please review source data.</p>}
+						</section>
+					</div>
+				</div>
+			)}
+		</section>
+	);
 };
 
 export default ContactCompleteness;
-    

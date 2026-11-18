@@ -20,6 +20,7 @@ import {
      Pie
 } from 'recharts';
 import { RiPrinterLine, RiErrorWarningLine, RiInbox2Line, RiLoader4Line, RiBarChart2Line, RiCalendarEventLine, RiLineChartLine, RiBarChartBoxLine, RiBubbleChartLine, RiPieChartLine, RiRefreshLine } from "@remixicon/react";
+import styles from './PatientAnalyticsReport.module.css';
 
 interface RegistrationByDayData {
      day: string;
@@ -47,7 +48,13 @@ const RegistrationByDayOfWeek: React.FC = () => {
           try {
                const result = await customFetch('patient-analytics/registration-by-day-of-week');
                if (Array.isArray(result)) {
-                    setData(result);
+                    setData(result.map((item: RegistrationByDayData) => {
+                         const registrations = Number(item.registrations);
+                         if (!item.day || !Number.isFinite(registrations) || registrations < 0) {
+                              throw new Error('Unexpected data format received.');
+                         }
+                         return { day: String(item.day), registrations };
+                    }));
                } else {
                     setError('Unexpected data format received.');
                }
@@ -59,7 +66,8 @@ const RegistrationByDayOfWeek: React.FC = () => {
      };
 
      useEffect(() => {
-          fetchRegistrationByDay();
+          const timer = window.setTimeout(() => { void fetchRegistrationByDay(); }, 0);
+          return () => window.clearTimeout(timer);
      }, []);
 
      const handleViewToggle = (newView: "line" | "bar" | "area" | "pie") => {
@@ -71,8 +79,8 @@ const RegistrationByDayOfWeek: React.FC = () => {
           if (day === 'Saturday' || day === 'Sunday') {
                return COLOR_WEEKEND;
           }
-          // Peak weekday (Wednesday has highest registrations)
-          if (registrations >= 450) {
+          const peak = data.reduce((max, entry) => Math.max(max, entry.registrations), 0);
+          if (registrations === peak && peak > 0) {
                return COLOR_PEAK;
           }
           // Regular weekdays
@@ -82,8 +90,8 @@ const RegistrationByDayOfWeek: React.FC = () => {
      const calculateTotals = (data: RegistrationByDayData[]) => {
           const totalRegistrations = data.reduce((sum, item) => sum + item.registrations, 0);
           const avgRegistrations = data.length > 0 ? Math.round(totalRegistrations / data.length) : 0;
-          const maxRegistrations = Math.max(...data.map(item => item.registrations));
-          const minRegistrations = Math.min(...data.map(item => item.registrations));
+          const maxRegistrations = data.length ? Math.max(...data.map(item => item.registrations)) : 0;
+          const minRegistrations = data.length ? Math.min(...data.map(item => item.registrations)) : 0;
 
           return {
                totalRegistrations,
@@ -323,6 +331,7 @@ const RegistrationByDayOfWeek: React.FC = () => {
      };
 
      return (
+          <section className={styles.report} aria-labelledby="registration-week-title">
           <div className="card" style={{
                borderRadius: '0.75rem',
                borderColor: COLOR_BORDER,
@@ -334,10 +343,14 @@ const RegistrationByDayOfWeek: React.FC = () => {
                     borderColor: COLOR_BORDER
                }}>
                     <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
-                         <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
+                         <div>
+                         <p className={styles.eyebrow}>Prime Laboratory Software · Patient analytics</p>
+                         <h1 id="registration-week-title" className={`${styles.title} mb-1 d-flex align-items-center`}>
                               <RiCalendarEventLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
-                              Patient Registration by Day of Week
-                         </h2>
+                              Registration by day of week
+                         </h1>
+                         <p className={styles.description}>Compare registration volume across each day of the week.</p>
+                         </div>
                          <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
                               <div className="btn-group btn-group-sm" role="group" aria-label="Chart type">
                                    {[
@@ -351,6 +364,7 @@ const RegistrationByDayOfWeek: React.FC = () => {
                                              type="button"
                                              className={`btn ${view === btn.type ? 'btn-primary active' : 'btn-outline-secondary'}`}
                                              onClick={() => handleViewToggle(btn.type)}
+                                             aria-pressed={view === btn.type}
                                              style={view === btn.type ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
                                         >
                                              <btn.icon size={16} className="me-1 align-text-bottom" /> {btn.label}
@@ -365,26 +379,27 @@ const RegistrationByDayOfWeek: React.FC = () => {
                                    <RiPrinterLine size={16} />
                                    Print
                               </button>
+                              {error && <button className="btn btn-sm btn-outline-secondary" type="button" onClick={() => void fetchRegistrationByDay()}><RiRefreshLine size={16} className="me-1" aria-hidden="true" />Try again</button>}
                          </div>
                     </div>
                </div>
 
                <div className="card-body p-3 p-md-4">
                     {loading ? (
-                         <div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '350px' }}>
-                              <RiLoader4Line size={48} className="animate-spin mb-3" style={{ color: COLOR_ACCENT }} />
-                              <p className="text-muted">Loading registration data...</p>
+                         <div className={styles.state} role="status" aria-live="polite" aria-busy="true">
+                              <span className={styles.stateIcon}><RiLoader4Line size={24} className={styles.spinner} aria-hidden="true" /></span>
+                              <h2>Loading report</h2><p>Loading registration data...</p>
                          </div>
                     ) : error ? (
-                         <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '350px' }}>
-                              <RiErrorWarningLine size={48} className="mb-3 text-danger" />
-                              <h5 className="fw-medium mb-1">Error Loading Data</h5>
+                         <div className={styles.state} role="alert">
+                              <span className={styles.stateIcon}><RiErrorWarningLine size={22} aria-hidden="true" /></span>
+                              <h2>Report unavailable</h2>
                               <p className="text-muted px-3">{error}</p>
                          </div>
                     ) : data.length === 0 ? (
-                         <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '350px' }}>
-                              <RiInbox2Line size={48} className="mb-3 text-muted" />
-                              <h5 className="fw-medium mb-1">No Data Available</h5>
+                         <div className={styles.state}>
+                              <span className={styles.stateIcon}><RiInbox2Line size={22} aria-hidden="true" /></span>
+                              <h2>No registration data available</h2>
                               <p className="text-muted px-3">No registration data for the selected period.</p>
                          </div>
                     ) : (
@@ -435,27 +450,29 @@ const RegistrationByDayOfWeek: React.FC = () => {
 
                               {/* Chart */}
                               <div className="col-12">
-                                   <div style={{ width: "100%", height: 400 }}>
-                                        <ResponsiveContainer>
-                                             {renderChart()}
-                                        </ResponsiveContainer>
-                                   </div>
+                                   <section className={styles.panel} aria-labelledby="registration-week-chart-title">
+                                        <h2 className={styles.panelTitle} id="registration-week-chart-title">Registration volume by weekday</h2>
+                                        <p className={styles.panelHint}>Peak weekday and weekend days use distinct colors in the bar and pie views.</p>
+                                        <div className={styles.chart} style={{ height: 380 }}>
+                                             <ResponsiveContainer>
+                                                  {renderChart()}
+                                             </ResponsiveContainer>
+                                        </div>
+                                   </section>
                               </div>
 
                               {/* Data Table */}
                               <div className="col-12">
-                                   <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                        <div className="d-flex justify-content-between align-items-center mb-3">
-                                             <h5 className="mb-0 fw-medium">Detailed Breakdown</h5>
-                                        </div>
+                                   <section className={styles.panel} aria-labelledby="registration-week-table-title">
+                                        <h2 className={styles.panelTitle} id="registration-week-table-title">Detailed breakdown</h2>
                                         <div className="table-responsive">
                                              <table className="table table-sm table-hover table-striped small">
-                                                  <thead className="table-light">
+                                                  <thead>
                                                        <tr>
-                                                            <th className="py-2 text-start">Day</th>
-                                                            <th className="py-2 text-start">Registrations</th>
-                                                            <th className="py-2 text-start">Percentage</th>
-                                                            <th className="py-2 text-start">vs Average</th>
+                                                            <th scope="col" className="py-2 text-start">Day</th>
+                                                            <th scope="col" className="py-2 text-end">Registrations</th>
+                                                            <th scope="col" className="py-2 text-end">Share</th>
+                                                            <th scope="col" className="py-2 text-end">vs average</th>
                                                        </tr>
                                                   </thead>
                                                   <tbody>
@@ -463,32 +480,32 @@ const RegistrationByDayOfWeek: React.FC = () => {
                                                             const percentage = totals.totalRegistrations > 0 ? ((item.registrations / totals.totalRegistrations) * 100).toFixed(1) : '0.0';
                                                             const vsAverage = item.registrations - totals.avgRegistrations;
                                                             const isAboveAverage = vsAverage > 0;
-
                                                             return (
                                                                  <tr key={idx}>
-                                                                      <td className="py-2 fw-medium text-start">{item.day}</td>
-                                                                      <td className="py-2 fw-medium text-start">{item.registrations.toLocaleString()}</td>
-                                                                      <td className="py-2 text-start">{percentage}%</td>
-                                                                      <td className={`py-2 text-start ${isAboveAverage ? 'text-success' : 'text-danger'}`}>
+                                                                      <th scope="row" className="py-2 fw-medium text-start">{item.day}</th>
+                                                                      <td className="py-2 fw-medium text-end">{item.registrations.toLocaleString()}</td>
+                                                                      <td className="py-2 text-end">{percentage}%</td>
+                                                                      <td className={`py-2 text-end ${isAboveAverage ? 'text-success' : vsAverage < 0 ? 'text-body-secondary' : ''}`}>
                                                                            {isAboveAverage ? '+' : ''}{vsAverage}
                                                                       </td>
                                                                  </tr>
                                                             );
                                                        })}
-                                                       <tr className="table-light fw-bold">
-                                                            <td className="py-2">Total</td>
-                                                            <td className="py-2">{totals.totalRegistrations.toLocaleString()}</td>
-                                                            <td className="py-2">100.0%</td>
-                                                            <td className="py-2">-</td>
+                                                       <tr className="fw-bold">
+                                                            <th scope="row" className="py-2">Total</th>
+                                                            <td className="py-2 text-end">{totals.totalRegistrations.toLocaleString()}</td>
+                                                            <td className="py-2 text-end">{totals.totalRegistrations > 0 ? '100.0%' : '0.0%'}</td>
+                                                            <td className="py-2 text-end">—</td>
                                                        </tr>
                                                   </tbody>
                                              </table>
                                         </div>
-                                   </div>
+                                   </section>
                               </div>
                          </div>
                     )}
                </div>
+          </div>
 
                <style jsx global>{`
 				.animate-spin {
@@ -510,7 +527,7 @@ const RegistrationByDayOfWeek: React.FC = () => {
 					}
 				}
 			`}</style>
-          </div>
+          </section>
      );
 };
 

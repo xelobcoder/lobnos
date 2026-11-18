@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { customFetch } from '../../../Auth/customFetch';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
 	BarChart,
 	Bar,
@@ -9,323 +8,335 @@ import {
 	YAxis,
 	CartesianGrid,
 	Tooltip,
-	Legend,
 	ResponsiveContainer,
-	Cell
+	Cell,
 } from 'recharts';
-import { RiPrinterLine, RiErrorWarningLine, RiInbox2Line, RiLoader4Line, RiBarChart2Line, RiFileList3Line, RiUserLine, RiCalculatorLine } from "@remixicon/react";
+import {
+	RiBarChart2Line,
+	RiCalculatorLine,
+	RiErrorWarningLine,
+	RiFileList3Line,
+	RiInbox2Line,
+	RiRefreshLine,
+	RiUserLine,
+} from '@remixicon/react';
+import { customFetch } from '../../../Auth/customFetch';
+import styles from './AgeDistribution.module.css';
 
 interface AgeDistributionData {
 	age_range: string;
 	patient_count: number;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
-const COLOR_MIN = '#6c757d';
-const COLOR_MAX = '#e74c3c';
-const COLOR_BORDER = 'var(--bs-border-color)';
-const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
-const COLOR_TOOLTIP_BG = 'var(--bs-body-bg)';
-const COLOR_TOOLTIP_FG = 'var(--bs-body-color)';
+interface ChartTooltipProps {
+	active?: boolean;
+	payload?: Array<{ payload?: AgeDistributionData }>;
+}
+
+const AGE_INTERVAL_MIN = 1;
+const AGE_INTERVAL_MAX = 120;
+const COLOR_ACCENT = '#3478c8';
+const COLOR_MIN = '#9aa8b7';
+const COLOR_MAX = '#d97745';
+
+function getMinMaxIndexes(data: AgeDistributionData[]) {
+	if (!data.length) return { min: -1, max: -1 };
+	let min = 0;
+	let max = 0;
+	for (let index = 1; index < data.length; index += 1) {
+		if (data[index].patient_count < data[min].patient_count) min = index;
+		if (data[index].patient_count > data[max].patient_count) max = index;
+	}
+	return { min, max };
+}
+
+function getTotals(data: AgeDistributionData[]) {
+	const totalPatients = data.reduce((sum, item) => sum + item.patient_count, 0);
+	const totalAgeRanges = data.length;
+	const avgPatientsPerRange = totalAgeRanges > 0 ? Math.round(totalPatients / totalAgeRanges) : 0;
+	return { totalPatients, totalAgeRanges, avgPatientsPerRange };
+}
 
 const AgeDistribution: React.FC = () => {
 	const [data, setData] = useState<AgeDistributionData[]>([]);
-	const [loading, setLoading] = useState<boolean>(true);
+	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
-	const [interval, setInterval] = useState<number>(10);
-	const [pendingInterval, setPendingInterval] = useState<number>(10);
+	const [interval, setInterval] = useState(10);
+	const [pendingInterval, setPendingInterval] = useState('10');
 
-	const getMinMaxIndexes = (arr: AgeDistributionData[]) => {
-		if (!arr.length) return { min: -1, max: -1 };
-		let min = 0, max = 0;
-		for (let i = 1; i < arr.length; i++) {
-			if (arr[i].patient_count < arr[min].patient_count) min = i;
-			if (arr[i].patient_count > arr[max].patient_count) max = i;
-		}
-		return { min, max };
-	};
+	const requestAgeDistribution = useCallback(async (nextInterval: number) => {
+		const result = await customFetch(`patient-analytics/age-distribution?interval=${nextInterval}`);
+		if (!Array.isArray(result)) throw new Error('Unexpected age distribution response');
+		return result.map((item: AgeDistributionData) => ({
+			age_range: String(item.age_range ?? 'Unspecified'),
+			patient_count: Number(item.patient_count) || 0,
+		}));
+	}, []);
 
-	const calculateTotals = (data: AgeDistributionData[]) => {
-		const totalPatients = data.reduce((sum, item) => sum + item.patient_count, 0);
-		const totalAgeRanges = data.length;
-		const avgPatientsPerRange = totalAgeRanges > 0 ? Math.round(totalPatients / totalAgeRanges) : 0;
-		return { totalPatients, totalAgeRanges, avgPatientsPerRange };
-	};
-
-	const fetchAgeDistribution = async (customInterval?: number) => {
-		setLoading(true);
-		setError(null);
-		try {
-			const useInterval = customInterval ?? interval;
-			const result = await customFetch(`patient-analytics/age-distribution?interval=${useInterval}`);
-			if (Array.isArray(result)) {
+	useEffect(() => {
+		let active = true;
+		requestAgeDistribution(10)
+			.then((result) => {
+				if (!active) return;
 				setData(result);
-				setInterval(useInterval);
-			} else {
-				setError('Unexpected data format received.');
-			}
-		} catch (err: any) {
-			setError(err?.message || 'Error fetching age distribution data');
+				setInterval(10);
+				setPendingInterval('10');
+				setError(null);
+			})
+			.catch((requestError: unknown) => {
+				if (!active) return;
+				console.error('Unable to load patient age distribution', requestError);
+				setError('We couldn’t load the age distribution. Check your connection and try again.');
+			})
+			.finally(() => {
+				if (active) setLoading(false);
+			});
+		return () => {
+			active = false;
+		};
+	}, [requestAgeDistribution]);
+
+	async function fetchAgeDistribution(nextInterval: number) {
+		try {
+			const result = await requestAgeDistribution(nextInterval);
+			setData(result);
+			setInterval(nextInterval);
+			setPendingInterval(String(nextInterval));
+		} catch (requestError) {
+			console.error('Unable to load patient age distribution', requestError);
+			setError('We couldn’t load the age distribution. Check your connection and try again.');
 		} finally {
 			setLoading(false);
 		}
-	};
+	}
 
-	useEffect(() => {
-		fetchAgeDistribution(interval);
-	}, []);
+	const selectedInterval = Number(pendingInterval);
+	const canApplyInterval = Number.isInteger(selectedInterval)
+		&& selectedInterval >= AGE_INTERVAL_MIN
+		&& selectedInterval <= AGE_INTERVAL_MAX
+		&& selectedInterval !== interval;
 
-	const CustomTooltipContent = ({ active, payload }: any) => {
-		if (active && payload && payload.length) {
-			const entry = payload[0].payload;
-			const { totalPatients } = calculateTotals(data);
-			const percentage = totalPatients > 0 ? ((entry.patient_count / totalPatients) * 100).toFixed(1) : '0.0';
+	function applyInterval(event: React.FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		if (!canApplyInterval || loading) return;
+		setLoading(true);
+		setError(null);
+		void fetchAgeDistribution(selectedInterval);
+	}
 
-			return (
-				<div
-					className="rounded-lg border p-2 shadow-sm"
-					style={{
-						backgroundColor: COLOR_TOOLTIP_BG,
-						borderColor: COLOR_BORDER,
-						minWidth: '180px',
-						fontSize: '0.8rem'
-					}}
-				>
-					<div className="mb-2">
-						<span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Age Range</span>
-						<span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{entry.age_range}</span>
-					</div>
-					<div className="mb-2">
-						<span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Patients</span>
-						<span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>{entry.patient_count.toLocaleString()}</span>
-					</div>
-					<div>
-						<span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Percentage</span>
-						<span className="fw-bold d-block" style={{ color: COLOR_TEXT_MUTED }}>{percentage}%</span>
-					</div>
-				</div>
-			);
-		}
-		return null;
-	};
+	function retryCurrentInterval() {
+		setLoading(true);
+		setError(null);
+		void fetchAgeDistribution(interval);
+	}
 
-	const totals = calculateTotals(data);
+	const totals = getTotals(data);
+	const { min, max } = getMinMaxIndexes(data);
+	const chartHeight = Math.max(300, Math.min(720, data.length * 38 + 72));
+
+	function renderTooltip({ active, payload }: ChartTooltipProps) {
+		const entry = payload?.[0]?.payload;
+		if (!active || !entry) return null;
+		const percentage = totals.totalPatients > 0
+			? ((entry.patient_count / totals.totalPatients) * 100).toFixed(1)
+			: '0.0';
+
+		return (
+			<div className={styles.tooltip}>
+				<span className={styles.tooltipLabel}>{entry.age_range} years</span>
+				<strong>{entry.patient_count.toLocaleString()} patients</strong>
+				<span>{percentage}% of patients with age recorded</span>
+			</div>
+		);
+	}
 
 	return (
-		<div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
-			<div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
-				<div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
-					<h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
-						<span className="me-2 flex-shrink-0" style={{ color: COLOR_ACCENT, fontSize: 22 }}>
-							<RiBarChart2Line size={22} />
-						</span>
-						Age Distribution of Patients
-					</h2>
-					<div className="d-flex align-items-center gap-2 ms-auto">
-						<label htmlFor="interval-input" className="mb-0" style={{ color: COLOR_TEXT_MUTED, fontSize: '0.95rem', fontWeight: 500 }}>Interval:</label>
-						<input
-							id="interval-input"
-							type="number"
-							className="form-control form-control-sm"
-							style={{ width: 80 }}
-							value={pendingInterval}
-							onChange={e => setPendingInterval(Math.max(0, parseInt(e.target.value) || 0))}
-						/>
-						<button
-							className="btn btn-primary btn-sm ms-2"
-							style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, fontWeight: 500, fontSize: '0.95rem' }}
-							onClick={() => fetchAgeDistribution(pendingInterval)}
-							disabled={loading || pendingInterval === interval}
-						>
-							{loading && pendingInterval === interval ? 'Loading...' : 'Apply'}
+		<section className={styles.page} aria-labelledby="age-distribution-title">
+			<header className={styles.pageHeader}>
+				<div className={styles.titleBlock}>
+					<p className={styles.eyebrow}>Analytics / Patients</p>
+					<h1 id="age-distribution-title">Age distribution</h1>
+					<p className={styles.subtitle}>Explore how registered patients are distributed across age groups.</p>
+				</div>
+
+				<form className={styles.intervalForm} onSubmit={applyInterval}>
+					<label htmlFor="age-interval">Age band</label>
+					<div className={styles.intervalControls}>
+						<div className={styles.intervalInputWrap}>
+							<input
+								id="age-interval"
+								type="number"
+								min={AGE_INTERVAL_MIN}
+								max={AGE_INTERVAL_MAX}
+								step={1}
+								inputMode="numeric"
+								value={pendingInterval}
+								onChange={event => setPendingInterval(event.target.value)}
+								aria-describedby="age-interval-help"
+							/>
+							<span>years</span>
+						</div>
+						<button type="submit" disabled={!canApplyInterval || loading}>
+							{loading ? 'Loading…' : 'Apply'}
 						</button>
 					</div>
-				</div>
-			</div>
+					<small id="age-interval-help">Choose 1–120 years per group</small>
+				</form>
+			</header>
 
-			{/* Summary Cards */}
-			{!loading && !error && data.length > 0 && (
-				<div className="card-body px-4 pt-3 pb-2">
-					<div className="row g-3 mb-3">
-						<div className="col-md-4">
-							<div className="card h-100" style={{ borderRadius: '0.5rem', borderColor: COLOR_BORDER }}>
-								<div className="card-body text-center p-3">
-									<div className="d-flex align-items-center justify-content-center mb-2">
-										<span className="me-2" style={{ color: COLOR_ACCENT, fontSize: 24 }}>
-											<RiUserLine size={24} />
-										</span>
-										<h4 className="mb-0 fw-bold" style={{ color: COLOR_ACCENT }}>{totals.totalPatients.toLocaleString()}</h4>
-									</div>
-									<p className="text-muted mb-0 small" style={{ color: COLOR_TEXT_MUTED }}>Total Patients</p>
-								</div>
-							</div>
+			{loading ? (
+				<div className={styles.summaryGrid} aria-label="Loading age metrics" aria-busy="true">
+					{[0, 1, 2].map(item => (
+						<div className={styles.summarySkeleton} key={item}>
+							<span />
+							<span />
 						</div>
-						<div className="col-md-4">
-							<div className="card h-100" style={{ borderRadius: '0.5rem', borderColor: COLOR_BORDER }}>
-								<div className="card-body text-center p-3">
-									<div className="d-flex align-items-center justify-content-center mb-2">
-										<span className="me-2" style={{ color: COLOR_ACCENT, fontSize: 24 }}>
-											<RiBarChart2Line size={24} />
-										</span>
-										<h4 className="mb-0 fw-bold" style={{ color: COLOR_ACCENT }}>{totals.totalAgeRanges}</h4>
-									</div>
-									<p className="text-muted mb-0 small" style={{ color: COLOR_TEXT_MUTED }}>Age Ranges</p>
-								</div>
-							</div>
-						</div>
-						<div className="col-md-4">
-							<div className="card h-100" style={{ borderRadius: '0.5rem', borderColor: COLOR_BORDER }}>
-								<div className="card-body text-center p-3">
-									<div className="d-flex align-items-center justify-content-center mb-2">
-										<span className="me-2" style={{ color: COLOR_ACCENT, fontSize: 24 }}>
-											<RiCalculatorLine size={24} />
-										</span>
-										<h4 className="mb-0 fw-bold" style={{ color: COLOR_ACCENT }}>{totals.avgPatientsPerRange}</h4>
-									</div>
-									<p className="text-muted mb-0 small" style={{ color: COLOR_TEXT_MUTED }}>Avg per Range</p>
-								</div>
-							</div>
-						</div>
-					</div>
+					))}
 				</div>
+			) : error ? (
+				<div className={styles.stateCard} role="alert">
+					<span className={styles.stateIcon}><RiErrorWarningLine size={23} aria-hidden="true" /></span>
+					<div className={styles.stateText}>
+						<h2>Age distribution unavailable</h2>
+						<p>{error}</p>
+					</div>
+					<button className={styles.retryButton} type="button" onClick={retryCurrentInterval}>
+						<RiRefreshLine size={17} aria-hidden="true" />
+						Try again
+					</button>
+				</div>
+			) : data.length === 0 ? (
+				<div className={styles.emptyState}>
+					<span className={styles.emptyIcon}><RiInbox2Line size={24} aria-hidden="true" /></span>
+					<h2>No age data available</h2>
+					<p>Patient age groups will appear here when age or date-of-birth information is recorded.</p>
+				</div>
+			) : (
+				<>
+					<div className={styles.summaryGrid} aria-label="Age distribution summary">
+						<article className={styles.summaryCard} data-tone="blue">
+							<span className={styles.summaryIcon}><RiUserLine size={20} aria-hidden="true" /></span>
+							<div>
+								<p>Total patients</p>
+								<strong>{totals.totalPatients.toLocaleString()}</strong>
+							</div>
+						</article>
+						<article className={styles.summaryCard} data-tone="violet">
+							<span className={styles.summaryIcon}><RiBarChart2Line size={20} aria-hidden="true" /></span>
+							<div>
+								<p>Age groups</p>
+								<strong>{totals.totalAgeRanges.toLocaleString()}</strong>
+							</div>
+						</article>
+						<article className={styles.summaryCard} data-tone="green">
+							<span className={styles.summaryIcon}><RiCalculatorLine size={20} aria-hidden="true" /></span>
+							<div>
+								<p>Average per group</p>
+								<strong>{totals.avgPatientsPerRange.toLocaleString()}</strong>
+							</div>
+						</article>
+					</div>
+
+					<section className={styles.panel} aria-labelledby="age-chart-title">
+						<div className={styles.panelHeader}>
+							<div className={styles.panelTitle}>
+								<span className={styles.panelIcon}><RiBarChart2Line size={19} aria-hidden="true" /></span>
+								<div>
+									<h2 id="age-chart-title">Patients by age group</h2>
+									<p>Grouped in {interval}-year bands</p>
+								</div>
+							</div>
+							<div className={styles.chartLegend}>
+								<span><i data-color="normal" />Patient count</span>
+								<span><i data-color="peak" />Largest group</span>
+							</div>
+						</div>
+						<div className={styles.chartFrame} style={{ height: chartHeight }}>
+							<ResponsiveContainer width="100%" height="100%">
+								<BarChart
+									data={data}
+									layout="vertical"
+									margin={{ top: 8, right: 24, left: 8, bottom: 8 }}
+								>
+									<CartesianGrid stroke="#e8eef5" strokeDasharray="4 5" horizontal={false} />
+									<XAxis
+										type="number"
+										allowDecimals={false}
+										tick={{ fontSize: 12, fill: '#718096' }}
+										axisLine={false}
+										tickLine={false}
+									/>
+									<YAxis
+										type="category"
+										dataKey="age_range"
+										tick={{ fontSize: 12, fill: '#52657b' }}
+										width={86}
+										axisLine={false}
+										tickLine={false}
+									/>
+									<Tooltip content={renderTooltip} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+									<Bar dataKey="patient_count" name="Patients" radius={[0, 6, 6, 0]} maxBarSize={24}>
+										{data.map((entry, index) => (
+											<Cell
+												key={`${entry.age_range}-${index}`}
+												fill={index === max ? COLOR_MAX : index === min ? COLOR_MIN : COLOR_ACCENT}
+											/>
+										))}
+									</Bar>
+								</BarChart>
+							</ResponsiveContainer>
+						</div>
+					</section>
+
+					<section className={styles.panel} aria-labelledby="age-table-title">
+						<div className={styles.panelHeader}>
+							<div className={styles.panelTitle}>
+								<span className={styles.panelIcon}><RiFileList3Line size={19} aria-hidden="true" /></span>
+								<div>
+									<h2 id="age-table-title">Age group details</h2>
+									<p>{data.length} groups · {totals.totalPatients.toLocaleString()} patients</p>
+								</div>
+							</div>
+						</div>
+						<div className={styles.tableWrap}>
+							<table className={styles.table}>
+								<thead>
+									<tr>
+										<th scope="col">Age range</th>
+										<th scope="col" className={styles.countColumn}>Patients</th>
+										<th scope="col" className={styles.shareColumn}>Share of total</th>
+									</tr>
+								</thead>
+								<tbody>
+									{data.map((item, index) => {
+										const percentage = totals.totalPatients > 0
+											? (item.patient_count / totals.totalPatients) * 100
+											: 0;
+										return (
+											<tr key={`${item.age_range}-${index}`}>
+												<th scope="row">
+													<span className={styles.ageRange}>{item.age_range} years</span>
+													{index === max && data.length > 1 && <span className={styles.peakBadge}>Largest group</span>}
+												</th>
+												<td className={styles.countColumn}>{item.patient_count.toLocaleString()}</td>
+												<td className={styles.shareColumn}>
+													<div className={styles.shareCell}>
+														<div className={styles.shareTrack} aria-hidden="true">
+															<span style={{ width: `${Math.min(100, percentage)}%` }} />
+														</div>
+														<span>{percentage.toFixed(1)}%</span>
+													</div>
+												</td>
+											</tr>
+										);
+									})}
+								</tbody>
+							</table>
+						</div>
+					</section>
+				</>
 			)}
-
-			<div className="card-body p-3 p-md-4">
-
-				{loading ? (
-					<div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '350px' }}>
-						<span className="mb-3 animate-spin" style={{ color: COLOR_ACCENT, fontSize: 48 }}>
-							<RiLoader4Line size={48} />
-						</span>
-						<p className="text-muted" style={{ color: COLOR_TEXT_MUTED }}>Loading data...</p>
-					</div>
-				) : error ? (
-					<div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '350px' }}>
-						<span className="mb-3" style={{ color: 'var(--bs-danger)', fontSize: 48 }}>
-							<RiErrorWarningLine size={48} />
-						</span>
-						<h5 className="fw-medium mb-1">Error Loading Data</h5>
-						<p className="text-muted px-3" style={{ color: COLOR_TEXT_MUTED }}>{error}</p>
-					</div>
-				) : data.length === 0 ? (
-					<div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '350px' }}>
-						<span className="mb-3" style={{ color: COLOR_TEXT_MUTED, fontSize: 48 }}>
-							<RiInbox2Line size={48} />
-						</span>
-						<h5 className="fw-medium mb-1">No Data Available</h5>
-						<p className="text-muted px-3" style={{ color: COLOR_TEXT_MUTED }}>
-							No age distribution data available.
-						</p>
-					</div>
-				) : (
-					<>
-						{/* Chart Section */}
-						<div className="mb-4">
-							<h6 className="fw-semibold mb-3 d-flex align-items-center" style={{ color: 'var(--bs-body-color)' }}>
-								<RiBarChart2Line size={18} className="me-2" style={{ color: COLOR_ACCENT }} />
-								Age Distribution Chart
-							</h6>
-							<div style={{ width: "100%", height: 350 }}>
-								<ResponsiveContainer width="100%" height={350}>
-									<BarChart
-										data={data}
-										layout="vertical"
-										margin={{ top: 20, right: 30, left: 40, bottom: 20 }}
-									>
-										<CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" horizontal={false} />
-										<XAxis
-											type="number"
-											allowDecimals={false}
-											tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
-											axisLine={false}
-											tickLine={false}
-										/>
-										<YAxis
-											type="category"
-											dataKey="age_range"
-											tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
-											width={95}
-											axisLine={{ stroke: COLOR_BORDER }}
-											tickLine={{ stroke: COLOR_BORDER }}
-										/>
-										<Tooltip content={<CustomTooltipContent />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
-										<Legend verticalAlign="top" align="right" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '13px', color: 'var(--bs-body-color)', paddingBottom: '15px' }} />
-										<Bar
-											dataKey="patient_count"
-											name="Patient Count"
-											radius={[0, 4, 4, 0]}
-											maxBarSize={30}
-										>
-											{data.map((entry, idx) => {
-												const { min, max } = getMinMaxIndexes(data);
-												let color = COLOR_ACCENT;
-												if (idx === min) color = COLOR_MIN;
-												if (idx === max) color = COLOR_MAX;
-												return (
-													<Cell key={`cell-${idx}`} fill={color} />
-												);
-											})}
-										</Bar>
-									</BarChart>
-								</ResponsiveContainer>
-							</div>
-						</div>
-
-						{/* Table Section */}
-						<div>
-							<h6 className="fw-semibold mb-3 d-flex align-items-center" style={{ color: 'var(--bs-body-color)' }}>
-								<RiFileList3Line size={18} className="me-2" style={{ color: COLOR_ACCENT }} />
-								Age Distribution Data
-							</h6>
-							<div id="age-distribution-print" className="table-responsive">
-								<table className="table table-hover" style={{ borderRadius: '0.5rem', overflow: 'hidden' }}>
-									<thead style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
-										<tr>
-											<th className="border-0 fw-semibold" style={{ color: 'var(--bs-body-color)' }}>Age Range</th>
-											<th className="border-0 fw-semibold text-end" style={{ color: 'var(--bs-body-color)' }}>Patient Count</th>
-											<th className="border-0 fw-semibold text-end" style={{ color: 'var(--bs-body-color)' }}>Percentage</th>
-										</tr>
-									</thead>
-									<tbody>
-										{data.map((item, index) => {
-											const percentage = totals.totalPatients > 0 ? ((item.patient_count / totals.totalPatients) * 100).toFixed(1) : '0.0';
-											const { min, max } = getMinMaxIndexes(data);
-											let rowStyle = {};
-											if (index === min) rowStyle = { backgroundColor: `${COLOR_MIN}15` };
-											if (index === max) rowStyle = { backgroundColor: `${COLOR_MAX}15` };
-
-											return (
-												<tr key={index} style={rowStyle}>
-													<td className="fw-medium">{item.age_range}</td>
-													<td className="text-end fw-semibold" style={{ color: COLOR_ACCENT }}>{item.patient_count.toLocaleString()}</td>
-													<td className="text-end" style={{ color: COLOR_TEXT_MUTED }}>{percentage}%</td>
-												</tr>
-											);
-										})}
-									</tbody>
-								</table>
-							</div>
-						</div>
-					</>
-				)}
-			</div>
-			<style jsx global>{`
-		.animate-spin {
-		  animation: spin 1s linear infinite;
-		}
-		@keyframes spin {
-		  from { transform: rotate(0deg); }
-		  to { transform: rotate(360deg); }
-		}
-		@media print {
-			.no-print { display: none !important; }
-			.card { border: none !important; box-shadow: none !important; }
-			.card-header { background: white !important; border-bottom: 1px solid #ddd !important; }
-			.table-responsive { overflow: visible !important; }
-			.table { margin-bottom: 0; }
-		}
-	  `}</style>
-		</div>
+		</section>
 	);
 };
 

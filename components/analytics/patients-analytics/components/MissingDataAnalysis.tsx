@@ -1,292 +1,151 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { RiErrorWarningLine, RiPrinterLine, RiRefreshLine, RiUserUnfollowLine } from '@remixicon/react';
 import { customFetch } from '../../../Auth/customFetch';
-import {
-	BarChart,
-	Bar,
-	XAxis,
-	YAxis,
-	CartesianGrid,
-	Tooltip,
-	Legend,
-	ResponsiveContainer,
-	Cell
-} from 'recharts';
-import { RiPrinterLine, RiErrorWarningLine, RiFileList3Line, RiLoader4Line, RiBarChart2Line, RiUserLine, RiCalculatorLine, RiInbox2Line } from "@remixicon/react";
+import styles from './PatientAnalyticsReport.module.css';
 
-interface MissingDataAnalysis {
-	missing_emails: number;
-	missing_mobile_numbers: number;
-	missing_middlenames: number;
+interface MissingDataResponse {
+	missing_emails?: number | string | null;
+	missing_mobile_numbers?: number | string | null;
+	missing_middlenames?: number | string | null;
 }
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
-const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
-const COLOR_BORDER = 'var(--bs-border-color)';
+interface MissingField {
+	field: string;
+	missing: number;
+}
+
+const COLORS = ['#d97745', '#d3a33c', '#8870bd'];
 
 const MissingDataAnalysis: React.FC = () => {
-	const [data, setData] = useState<{ field: string; missing: number }[]>([]);
-	const [loading, setLoading] = useState<boolean>(true);
+	const [data, setData] = useState<MissingField[]>([]);
+	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
-	const calculateTotals = (data: { field: string; missing: number }[]) => {
-		const totalMissing = data.reduce((sum, item) => sum + item.missing, 0);
-		const totalFields = data.length;
-		const avgMissingPerField = totalFields > 0 ? Math.round(totalMissing / totalFields) : 0;
-		return { totalMissing, totalFields, avgMissingPerField };
-	};
-
-	const CustomTooltipContent = ({ active, payload }: any) => {
-		if (active && payload && payload.length) {
-			const entry = payload[0].payload;
-			const { totalMissing } = calculateTotals(data);
-			const percentage = totalMissing > 0 ? ((entry.missing / totalMissing) * 100).toFixed(1) : '0.0';
-
-			return (
-				<div
-					className="rounded-lg border p-3 shadow-sm"
-					style={{
-						backgroundColor: 'var(--bs-body-bg)',
-						borderColor: COLOR_BORDER,
-						minWidth: '180px',
-						fontSize: '0.85rem',
-						color: 'var(--bs-body-color)'
-					}}
-				>
-					<div className="mb-2">
-						<span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Field</span>
-						<span className="fw-bold d-block">{entry.field}</span>
-					</div>
-					<div className="mb-2">
-						<span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Missing Count</span>
-						<span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>{entry.missing.toLocaleString()}</span>
-					</div>
-					<div>
-						<span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Percentage</span>
-						<span className="fw-bold d-block" style={{ color: COLOR_TEXT_MUTED }}>{percentage}%</span>
-					</div>
-				</div>
-			);
-		}
-		return null;
-	};
-	const totals = calculateTotals(data);
-
-	useEffect(() => {
-		const fetchMissingData = async () => {
-			try {
-				const result = await customFetch('patient-analytics/missing-data-analysis');
-				if (result && typeof result === 'object') {
-					let row: MissingDataAnalysis;
-					if (Array.isArray(result)) {
-						row = result[0];
-					} else {
-						row = result;
-					}
-					const transformed = [
-						{ field: 'Email', missing: row.missing_emails },
-						{ field: 'Mobile Number', missing: row.missing_mobile_numbers },
-						{ field: 'Middle Name', missing: row.missing_middlenames }
-					];
-					setData(transformed);
-				} else {
-					setError('Unexpected data format received.');
-				}
-			} catch (err) {
-				console.error(err);
-				setError('Error fetching missing data analysis.');
-			} finally {
-				setLoading(false);
+	const load = useCallback(async () => {
+		setLoading(true);
+		setError(null);
+		try {
+			const result = await customFetch('patient-analytics/missing-data-analysis');
+			const row = Array.isArray(result) ? result[0] : result;
+			if (Array.isArray(result) && result.length === 0) {
+				setData([]);
+				return;
 			}
-		};
-		fetchMissingData();
+			if (!row || typeof row !== 'object') throw new Error('Unexpected data format received.');
+			const response = row as MissingDataResponse;
+			const asCount = (value: MissingDataResponse[keyof MissingDataResponse]) => {
+				const count = Number(value);
+				if (value === undefined || value === null || !Number.isFinite(count) || count < 0) {
+					throw new Error('Invalid missing-data count in response.');
+				}
+				return count;
+			};
+			setData([
+				{ field: 'Email', missing: asCount(response.missing_emails) },
+				{ field: 'Mobile number', missing: asCount(response.missing_mobile_numbers) },
+				{ field: 'Middle name', missing: asCount(response.missing_middlenames) },
+			]);
+		} catch (requestError) {
+			console.error('Unable to load missing patient data analysis', requestError);
+			setError('We couldn’t load the missing-data report. Check your connection and try again.');
+		} finally {
+			setLoading(false);
+		}
 	}, []);
 
-	if (loading) return <div>Loading missing data analysis...</div>;
-	if (error) return <div>{error}</div>;
+	useEffect(() => {
+		const timer = window.setTimeout(() => { void load(); }, 0);
+		return () => window.clearTimeout(timer);
+	}, [load]);
 
+	const totalMissing = useMemo(() => data.reduce((sum, item) => sum + item.missing, 0), [data]);
+	const share = (value: number) => totalMissing > 0 ? ((value / totalMissing) * 100).toFixed(1) : '0.0';
 
 	return (
-		<div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
-			<div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
-				<div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
-					<h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
-						<span className="me-2 flex-shrink-0" style={{ color: COLOR_ACCENT, fontSize: 22 }}>
-							<RiBarChart2Line size={22} />
-						</span>
-						Missing Data Analysis
-					</h2>
+		<section className={styles.report} aria-labelledby="missing-data-title">
+			<header className={styles.intro}>
+				<div>
+					<p className={styles.eyebrow}>Prime Laboratory Software · Patient analytics</p>
+					<h1 className={styles.title} id="missing-data-title">Missing patient data</h1>
+					<p className={styles.description}>Identify common gaps in selected patient profile fields to guide registration follow-up.</p>
 				</div>
-			</div>
+				<div className={styles.actions}>
+					<button className="btn btn-sm btn-outline-primary" type="button" onClick={() => window.print()}><RiPrinterLine size={17} className="me-1" aria-hidden="true" />Print report</button>
+					{error && <button className="btn btn-sm btn-outline-secondary" type="button" onClick={() => void load()}><RiRefreshLine size={17} className="me-1" aria-hidden="true" />Try again</button>}
+				</div>
+			</header>
 
-			{/* Summary Cards */}
-			{!loading && !error && data.length > 0 && (
-				<div className="card-body px-4 pt-3 pb-2">
+			{loading ? (
+				<div className={styles.state} role="status" aria-live="polite" aria-busy="true">
+					<span className={styles.stateIcon}><span className={styles.spinner} aria-hidden="true">◌</span></span>
+					<h2>Loading report</h2><p>Checking selected patient profile fields…</p>
+				</div>
+			) : error ? (
+				<div className={styles.state} role="alert">
+					<span className={styles.stateIcon}><RiErrorWarningLine size={22} aria-hidden="true" /></span>
+					<h2>Report unavailable</h2><p>{error}</p>
+				</div>
+			) : data.length === 0 ? (
+				<div className={styles.state}>
+					<span className={styles.stateIcon}><RiUserUnfollowLine size={22} aria-hidden="true" /></span>
+					<h2>No profile-field data available</h2><p>Missing-field counts will appear when patient records are available.</p>
+				</div>
+			) : (
+				<>
 					<div className="row g-3 mb-3">
-						<div className="col-md-4">
-							<div className="card h-100" style={{ borderRadius: '0.5rem', borderColor: COLOR_BORDER }}>
-								<div className="card-body text-center p-3">
-									<div className="d-flex align-items-center justify-content-center mb-2">
-										<span className="me-2" style={{ color: COLOR_ACCENT, fontSize: 24 }}>
-											<RiUserLine size={24} />
-										</span>
-										<h4 className="mb-0 fw-bold" style={{ color: COLOR_ACCENT }}>{totals.totalMissing.toLocaleString()}</h4>
-									</div>
-									<p className="text-muted mb-0 small" style={{ color: COLOR_TEXT_MUTED }}>Total Missing</p>
-								</div>
-							</div>
+						<div className="col-12 col-sm-6 col-xl-4">
+							<article className="card h-100"><div className="card-body d-flex align-items-center gap-3 p-3">
+								<span className={styles.stateIcon}><RiUserUnfollowLine size={20} aria-hidden="true" /></span>
+								<div><p className="small text-body-secondary mb-1">Missing values across listed fields</p><p className="h4 fw-bold mb-0">{totalMissing.toLocaleString()}</p></div>
+							</div></article>
 						</div>
-						<div className="col-md-4">
-							<div className="card h-100" style={{ borderRadius: '0.5rem', borderColor: COLOR_BORDER }}>
-								<div className="card-body text-center p-3">
-									<div className="d-flex align-items-center justify-content-center mb-2">
-										<span className="me-2" style={{ color: COLOR_ACCENT, fontSize: 24 }}>
-											<RiBarChart2Line size={24} />
-										</span>
-										<h4 className="mb-0 fw-bold" style={{ color: COLOR_ACCENT }}>{totals.totalFields}</h4>
-									</div>
-									<p className="text-muted mb-0 small" style={{ color: COLOR_TEXT_MUTED }}>Data Fields</p>
-								</div>
-							</div>
-						</div>
-						<div className="col-md-4">
-							<div className="card h-100" style={{ borderRadius: '0.5rem', borderColor: COLOR_BORDER }}>
-								<div className="card-body text-center p-3">
-									<div className="d-flex align-items-center justify-content-center mb-2">
-										<span className="me-2" style={{ color: COLOR_ACCENT, fontSize: 24 }}>
-											<RiCalculatorLine size={24} />
-										</span>
-										<h4 className="mb-0 fw-bold" style={{ color: COLOR_ACCENT }}>{totals.avgMissingPerField}</h4>
-									</div>
-									<p className="text-muted mb-0 small" style={{ color: COLOR_TEXT_MUTED }}>Avg per Field</p>
-								</div>
-							</div>
+						<div className="col-12 col-sm-6 col-xl-4">
+							<article className="card h-100"><div className="card-body p-3">
+								<p className="small text-body-secondary mb-1">Profile fields assessed</p><p className="h4 fw-bold mb-0">{data.length}</p>
+							</div></article>
 						</div>
 					</div>
-				</div>
+					<div className="row g-3">
+						<div className="col-12">
+							<section className={styles.panel} aria-labelledby="missing-chart-title">
+								<h2 className={styles.panelTitle} id="missing-chart-title">Missing values by field</h2>
+								<p className={styles.panelHint}>The share is each field’s contribution to the total missing values shown below.</p>
+								<div className={styles.chart} role="img" aria-label="Missing patient values by field">
+									<ResponsiveContainer width="100%" height="100%">
+										<BarChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 8 }}>
+											<CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+											<XAxis dataKey="field" tick={{ fontSize: 11, fill: 'var(--bs-secondary-color)' }} />
+											<YAxis allowDecimals={false} width={56} tick={{ fontSize: 11, fill: 'var(--bs-secondary-color)' }} axisLine={false} tickLine={false} />
+											<Tooltip formatter={(value) => [Number(value).toLocaleString(), 'Missing']} contentStyle={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)', borderRadius: 10 }} />
+											<Bar dataKey="missing" name="Missing values" radius={[5, 5, 0, 0]} maxBarSize={64}>
+												{data.map((row, index) => <Cell key={row.field} fill={COLORS[index % COLORS.length]} />)}
+											</Bar>
+										</BarChart>
+									</ResponsiveContainer>
+								</div>
+							</section>
+						</div>
+						<div className="col-12">
+							<section className={styles.panel} aria-labelledby="missing-table-title">
+								<h2 className={styles.panelTitle} id="missing-table-title">Field breakdown</h2>
+								<p className={styles.panelHint}>Counts reflect missing values in the data returned by the patient analytics service.</p>
+								<div className={styles.tableWrap}>
+									<table className="table table-hover align-middle">
+										<thead><tr><th scope="col">Patient field</th><th scope="col" className="text-end">Missing count</th><th scope="col" className="text-end">Share of missing</th></tr></thead>
+										<tbody>{data.map((item) => <tr key={item.field}>
+											<th scope="row">{item.field}</th><td className="text-end">{item.missing.toLocaleString()}</td><td className="text-end">{share(item.missing)}%</td>
+										</tr>)}</tbody>
+									</table>
+								</div>
+							</section>
+						</div>
+					</div>
+				</>
 			)}
-
-			<div className="card-body p-3 p-md-4">
-
-				{loading ? (
-					<div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '350px' }}>
-						<span className="mb-3 animate-spin" style={{ color: COLOR_ACCENT, fontSize: 48 }}>
-							<RiLoader4Line size={48} />
-						</span>
-						<p className="text-muted" style={{ color: COLOR_TEXT_MUTED }}>Loading data...</p>
-					</div>
-				) : error ? (
-					<div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '350px' }}>
-						<span className="mb-3" style={{ color: 'var(--bs-danger)', fontSize: 48 }}>
-							<RiErrorWarningLine size={48} />
-						</span>
-						<h5 className="fw-medium mb-1">Error Loading Data</h5>
-						<p className="text-muted px-3" style={{ color: COLOR_TEXT_MUTED }}>{error}</p>
-					</div>
-				) : data.length === 0 ? (
-					<div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '350px' }}>
-						<span className="mb-3" style={{ color: COLOR_TEXT_MUTED, fontSize: 48 }}>
-							<RiInbox2Line size={48} />
-						</span>
-						<h5 className="fw-medium mb-1">No Data Available</h5>
-						<p className="text-muted px-3" style={{ color: COLOR_TEXT_MUTED }}>
-							No missing data analysis available.
-						</p>
-					</div>
-				) : (
-					<>
-						{/* Chart Section */}
-						<div className="mb-4">
-							<h6 className="fw-semibold mb-3 d-flex align-items-center" style={{ color: 'var(--bs-body-color)' }}>
-								<RiBarChart2Line size={18} className="me-2" style={{ color: COLOR_ACCENT }} />
-								Missing Data Chart
-							</h6>
-							<div style={{ width: "100%", height: 350 }}>
-								<ResponsiveContainer width="100%" height={350}>
-									<BarChart data={data} margin={{ top: 5, right: 5, left: 20, bottom: 45 }}>
-										<CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
-										<XAxis
-											dataKey="field"
-											tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
-											axisLine={{ stroke: COLOR_BORDER }}
-											tickLine={{ stroke: COLOR_BORDER }}
-										/>
-										<YAxis
-											tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
-											width={95}
-											axisLine={false}
-											tickLine={false}
-										/>
-										<Tooltip content={<CustomTooltipContent />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
-										<Legend verticalAlign="top" align="right" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '13px', color: 'var(--bs-body-color)', paddingBottom: '15px' }} />
-										<Bar dataKey="missing" maxBarSize={30} name="Missing Count" radius={[4, 4, 0, 0]}>
-											{data.map((entry, index) => {
-												const colors = ['#DB4437', '#F4B400', '#0F9D58'];
-												return (
-													<Cell
-														key={`cell-${index}`}
-														fill={colors[index % colors.length]}
-													/>
-												);
-											})}
-										</Bar>
-									</BarChart>
-								</ResponsiveContainer>
-							</div>
-						</div>
-
-						{/* Table Section */}
-						<div>
-							<h6 className="fw-semibold mb-3 d-flex align-items-center" style={{ color: 'var(--bs-body-color)' }}>
-								<RiFileList3Line size={18} className="me-2" style={{ color: COLOR_ACCENT }} />
-								Missing Data Details
-							</h6>
-							<div id="missing-data-print" className="table-responsive">
-								<table className="table table-hover" style={{ borderRadius: '0.5rem', overflow: 'hidden' }}>
-									<thead style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
-										<tr>
-											<th className="border-0 fw-semibold" style={{ color: 'var(--bs-body-color)' }}>Data Field</th>
-											<th className="border-0 fw-semibold text-end" style={{ color: 'var(--bs-body-color)' }}>Missing Count</th>
-											<th className="border-0 fw-semibold text-end" style={{ color: 'var(--bs-body-color)' }}>Percentage</th>
-										</tr>
-									</thead>
-									<tbody>
-										{data.map((item, index) => {
-											const percentage = totals.totalMissing > 0 ? ((item.missing / totals.totalMissing) * 100).toFixed(1) : '0.0';
-											const colors = ['#DB443715', '#F4B40015', '#0F9D5815'];
-											return (
-												<tr key={index} style={{ backgroundColor: colors[index % colors.length] }}>
-													<td className="fw-medium">{item.field}</td>
-													<td className="text-end fw-semibold" style={{ color: COLOR_ACCENT }}>{item.missing.toLocaleString()}</td>
-													<td className="text-end" style={{ color: COLOR_TEXT_MUTED }}>{percentage}%</td>
-												</tr>
-											);
-										})}
-									</tbody>
-								</table>
-							</div>
-						</div>
-					</>
-				)}
-			</div>
-			<style jsx global>{`
-	  .animate-spin {
-		animation: spin 1s linear infinite;
-	  }
-	  @keyframes spin {
-		from { transform: rotate(0deg); }
-		to { transform: rotate(360deg); }
-	  }
-	  @media print {
-		.no-print { display: none !important; }
-		.card { border: none !important; box-shadow: none !important; }
-		.card-header { background: white !important; border-bottom: 1px solid #ddd !important; }
-		.table-responsive { overflow: visible !important; }
-		.table { margin-bottom: 0; }
-	  }
-	`}</style>
-		</div>
+		</section>
 	);
 };
 
