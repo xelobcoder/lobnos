@@ -172,6 +172,11 @@ export default function PrimeLabLoginPage() {
 				return;
 			}
 
+			if (cookieResult.passwordChangeRequired === true || backendResponse.passwordChangeRequired === true) {
+				window.location.replace('/authentications/update-password');
+				return;
+			}
+
 			let verifiedConfiguration: unknown;
 			if (typeof window !== 'undefined') {
 				const contextResponse = await fetch('/api/auth/context-retrieval', {

@@ -32,6 +32,10 @@ export default function MAIN_LAYOUT({ children }: {children?: React.ReactNode}) 
                     if(data?.code==='SESSION_ROLE_CHANGED')throw new Error('Your active role could not be confirmed. Sign out and sign in again.');
                }
                if (signal.aborted) return;
+               if (data?.passwordChangeRequired === true) {
+                    window.location.replace('/authentications/update-password');
+                    return null;
+               }
                const { user, error, redirect, settings } = data;
                const authenticatedUser = user?.user ?? user;
 

@@ -392,7 +392,7 @@ export default function UserProfilePage() {
                                    <SectionCard title="Editing Notes" subtitle="Use this panel as a quick checklist before you submit.">
                                         <ul className="list-unstyled mb-0">
                                              <li className="d-flex gap-2 mb-3"><RiCheckFill className="text-success mt-1 flex-shrink-0" /> <span className="text-muted">Mobile numbers should be exactly 10 digits.</span></li>
-                                             <li className="d-flex gap-2 mb-3"><RiCheckFill className="text-success mt-1 flex-shrink-0" /> <span className="text-muted">Password changes require at least 6 characters.</span></li>
+                                             <li className="d-flex gap-2 mb-3"><RiCheckFill className="text-success mt-1 flex-shrink-0" /> <span className="text-muted">Password changes require at least 12 characters.</span></li>
                                              <li className="d-flex gap-2"><RiCheckFill className="text-success mt-1 flex-shrink-0" /> <span className="text-muted">PIN updates must be 4 digits and match confirmation.</span></li>
                                         </ul>
                                    </SectionCard>

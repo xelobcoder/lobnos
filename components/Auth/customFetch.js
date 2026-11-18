@@ -42,6 +42,10 @@ export async function customFile(endpoint, formbody) {
 async function checkSessionResponse(source) {
     if (typeof window !== 'undefined' && source && typeof source === 'object') {
         const message = String(source.message || '').toLowerCase();
+        if (source.code === 'PASSWORD_CHANGE_REQUIRED') {
+            window.location.replace('/authentications/update-password');
+            return source;
+        }
         if (source.isExpired === true || ([401, '401'].includes(source.statusCode ?? source.status) && ['unauthorized', 'token not provided', 'token expired'].includes(message))) {
             if (source.code === 'SESSION_REPLACED') toast.warning(source.message);
             await handleLogout();

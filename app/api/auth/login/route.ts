@@ -118,6 +118,7 @@ export async function POST(request: NextRequest) {
             status: true,
             role: userRole,
             tenantId,
+            passwordChangeRequired: validatedSession?.passwordChangeRequired === true,
             message: 'Authentication successful'
         });
 
