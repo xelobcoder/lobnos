@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
                },
                cache: 'no-store',
                credentials: 'include',
+               signal: AbortSignal.timeout(60_000),
           });
 
           const data = await response.json()
@@ -76,10 +77,6 @@ export async function GET(request: NextRequest) {
           });
      } catch (error) {
           console.error('Token validation error:', error);
-          return new Response(
-               JSON.stringify({ error: 'Token validation failed' }), {
-               status: 500,
-               headers: { 'Content-Type': 'application/json' },
-          });
+          return NextResponse.json({ error: 'The session service is temporarily unavailable. Please try again.' }, { status: 502 });
      }
 }

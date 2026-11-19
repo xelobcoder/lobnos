@@ -14,24 +14,30 @@ export default function MAIN_LAYOUT({ children }: {children?: React.ReactNode}) 
      const [checking, setChecking] = useState(true);
 
      const getRetrieval = useCallback(async function (signal: AbortSignal) {
-          setChecking(true);
-          setContextError('');
+          const requestController = new AbortController();
+          let timedOut = false;
+          const abortForUnmount = () => requestController.abort();
+          signal.addEventListener('abort', abortForUnmount, { once: true });
+          const timeoutId = window.setTimeout(() => {
+               timedOut = true;
+               requestController.abort();
+          }, 70_000);
           try {
                let retrieveContext = await fetch('/api/auth/context-retrieval', {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' },
-                    cache: 'no-store', signal,
+                    cache: 'no-store', signal: requestController.signal,
                });
                let data = await retrieveContext.json();
                if(data?.code==='SESSION_ROLE_CHANGED') {
-                    const recovery=await fetch('/api/auth/refresh-role-session',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}',credentials:'include',cache:'no-store',signal});
+                    const recovery=await fetch('/api/auth/refresh-role-session',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}',credentials:'include',cache:'no-store',signal:requestController.signal});
                     const recoveryData=await recovery.json();
                     if(!recovery.ok||recoveryData?.status!==true)throw new Error(errorMessage(recoveryData?.error,'Your workspace session could not be restored. Sign out and sign in again.'));
-                    retrieveContext=await fetch('/api/auth/context-retrieval',{headers:{'Content-Type':'application/json'},credentials:'include',cache:'no-store',signal});
+                    retrieveContext=await fetch('/api/auth/context-retrieval',{headers:{'Content-Type':'application/json'},credentials:'include',cache:'no-store',signal:requestController.signal});
                     data=await retrieveContext.json();
                     if(data?.code==='SESSION_ROLE_CHANGED')throw new Error('Your active role could not be confirmed. Sign out and sign in again.');
                }
-               if (signal.aborted) return;
+               if (requestController.signal.aborted) return;
                if (data?.passwordChangeRequired === true) {
                     window.location.replace('/authentications/update-password');
                     return null;
@@ -56,8 +62,17 @@ export default function MAIN_LAYOUT({ children }: {children?: React.ReactNode}) 
                     try { localStorage.setItem('applicationsettings', JSON.stringify(freshSettings)); } catch { /* A blocked cache must not prevent sign-in. */ }
                }
           } catch (error: any) {
-               if (!signal.aborted) setContextError(error instanceof SyntaxError ? 'The session service returned an invalid response. Please try again.' : errorMessage(error, 'Unable to connect to the session service.'));
+               if (!signal.aborted) {
+                    const message = timedOut
+                         ? 'Session restoration timed out. Check your connection and try again.'
+                         : error instanceof SyntaxError
+                              ? 'The session service returned an invalid response. Please try again.'
+                              : errorMessage(error, 'Unable to connect to the session service.');
+                    setContextError(message);
+               }
           } finally {
+               window.clearTimeout(timeoutId);
+               signal.removeEventListener('abort', abortForUnmount);
                if (!signal.aborted) setChecking(false);
           }
      }, [setApplicationSettings]);
@@ -65,15 +80,18 @@ export default function MAIN_LAYOUT({ children }: {children?: React.ReactNode}) 
 
      useEffect(() => {
           const controller = new AbortController();
-          void getRetrieval(controller.signal);
-          return () => controller.abort();
+          const startTimer = window.setTimeout(() => { void getRetrieval(controller.signal); }, 0);
+          return () => {
+               window.clearTimeout(startTimer);
+               controller.abort();
+          };
      }, [getRetrieval, retry]);
 
 
 
      if (contextError) return <section className="alert alert-danger m-3" role="alert">
           <h1 className="h5">Unable to load your workspace</h1><p>{contextError}</p>
-          <div className="d-flex flex-wrap gap-2"><button type="button" className="btn btn-primary" disabled={checking} onClick={() => setRetry(value => value + 1)}>{checking ? 'Retrying…' : 'Try again'}</button><a className="btn btn-outline-secondary" href="/authentication/logout">Sign out and sign in again</a></div>
+          <div className="d-flex flex-wrap gap-2"><button type="button" className="btn btn-primary" disabled={checking} onClick={() => { setContextError(''); setChecking(true); setRetry(value => value + 1); }}>{checking ? 'Retrying…' : 'Try again'}</button><a className="btn btn-outline-secondary" href="/authentication/logout">Sign out and sign in again</a></div>
      </section>;
      if (checking) return <p className="p-3" role="status">Restoring your workspace session...</p>;
      if (!applicationsettings) return <p className="p-3" role="status">Loading your workspace…</p>;

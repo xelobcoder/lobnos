@@ -7,10 +7,10 @@ const vm = require('node:vm');
 const ts = require('typescript');
 const source = fs.readFileSync(path.join(__dirname, '../app/api/auth/context-retrieval/route.ts'), 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
-function handler(body, status = 200) {
+function handler(body, status = 200, fetchImpl = async () => new Response(JSON.stringify(body), { status }), abortSignal = AbortSignal) {
     const exports = {};
     vm.runInNewContext(compiled, {
-        exports, URL, Response, console: { error() {} }, process: { env: { DEVELOPMENT_BASEURL: 'http://backend/api/v1/', NODE_ENV: 'development' } },
+        exports, URL, Response, AbortSignal: abortSignal, console: { error() {} }, process: { env: { DEVELOPMENT_BASEURL: 'http://backend/api/v1/', NODE_ENV: 'development' } },
         require(name) {
             if (name.endsWith('errorMessage')) return require('./helpers/error-message.cjs');
             if (name.endsWith('serverRequestContext')) return { getServerRequestContext: async () => ({ PLS_SESSION: 'synthetic', PLS_PRIME_TENANT_SESSION: 'synthetic-tenant', tenantId: 42 }) };
@@ -22,7 +22,7 @@ function handler(body, status = 200) {
             } } };
             return {};
         },
-        fetch: async () => new Response(JSON.stringify(body), { status }),
+        fetch: fetchImpl,
     });
     return exports.GET(new Request('http://localhost/api/auth/context-retrieval'));
 }
@@ -30,6 +30,14 @@ test('upstream session outages remain retryable without a login redirect', async
     const response = await handler({ status: false, message: 'Unavailable' }, 503);
     assert.equal(response.status, 502);
     assert.equal((await response.json()).redirect, undefined);
+});
+test('a stalled session validation is aborted and returned as a retryable error', async () => {
+    const response = await handler({}, 200, async (_url, options) => {
+        assert.equal(options.signal.aborted, true);
+        throw new Error('Timed out');
+    }, { timeout: () => ({ aborted: true }) });
+    assert.equal(response.status, 502);
+    assert.match((await response.json()).error, /session service is temporarily unavailable/i);
 });
 test('missing account data is rejected as a retryable upstream failure', async () => {
     const response = await handler({ status: true });
@@ -58,20 +66,39 @@ test('the layout catches failed and incomplete context responses without an unha
         ts.forEachChild(node, visit);
     }
     visit(ast);
+    const output = ts.transpileModule(`this.run = ${callback};`, { compilerOptions: { target: ts.ScriptTarget.ES2020 } }).outputText;
     for (const [body, status] of [[{ error: 'Session service unavailable' }, 502], [{ status: true }, 200]]) {
         let shownError = '', checking;
         const context = {
             errorMessage: require('./helpers/error-message.cjs').errorMessage,
             setChecking: value => { checking = value; }, setContextError: value => { shownError = value; },
             setApplicationSettings: () => assert.fail('An invalid context must not be applied'),
+            AbortController,
+            window: { setTimeout: () => 1, clearTimeout() {} },
             fetch: async () => new Response(JSON.stringify(body), { status }),
         };
-        const output = ts.transpileModule(`this.run = ${callback};`, { compilerOptions: { target: ts.ScriptTarget.ES2020 } }).outputText;
         vm.runInNewContext(output, context);
         await assert.doesNotReject(() => context.run(new AbortController().signal));
         assert.ok(shownError);
         assert.equal(checking, false);
     }
+
+    let timeoutError = '', timeoutChecking;
+    const timeoutContext = {
+        errorMessage: require('./helpers/error-message.cjs').errorMessage,
+        setChecking: value => { timeoutChecking = value; }, setContextError: value => { timeoutError = value; },
+        setApplicationSettings: () => assert.fail('An invalid context must not be applied'),
+        AbortController,
+        window: { setTimeout: callback => { callback(); return 1; }, clearTimeout() {} },
+        fetch: async (_url, options) => {
+            assert.equal(options.signal.aborted, true);
+            throw new Error('Request aborted');
+        },
+    };
+    vm.runInNewContext(output, timeoutContext);
+    await assert.doesNotReject(() => timeoutContext.run(new AbortController().signal));
+    assert.match(timeoutError, /restoration timed out/i);
+    assert.equal(timeoutChecking, false);
 });
 
 for (const code of ['SESSION_REPLACED', 'SESSION_EXPIRED', 'SESSION_INVALID']) {
