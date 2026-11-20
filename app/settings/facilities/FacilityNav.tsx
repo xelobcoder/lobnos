@@ -17,6 +17,7 @@ const sections = [
     ["/devices", "Medical device interfacing", RiToolsLine],
     ["/backups", "Facility backups", RiDatabase2Line],
     ["/audit", "Audit logs", RiHistoryLine],
+    ["/test-catalog/testlist", "Master test catalogue", RiToolsLine],
     ["/copy-test-setup", "Copy test setup", RiToolsLine],
     ["/account", "Master account", RiShieldUserLine],
 ] as const;
@@ -27,7 +28,7 @@ export default function FacilityNav({ onNavigate }: { onNavigate?: () => void } 
     return <nav className={workspace.navigation} aria-label="Platform administration">
         {sections.map(([path, label, Icon]) => {
             const href = base + path;
-            const active = pathname === href;
+            const active = pathname === href || (path === '/test-catalog/testlist' && pathname?.startsWith(base + '/test-catalog/'));
             return <Link href={href} key={href} aria-current={active ? "page" : undefined}
                 onClick={onNavigate} className={`${workspace.item}${active ? ` ${workspace.active}` : ""}`}>
                 <span className={workspace.icon}><Icon aria-hidden="true" /></span>{label}

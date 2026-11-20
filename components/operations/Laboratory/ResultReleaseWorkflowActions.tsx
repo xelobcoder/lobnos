@@ -7,6 +7,7 @@ import { ResultReviewValues } from '../../ResutlUI/useCustomResultTemplating';
 import ReportRichText from '../../ResultView/ReportRichText';
 import PreviewPatientInformation from '../../petientsComponent/PreviewPatientInformation';
 import styles from './ValidationModal.module.css';
+import { Ri24HoursFill } from '@remixicon/react';
 
 const reviewReasons = [
      'I have reviewed and approved these results.',
@@ -128,7 +129,7 @@ export default function ResultReleaseWorkflowActions({ ascensionId, patientName,
                     </Dropdown.Item>
                ) : (
                     <Dropdown.Item as="button" onClick={() => void open('release')} title={statusMessage(workflow)}>
-                         View release
+                       <Ri24HoursFill/>  View release
                     </Dropdown.Item>
                )}
                <Modal show={show} onHide={() => !busy && setShow(false)} size="xl" scrollable backdrop="static" dialogClassName={styles.dialog}>

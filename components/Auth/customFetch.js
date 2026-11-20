@@ -1,3 +1,4 @@
+import { masterCatalogEndpoint } from "../../lib/masterCatalogScope";
 import Cookies from "js-cookie";
 import moment from "moment";
 import { toast } from "react-toastify";
@@ -55,11 +56,11 @@ async function checkSessionResponse(source) {
 }
 
 export async function customFetch(endpoint, isLogin = false) {
-    return checkSessionResponse(await requestBackendJson(endpoint, 'GET', undefined, isLogin));
+    return checkSessionResponse(await requestBackendJson(masterCatalogEndpoint(endpoint), 'GET', undefined, isLogin));
 }
 
 export async function customFetchMutation(endpoint, method, body) {
-    return checkSessionResponse(await requestBackendJson(endpoint, method, body));
+    return checkSessionResponse(await requestBackendJson(masterCatalogEndpoint(endpoint), method, body));
 }
 
 let logoutPromise = null;
@@ -197,7 +198,7 @@ export const Glucoseoptions = ["mg/dl", "mmol/L"];
  * @returns {Promise<any>} - The parsed response from the POST request.
  */
 export async function customPost(endpoint, method, data, hash = false, login = false, requestedTenantId = undefined) {
-    return checkSessionResponse(await requestBackendJson(endpoint, method, data, login, requestedTenantId));
+    return checkSessionResponse(await requestBackendJson(masterCatalogEndpoint(endpoint), method, data, login, requestedTenantId));
 }
 
 export async function CheckResultEntered(testname, billingid) {

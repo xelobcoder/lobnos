@@ -325,8 +325,7 @@ export default function ValidatedResultTable({ employeeid, mode = 'full', stage 
                <div className="small text-muted">{row.original.ascension_date && dayjs(row.original.ascension_date).isValid()
                     ? dayjs(row.original.ascension_date).format('DD MMM YYYY · HH:mm') : 'Date not recorded'}</div>
           </div> },
-          { Header: 'Authorization', accessor: 'releaseStatus', Cell: ({ row }) => <span className="fw-semibold">{releaseStatusLabel(row.original)}</span> },
-          { Header: 'Released at', accessor: 'releasedAt', Cell: ({ row }) => row.original.releasedAt ? dayjs(row.original.releasedAt).format('DD MMM YYYY HH:mm') : '—' },
+          { Header: 'Authorization', accessor: 'releaseStatus', Cell: ({ row }) => <span className="fw-semibold">{releaseStatusLabel(row.original)}<br/>{row.original.releasedAt ? dayjs(row.original.releasedAt).format('DD MMM YYYY HH:mm') : '—' }</span> },
 
           {
                Header: 'Test/Department',
@@ -347,10 +346,10 @@ export default function ValidatedResultTable({ employeeid, mode = 'full', stage 
           //      )
           // },
 
-          {
-               Header: 'Client Status',
-               accessor: 'clientstatus',
-          },
+          // {
+          //      Header: 'Payment Status',
+          //      accessor: 'clientstatus',
+          // },
           {
                Header: "Validators",
                accessor: "validators",

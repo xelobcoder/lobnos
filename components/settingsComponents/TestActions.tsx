@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { useApplicationSettings } from "../Auth/useApplicationContext";
-import { usePathname } from "next/navigation";
-import { testPanelBasePath } from "../../lib/testPanelNavigation";
+import { useTestPanelBasePath } from './TestPanelWorkspace';
 
 
 const TestActions = <T extends {name: string},>({ id, row, canManage, canDelete, deleteCustomTest }: {id: string | number; row: {original: T}; canManage: boolean; canDelete: boolean; deleteCustomTest: (test: T) => void}) => {
     const { name } = row.original;
-    const basePath = testPanelBasePath(usePathname());
+    const basePath = useTestPanelBasePath();
 
     return (
         <div className="pointer">

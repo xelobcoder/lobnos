@@ -1,3 +1,4 @@
+import { useTestPanelBasePath } from '../TestPanelWorkspace';
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -6,6 +7,7 @@ import {
 } from '@remixicon/react';
 
 export default function TestFieldsHeader({ testid, testname }) {
+    const basePath = useTestPanelBasePath();
     const [showQCModal, setShowQCModal] = useState(false);
 
     return (
@@ -16,14 +18,14 @@ export default function TestFieldsHeader({ testid, testname }) {
             </div>
             <div className="d-flex align-items-center gap-2">
                 <Link
-                    href={`/settings/applicationsettings/testpanels/fieldscategory/${testid}`}
+                    href={`${basePath}/fieldscategory/${testid}`}
                     className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
                 >
                     <RiGitBranchLine size={16} />
                     <span>Field Categories</span>
                 </Link>
                 <Link
-                    href={`/settings/applicationsettings/testpanels/multiple-test-conditions/${testid}`}
+                    href={`${basePath}/multiple-test-conditions/${testid}`}
                     className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
                 >
                     <RiCornerDownRightFill size={16} />

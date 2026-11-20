@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, use } from 'react';
 import { customFetch, customPost } from '../../../../../../components/Auth/customFetch';
-import { createConditionAction, LoadTestConditionsDefinition } from '../../../../../../components/serverActions/ActionFiltering';
+import { useTestPanelBasePath } from '../../../../../../components/settingsComponents/TestPanelWorkspace';
 import { useRouter } from 'next/navigation';
 import PrimeToast from '../../../../../../components/accessories/PrimeToast';
 import { toast } from 'react-toastify';
@@ -34,6 +34,7 @@ export default function CreateConditionPage(props: CreateConditionPageProps) {
     const [conditionInput, setConditionInput] = useState('');
     const [selectedConditions, setSelectedConditions] = useState<number[]>([]);
     const router = useRouter();
+    const basePath = useTestPanelBasePath();
 
     useEffect(() => {
         fetchConditions();
@@ -41,7 +42,7 @@ export default function CreateConditionPage(props: CreateConditionPageProps) {
 
     const fetchConditions = async () => {
         try {
-            const data = await LoadTestConditionsDefinition(testid);
+            const data = await customFetch(`multi/definition/test/${testid}`);
             setConditions(data);
         } catch (err) {
             console.log(err);
@@ -64,10 +65,10 @@ export default function CreateConditionPage(props: CreateConditionPageProps) {
                     toast.error('Error updating condition');
                 }
             } else {
-                const { status, conditionId } = await createConditionAction(conditionInput, testid,employeeid);
+                const { status, conditionId } = await customPost('multi/definition', 'POST', {conditionName:conditionInput,testid,createdBy:employeeid});
                 if (status === true && conditionId) {
                     toast.success('Condition created successfully, confirm redirect');
-                    setRedirectUrl(`/settings/applicationsettings/testpanels/multiple-test-conditions/${testid}/${conditionId}`);
+                    setRedirectUrl(`${basePath}/multiple-test-conditions/${testid}/${conditionId}`);
                     setShowModal(true);
                 }
             }
@@ -141,7 +142,7 @@ export default function CreateConditionPage(props: CreateConditionPageProps) {
     };
 
     const handleAddEditConstraints = (conditionId: number) => {
-        router.push(`/settings/applicationsettings/testpanels/multiple-test-conditions/${testid}/${conditionId}`);
+        router.push(`${basePath}/multiple-test-conditions/${testid}/${conditionId}`);
     };
 
     const columns = [

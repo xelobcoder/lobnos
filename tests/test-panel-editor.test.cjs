@@ -50,7 +50,8 @@ function fixture() {
                 if(name==='react-bootstrap')return {Modal,Button:'Button',Spinner:'Spinner'};
                 if(name==='react-toastify')return {ToastContainer:'ToastContainer',toast:Object.fromEntries(['success','error','info'].map(kind=>[kind,message=>toastCalls.push({kind,message})]))};
                 if(name==='@remixicon/react')return new Proxy({}, {get:(_,name)=>String(name)});
-                if(name==='next/navigation')return {useRouter:()=>({back(){},push(){}})};
+                if(name.endsWith('TestPanelWorkspace'))return {useTestPanelBasePath:()=>'/settings/applicationsettings/testpanels'};
+                if(name==='next/navigation')return {useRouter:()=>({back(){},push(){}}),usePathname:()=>'/settings/applicationsettings/testpanels'};
                 if(name.endsWith('/useApplicationContext'))return {useApplicationSettings:()=>({applicationsettings:{user:{employeeid:1}}})};
                 if(name.endsWith('/customFetch'))return {defaultTestEditValues:{name:'',sample:0},customFetch:async url=>{requests.push(url);return api.fetch(url);},customPost:async(...args)=>{mutations.push(args);return api.post(...args);}};
                 if(name.endsWith('.module.css'))return {__esModule:true,default:new Proxy({}, {get:(_,key)=>String(key)})};

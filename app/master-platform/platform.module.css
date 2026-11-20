@@ -1,3 +1,15 @@
+.fontScope {
+    display: contents;
+}
+
+.fontScope,
+:global(body):has(.fontScope) {
+    --theme-font-family: var(--font-lato), Arial, sans-serif;
+    --bs-body-font-family: var(--theme-font-family);
+    --prime-links-font-family: var(--theme-font-family);
+    font-family: var(--theme-font-family);
+}
+
 .layout.layout {
     --header-height: 58px;
     grid-template-areas: "header header" "sidebar content";

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { testPanelBasePath } from "../../../../../lib/testPanelNavigation";
+import { useRouter } from "next/navigation";
+import { useTestPanelBasePath } from '../../../../../components/settingsComponents/TestPanelWorkspace';
 import PrimeTable from "../../../../../components/accessories/Datatables/PrimeTable";
 import Loader from "../../../../../components/accessories/Loader";
 import { customFetch, customPost } from "../../../../../components/Auth/customFetch";
@@ -40,7 +40,8 @@ export default function TestListDisplay() {
     const [canDelegateAccess, setCanDelegateAccess] = useState(false);
     const [accessError, setAccessError] = useState('');
     const router = useRouter();
-    const basePath = testPanelBasePath(usePathname());
+    const basePath = useTestPanelBasePath();
+    const isMasterCatalog = basePath === '/master-platform/test-catalog';
     const { applicationsettings } = useApplicationSettings();
     const canDeleteTests = isSuperAdminRole(applicationsettings?.user?.role);
     const BULK_DELETE_PHRASE = 'DELETE USER TESTS';
@@ -211,10 +212,10 @@ export default function TestListDisplay() {
                             role="tab"
                             aria-selected={activeTab === 'active'}
                         >
-                            User-Defined List
+                            {isMasterCatalog ? 'Master catalogue' : 'User-Defined List'}
                         </button>
                     </li>}
-                    {canViewTests && <li className="nav-item" role="presentation">
+                    {canViewTests && !isMasterCatalog && <li className="nav-item" role="presentation">
                         <button
                             className={`nav-link ${activeTab === 'master' ? 'active' : ''}`}
                             onClick={() => setActiveTab('master')}

@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, ChangeEvent, MouseEvent } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { testPanelBasePath } from "../../../../../../lib/testPanelNavigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useTestPanelBasePath } from '../../../../../../components/settingsComponents/TestPanelWorkspace';
 import { toast } from "react-toastify";
 import { customPost, handleChangeWithState } from "../../../../../../components/Auth/customFetch";
 import styles from '../../../../../../styles/SmsTemplateList.module.css'
@@ -19,7 +19,7 @@ interface ApiResponse {
 export default function CreateCustomTestList() {
     const searchQuery = useSearchParams();
     const router = useRouter();
-    const basePath = testPanelBasePath(usePathname());
+    const basePath = useTestPanelBasePath();
     const testid = searchQuery?.get("testid");
     const testname = searchQuery?.get("testname");
     const [tests, setTests] = useState<TestItem[]>([{ name: '', iscustom: 1 }]);

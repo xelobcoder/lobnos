@@ -22,7 +22,8 @@ type Condition = {
 	conditionId: number | null;
 };
 
-export default async function MultipleTestConditionPage(props: { params: Promise<{ testid: number, conditionid: number }> }) {
+export default async function MultipleTestConditionPage(props: { masterCatalog?: boolean, params: Promise<{ testid: number, conditionid: number }> }) {
+    const catalogFetch = (endpoint: string) => customFetch(props.masterCatalog ? 'platform/facilities/catalog-api/' + endpoint : endpoint);
     const params = await props.params;
     const { testid, conditionid } = params;
     let fields: any[] = [];
@@ -40,12 +41,11 @@ export default async function MultipleTestConditionPage(props: { params: Promise
     try {
 		if (testid) {
 			const [response, conditionDefinition, contraintsChecker] = await Promise.all([
-				customFetch(`testpanel/list/customtestrule?testid=${testid}`),
-				customFetch(`multi/definition/${conditionid}`),
-				customFetch(`multi/definition/conditions/${conditionid}`)
+				catalogFetch(`testpanel/list/customtestrule?testid=${testid}`),
+				catalogFetch(`multi/definition/${conditionid}`),
+				catalogFetch(`multi/definition/conditions/${conditionid}`)
 			]);
 
-			console.log([response, conditionDefinition, contraintsChecker])
 
 			if (conditionDefinition && Array.isArray(conditionDefinition) && conditionDefinition.length > 0) {
 				condition.conditionName = conditionDefinition[0]['conditionName'];

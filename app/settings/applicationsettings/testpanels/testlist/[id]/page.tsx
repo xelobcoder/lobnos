@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useMemo, useState, useCallback, useRef, use } from "react";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { testPanelBasePath } from "../../../../../../lib/testPanelNavigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useTestPanelBasePath } from '../../../../../../components/settingsComponents/TestPanelWorkspace';
 import { roleAllowed } from "../../../../../../components/Auth/roles";
 import { useApplicationSettings } from "../../../../../../components/Auth/useApplicationContext";
 import { CriticalPolicySettings } from '../../../../../../components/operations/TestOperationalSettings';
@@ -32,9 +32,9 @@ const TABS: { key: TestEditorTab; label: string }[] = [
 export default function SingleTestEdit(props: { params: Promise<{ id: number }> }) {
     const params = use(props.params);
     const router = useRouter();
-    const basePath = testPanelBasePath(usePathname());
+    const basePath = useTestPanelBasePath();
     const isOwner = roleAllowed(useApplicationSettings().applicationsettings.user?.role, ['admin']);
-    const tabs = TABS.filter(tab => isOwner || !['outsourcing', 'criticalActions'].includes(tab.key));
+    const tabs = TABS.filter(tab => (basePath !== '/master-platform/test-catalog' || tab.key !== 'outsourcing') && (isOwner || !['outsourcing', 'criticalActions'].includes(tab.key)));
     const searchParams = useSearchParams();
     const testid = params.id;
     const initialTab = (searchParams?.get('tab') as TestEditorTab) || 'details';
@@ -90,7 +90,7 @@ export default function SingleTestEdit(props: { params: Promise<{ id: number }> 
             </div>
             <div className="tab-content">
                 {activeTab === 'details' && (
-                    <TestForm key={testid} method="PUT" router={router} testid={testid} customtest={0} onNavigateTab={handleNavigateTab} canManageOutsourcing={isOwner} />
+                    <TestForm key={testid} method="PUT" router={router} testid={testid} customtest={0} onNavigateTab={handleNavigateTab} canManageOutsourcing={isOwner && basePath !== '/master-platform/test-catalog'} />
                 )}
                 {activeTab === 'fields' && (
                     <div className="mx-2"><FieldsTab key={testid} testid={testid} testname={testname} /></div>
