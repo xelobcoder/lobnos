@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
-import TableDropdownMenu from '../accessories/Datatables/TableDropdownMenu';
+import TableDropdownMenu, { TableDropdown } from '../accessories/Datatables/TableDropdownMenu';
 import { RiMoreFill, RiUserHeartLine } from '@remixicon/react';
 import { plsEncryption } from '../../lib/encryption';
 import { useApplicationSettings } from '../Auth/useApplicationContext';
@@ -12,7 +12,7 @@ const CustomersActions = ({ item, callActivation, gotoPrevTrans, toast, router, 
      const { applicationsettings } = useApplicationSettings();
      const canAccessPortal = roleAllowed(applicationsettings?.user?.role, ['admin', 'manager', 'scientist']);
      return (
-          <Dropdown align="end" drop="up">
+          <TableDropdown align="end" drop="up">
                <Dropdown.Toggle size="sm" className="d-inline-flex align-items-center gap-1" variant="outline-secondary" id={toggleId} aria-label={`Actions for customer ${item.patientid}`} >
                     <RiMoreFill size={18} aria-hidden="true"/> Actions
                </Dropdown.Toggle>
@@ -91,7 +91,7 @@ const CustomersActions = ({ item, callActivation, gotoPrevTrans, toast, router, 
                     </Dropdown.Item>
 
                </TableDropdownMenu>
-          </Dropdown>
+          </TableDropdown>
      );
 };
 

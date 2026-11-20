@@ -18,7 +18,7 @@ import PrimeTable from "../accessories/Datatables/PrimeTable";
 import { Dropdown, Button, Card } from 'react-bootstrap';
 import { orgainzationServerSideProcessing } from "../serverActions/ActionFiltering";
 import ExcelExportButton from "../common/ExcelExportButton";
-import TableDropdownMenu from '../accessories/Datatables/TableDropdownMenu';
+import TableDropdownMenu, { TableDropdown } from '../accessories/Datatables/TableDropdownMenu';
 import { useApplication } from "../Auth/useApplicationContext";
 import styles from './OrganizationWorkspace.module.css';
 
@@ -108,7 +108,7 @@ export default function OrganizationList() {
                 };
 
 				return (
-					<Dropdown align="end" drop="up">
+					<TableDropdown align="end" drop="up">
 						<Dropdown.Toggle
 							variant="outline-secondary"
 							size="sm"
@@ -133,7 +133,7 @@ export default function OrganizationList() {
                                 <RiDeleteBinLine size={16} aria-hidden="true" /> Delete Organization
                             </Dropdown.Item>
 						</TableDropdownMenu>
-					</Dropdown>
+					</TableDropdown>
 				)
 			},
 		},

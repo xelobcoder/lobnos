@@ -1,6 +1,4 @@
 import React from "react";
-import { Button } from 'react-bootstrap';
-import { RiPrinterFill, RiDoorClosedFill } from '@remixicon/react';
 import { useUltrasoundContext } from "./UltrasoundContext";
 import { generateRandomTextAndNumbers, PrepareResultEntryHeader } from "../../Auth/customFetch";
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
@@ -120,46 +118,19 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 			Header: 'Actions',
 			accessor: 'action',
 			Cell: ({ row }) => (
-				// replace with your action buttons
-				<>
-					<div className="d-flex flex-wrap gap-2">
-						<Button type="button" variant="outline-primary" size="sm" className="me-1 fw-bold" onClick={() => PrepareResultEntryHeader(row.original, true, branchid, false)} disabled={row.original.clientstatus === 'pending'}>
-							<RiDoorClosedFill aria-hidden="true" />	{row.original.resultEntryStart ? 'Continue entry' : 'Enter result'}
-						</Button>
-						{stage == "ULTRASOUND_COMPLETED" && row.original.resultEntryEnd && (
-							<>
-							<Button type="button" variant="outline-success" size="sm" className="fw-bold" onClick={() => handlePrintResult(row.original)}>
-								<RiPrinterFill aria-hidden="true" />	Print result
-							</Button>
-							<ImagingResultActions item={{ ...row.original, testid: row.original.testid || row.original.id }} />
-							</>
-						)}
-
-
-					</div>
-					{/* <Dropdown>
-					<Dropdown.Toggle variant="link" size="sm" className="p-0">
-						<RiMoreLine size={16} />
-					</Dropdown.Toggle>
-					<Dropdown.Menu>
-						<Dropdown.Item
-							onClick={() => PrepareResultEntryHeader(row.original, true, branchid,false)}
-							disabled={row.original.clientstatus === 'pending'}
-						>
-							<RiCheckLine size={16} className="me-1" />
-							{row.original.resultEntryStart ? 'Continue Result Entry' : 'Enter Result'}
-						</Dropdown.Item>
-						{stage == "ULTRASOUND_COMPLETED" && row.original.resultEntryEnd && (
-							<Dropdown.Item onClick={() => handlePrintResult(row.original)}>
-								<RiCloseLine size={16} className="me-1" />
-								Print Result
-							</Dropdown.Item>
-						)}
-					</Dropdown.Menu>
-				</Dropdown> */}
-				</>
+				<div className="d-flex align-items-center gap-2" role="group" aria-label="Ultrasound result actions">
+					<ImagingResultActions
+						item={{ ...row.original, testid: row.original.testid || row.original.id }}
+						variant="menu"
+						onEnter={() => PrepareResultEntryHeader(row.original, true, branchid, false)}
+						entryLabel={row.original.resultEntryStart ? 'Continue entry' : 'Enter result'}
+						entryDisabled={row.original.clientstatus === 'pending'}
+						showCompletedActions={stage === "ULTRASOUND_COMPLETED" && Boolean(row.original.resultEntryEnd)}
+						onPrint={() => handlePrintResult(row.original)}
+					/>
+				</div>
 			),
-			width: 50,
+			width: 140,
 		},
 	];
 

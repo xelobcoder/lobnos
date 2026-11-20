@@ -36,6 +36,12 @@ interface ResultEntrySettings {
     notifyClientOnResultReady: number;
     notificationType: string;
     staffQualifiedToValidationResult?: number[];
+    requireDifferentValidatorFromResultAuthor: boolean;
+    requireManagerApprovalBeforeRelease: boolean;
+    resultReleasePolicy?: 'selected_staff' | 'managers_only';
+    staffQualifiedToReleaseResult?: number[];
+    allowResultAuthorToRelease: boolean;
+    requireDifferentReleaserFromValidator?: boolean;
 }
 
 const ResultSettingsForm = () => {
@@ -45,6 +51,8 @@ const ResultSettingsForm = () => {
     const [scientists, setUsers] = useState<ScientistType[]>([]);
     const [selectedScientists, setSelectedScientists] = useState<ScientistType[]>([]);
     const [currentSelection, setCurrentSelection] = useState<number | null>(null);
+    const [selectedReleaseStaff, setSelectedReleaseStaff] = useState<ScientistType[]>([]);
+    const [currentReleaseSelection, setCurrentReleaseSelection] = useState<number | null>(null);
     const [loadingUsers, setLoadingUsers] = useState<boolean>(true);
     const [saving, setSaving] = useState(false);
     const saveLock = useRef(false);
@@ -87,6 +95,22 @@ const ResultSettingsForm = () => {
         setSelectedScientists(prev => prev.filter((_, i) => i !== index));
     };
 
+    const addReleaseStaff = () => {
+        if (!currentReleaseSelection) {
+            toast.error("Please select a release staff member first.");
+            return;
+        }
+        if (selectedReleaseStaff.some(staff => staff.employeeid === currentReleaseSelection)) {
+            toast.error("This staff member is already selected for release.");
+            return;
+        }
+        const staffMember = scientists.find(staff => staff.employeeid === currentReleaseSelection);
+        if (staffMember) {
+            setSelectedReleaseStaff(previous => [...previous, staffMember]);
+            setCurrentReleaseSelection(null);
+        }
+    };
+
     const getInitData = async () => {
         try {
             setLoadingUsers(true); setLoadError("");
@@ -110,6 +134,7 @@ const ResultSettingsForm = () => {
             const settings={...ResultEntrydefaultData,...loaded,maximumResultValidation:Number(loaded.maximumResultValidation??ResultEntrydefaultData.maximumResultValidation),minimumResultValidation:Number(loaded.minimumResultValidation??ResultEntrydefaultData.minimumResultValidation)};
             const { staffQualifiedToValidationResult } = settings;
             setSelectedScientists([]);
+            setSelectedReleaseStaff([]);
             setFormData(settings);
 
             if (staffQualifiedToValidationResult?.length) {
@@ -118,6 +143,11 @@ const ResultSettingsForm = () => {
                     .filter((s: ScientistType | undefined): s is ScientistType => s !== undefined);
 
                 setSelectedScientists(QualifiedRefined);
+            }
+            if (Array.isArray(settings.staffQualifiedToReleaseResult) && settings.staffQualifiedToReleaseResult.length) {
+                setSelectedReleaseStaff(settings.staffQualifiedToReleaseResult
+                    .map((item: string | number) => normalizedUsers.find(s => s.employeeid === Number(item)))
+                    .filter((s: ScientistType | undefined): s is ScientistType => s !== undefined));
             }
 
             setLoadingUsers(false);
@@ -152,7 +182,8 @@ const ResultSettingsForm = () => {
                 'PUT',
                 {
                     ...formData,
-                    staffQualifiedToValidationResult: selectedScientists.map(s => s.employeeid)
+                    staffQualifiedToValidationResult: selectedScientists.map(s => s.employeeid),
+                    staffQualifiedToReleaseResult: selectedReleaseStaff.map(s => s.employeeid),
                 }
             );
             if(response.status === true || response.status === "success") setNotice("Result entry settings saved."); else setSaveError(response.message || "Update failed. Your changes have been kept.");
@@ -170,7 +201,7 @@ const ResultSettingsForm = () => {
     return (
         <div className={ui.workspace}>
             <div className="mx-2 d-flex justify-content-between align-items-center mb-3">
-                <div><span className={ui.eyebrow}>APPLICATION SETTINGS</span><h1>Result entry settings</h1><p className={ui.description}>Set validation limits and choose the scientists eligible to approve results.</p></div>
+                <div><span className={ui.eyebrow}>APPLICATION SETTINGS</span><h1>Result entry settings</h1><p className={ui.description}>Configure validation, managerial approval and who may sign and release results.</p></div>
                 <Button
                     variant="primary"
                     size='sm'
@@ -263,6 +294,76 @@ const ResultSettingsForm = () => {
                                 </div>
                             </div>
                         </div>
+                        <hr className="my-4" />
+                        <section aria-labelledby="release-settings-title">
+                            <h2 id="release-settings-title" className="h5">Result authorization and release</h2>
+                            <p className="text-muted">Every printed result must be signed and released. These options add facility-specific approval and authorization checks.</p>
+                            <div className="d-flex flex-column gap-3 mb-4">
+                                <Form.Check
+                                    type="switch"
+                                    id="require-different-validator"
+                                    label="Require a validator different from the result author"
+                                    checked={Boolean(formData.requireDifferentValidatorFromResultAuthor)}
+                                    onChange={(event) => setFormData(previous => ({ ...previous, requireDifferentValidatorFromResultAuthor: event.target.checked }))}
+                                />
+                                <Form.Check
+                                    type="switch"
+                                    id="require-manager-approval"
+                                    label="Require manager approval after validation"
+                                    checked={Boolean(formData.requireManagerApprovalBeforeRelease)}
+                                    onChange={(event) => setFormData(previous => ({ ...previous, requireManagerApprovalBeforeRelease: event.target.checked }))}
+                                />
+                                <Form.Check
+                                    type="switch"
+                                    id="allow-author-release"
+                                    label="Allow selected scientists to sign and release their own results"
+                                    checked={Boolean(formData.allowResultAuthorToRelease)}
+                                    onChange={(event) => setFormData(previous => ({ ...previous, allowResultAuthorToRelease: event.target.checked }))}
+                                />
+                            </div>
+                            <Form.Check className="mb-4" type="switch" id="require-different-releaser"
+                                label="Require releasing staff to be different from the validators"
+                                checked={Boolean(formData.requireDifferentReleaserFromValidator)}
+                                onChange={event => setFormData(previous => ({ ...previous, requireDifferentReleaserFromValidator: event.target.checked }))} />
+                            <h3 className="h6">Authorized release staff</h3>
+                            <Form.Label htmlFor="result-release-policy">Who can sign and release?</Form.Label>
+                            <Form.Select id="result-release-policy" className="mb-2" value={formData.resultReleasePolicy || 'selected_staff'}
+                                onChange={event => setFormData(previous => ({ ...previous, resultReleasePolicy: event.target.value as 'selected_staff' | 'managers_only' }))}>
+                                <option value="selected_staff">Selected staff, including scientists</option>
+                                <option value="managers_only">Managers and administrators only</option>
+                            </Form.Select>
+                            <p className="text-muted small">The person who releases the result supplies its electronic sign-off. Manager approval is a separate, optional step. Managers and administrators can sign and release, including results they entered. Selected-staff mode additionally permits chosen employees; an empty list uses the validator-eligible staff list. Different-validator and different-releaser rules still apply.</p>
+                            <div className="d-flex gap-2 mb-3">
+                                <Form.Select
+                                    aria-label="Choose result release staff"
+                                    disabled={formData.resultReleasePolicy === 'managers_only'}
+                                    value={currentReleaseSelection ?? ""}
+                                    onChange={(event) => setCurrentReleaseSelection(Number(event.target.value))}
+                                >
+                                    <option value="">Select staff member</option>
+                                    {scientists.map(staff => (
+                                        <option key={staff.employeeid} value={staff.employeeid}>{staff.username} ({staff.role})</option>
+                                    ))}
+                                </Form.Select>
+                                <Button variant="outline-primary" onClick={addReleaseStaff} disabled={!currentReleaseSelection || formData.resultReleasePolicy === 'managers_only'}>
+                                    <RiUserAddLine className="me-1" />Add release staff
+                                </Button>
+                            </div>
+                            {selectedReleaseStaff.length === 0 ? (
+                                <div className="text-muted small">Using the validator-eligible staff list.</div>
+                            ) : (
+                                <div className="d-flex flex-column gap-2">
+                                    {selectedReleaseStaff.map((staff, index) => (
+                                        <div key={staff.employeeid} className="d-flex justify-content-between align-items-center p-2 border rounded">
+                                            <span>{staff.username} <small className="text-muted">({staff.role})</small></span>
+                                            <Button aria-label={`Remove ${staff.username} from release staff`} variant="link" className="text-danger p-0" onClick={() => setSelectedReleaseStaff(previous => previous.filter((_, currentIndex) => currentIndex !== index))}>
+                                                <RiDeleteBin6Line className="me-1" />Remove
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </section>
                     </Tab.Pane>
                 </Tab.Content>
             </Tab.Container></fieldset>

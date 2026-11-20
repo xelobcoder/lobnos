@@ -1189,6 +1189,10 @@ export const ResultEntrydefaultData = {
 	monitorForCriticalValues: 0,
 	notifyClientOnResultReady: 0,
 	notificationType: "Email",
+	requireDifferentValidatorFromResultAuthor: false,
+	requireManagerApprovalBeforeRelease: false,
+	staffQualifiedToReleaseResult: [],
+	allowResultAuthorToRelease: false,
 };
 
 export const getResultEntrySettings = async (employeeid) => {

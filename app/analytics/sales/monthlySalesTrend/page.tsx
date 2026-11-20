@@ -20,7 +20,8 @@ import {
 } from "recharts";
 import { currencyFormatter, customFetch } from "../../../../components/Auth/customFetch";
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
-import { RiLineChartLine, RiBarChartBoxLine, RiBubbleChartLine, RiPieChartLine, RiErrorWarningLine, RiCalendarEventLine, RiInbox2Line, RiLoader4Line, RiRefreshLine, RiFileList3Line, RiMoneyDollarCircleLine, RiPercentLine, RiDiscountPercentLine } from "@remixicon/react";
+import { RiLineChartLine, RiBarChartBoxLine, RiBubbleChartLine, RiPieChartLine, RiErrorWarningLine, RiCalendarEventLine, RiInbox2Line, RiLoader4Line, RiRefreshLine, RiMoneyDollarCircleLine, RiDiscountPercentLine } from "@remixicon/react";
+import dashboardStyles from "../../../../components/analytics/patients-analytics/components/Dashboards.module.css";
 
 interface MonthlySalesAPIEntry {
 	month: string;
@@ -488,130 +489,143 @@ export default function MonthlySalesTrend() {
 				previousYearData.reduce((sum, curr) => sum + curr.earned_revenue, 0)) - 1) * 100
 			: null;
 
+		const summaryMetrics = [
+			{
+				label: "Earned revenue",
+				value: currencyFormatter.format(overallSummary.earned_revenue),
+				detail: "Revenue from closed bills",
+				icon: <RiMoneyDollarCircleLine size={21} aria-hidden="true" />,
+				tone: "blue",
+			},
+			{
+				label: "Net operating cash",
+				value: currencyFormatter.format(overallSummary.net_operating_cash),
+				detail: "Cash collected after expenses paid",
+				icon: <RiLineChartLine size={21} aria-hidden="true" />,
+				tone: "green",
+			},
+			{
+				label: "Expenses paid",
+				value: currencyFormatter.format(overallSummary.expenses_paid),
+				detail: "Operating expenses paid this year",
+				icon: <RiDiscountPercentLine size={21} aria-hidden="true" />,
+				tone: "orange",
+			},
+			{
+				label: "Outstanding",
+				value: currencyFormatter.format(overallSummary.outstanding),
+				detail: "Balances still awaiting collection",
+				icon: <RiMoneyDollarCircleLine size={21} aria-hidden="true" />,
+				tone: "violet",
+			},
+		];
+		const hasInsights = discountImpact > 20
+			|| refundRate > 15
+			|| paymentRate < 70
+			|| peakSalesMonth.earned_revenue > averageRevenue * 1.5
+			|| lowestSalesMonth.earned_revenue < averageRevenue * 0.5;
+
 		return (
-			<div className="mt-4">
-				<div className="card border-0 bg-body-tertiary">
-					<p className="small text-muted px-4 pt-3 mb-0">Sales include closed bills. Legacy facilities use available billing records. Receipts and expenses use payment dates.</p>
-            <div className="card-body p-4">
-						<h5 className="d-flex align-items-center gap-2 mb-4">
-							<RiFileList3Line size={24} style={{ color: COLOR_ACCENT }} />
-							<span>Sales Analysis Report</span>
-						</h5>
+			<section className={dashboardStyles.dashboard} aria-labelledby="monthly-sales-summary-title">
+				<header className={dashboardStyles.header}>
+					<div>
+						<p className={dashboardStyles.eyebrow}>Analytics / Finance</p>
+						<h1 id="monthly-sales-summary-title">Monthly sales overview</h1>
+						<p className={dashboardStyles.subtitle}>
+							Sales include closed bills. Legacy facilities use available billing records. Receipts and expenses use payment dates.
+						</p>
+					</div>
+					<div className={dashboardStyles.headerBadge}>
+						<span className={dashboardStyles.statusDot} aria-hidden="true" />
+						Reporting year {year}
+					</div>
+				</header>
 
-						{/* Key Metrics Grid */}
-						<div className="row g-4 mb-4">
-							<div className="col-md-3">
-								<div className="p-3 bg-white rounded-3 shadow-sm h-100">
-									<div className="text-muted small mb-1">Total Earned Revenue</div>
-									<div className="h5 mb-0" style={{ color: COLOR_ACCENT }}>
-										{currencyFormatter.format(overallSummary.earned_revenue)}
-									</div>
-								</div>
+				<div className={dashboardStyles.grid} aria-label="Monthly sales summary">
+					{summaryMetrics.map((metric) => (
+						<article className={dashboardStyles.metricCard} data-tone={metric.tone} key={metric.label}>
+							<div className={dashboardStyles.metricTop}>
+								<span className={dashboardStyles.metricIcon}>{metric.icon}</span>
+								<span className={dashboardStyles.metricLabel}>{metric.label}</span>
 							</div>
-							<div className="col-md-3">
-								<div className="p-3 bg-white rounded-3 shadow-sm h-100">
-									<div className="text-muted small mb-1">Net Operating Cash</div>
-									<div className="h5 mb-0" style={{ color: 'oklch(0.8 0.1 120)' }}>
-										{currencyFormatter.format(overallSummary.net_operating_cash)}
-									</div>
-								</div>
-							</div>
-							<div className="col-md-3">
-								<div className="p-3 bg-white rounded-3 shadow-sm h-100">
-									<div className="text-muted small mb-1">Total Expenses Paid</div>
-									<div className="h5 mb-0 text-danger">
-										{currencyFormatter.format(overallSummary.expenses_paid)}
-									</div>
-								</div>
-							</div>
-							<div className="col-md-3">
-								<div className="p-3 bg-white rounded-3 shadow-sm h-100">
-									<div className="text-muted small mb-1">Outstanding</div>
-									<div className="h5 mb-0 text-warning">
-										{currencyFormatter.format(overallSummary.outstanding)}
-									</div>
-								</div>
-							</div>
-						</div>
+							<div className={dashboardStyles.metricValue}>{metric.value}</div>
+							<div className={dashboardStyles.metricDetail}>{metric.detail}</div>
+						</article>
+					))}
+				</div>
 
-						{/* Monthly Performance */}
-						<div className="row g-4">
-							<div className="col-md-6">
-								<div className="bg-white rounded-3 shadow-sm p-3">
-									<h6 className="mb-3">Peak Performance</h6>
-									<div className="d-flex justify-content-between align-items-center mb-2">
-										<span className="text-muted small">Highest Revenue Month</span>
-										<span className="fw-medium">{peakSalesMonth.month}</span>
-									</div>
-									<div className="d-flex justify-content-between align-items-center">
-										<span className="text-muted small">Amount</span>
-										<span className="fw-medium text-success">
-											{currencyFormatter.format(peakSalesMonth.earned_revenue)}
-										</span>
-									</div>
-								</div>
-							</div>
-							<div className="col-md-6">
-								<div className="bg-white rounded-3 shadow-sm p-3">
-									<h6 className="mb-3">Lowest Performance</h6>
-									<div className="d-flex justify-content-between align-items-center mb-2">
-										<span className="text-muted small">Lowest Revenue Month</span>
-										<span className="fw-medium">{lowestSalesMonth.month}</span>
-									</div>
-									<div className="d-flex justify-content-between align-items-center">
-										<span className="text-muted small">Amount</span>
-										<span className="fw-medium text-danger">
-											{currencyFormatter.format(lowestSalesMonth.earned_revenue)}
-										</span>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						{/* Insights Panel */}
-						<div className="bg-white rounded-3 shadow-sm p-3 mt-4">
-							<h6 className="mb-3">Key Insights</h6>
-							<ul className="list-unstyled mb-0">
-								{discountImpact > 20 && (
-									<li className="d-flex align-items-center gap-2 mb-2 text-warning">
-										<RiErrorWarningLine size={18} />
-										<small>High discount rate may be affecting profitability</small>
-									</li>
-								)}
-								{refundRate > 15 && (
-									<li className="d-flex align-items-center gap-2 mb-2 text-danger">
-										<RiErrorWarningLine size={18} />
-										<small>High refund rate ({refundRate.toFixed(1)}%) requires attention</small>
-									</li>
-								)}
-								{paymentRate < 70 && (
-									<li className="d-flex align-items-center gap-2 mb-2 text-warning">
-										<RiErrorWarningLine size={18} />
-										<small>Low payment rate ({paymentRate.toFixed(1)}%) may indicate collection issues</small>
-									</li>
-								)}
-								{peakSalesMonth.earned_revenue > averageRevenue * 1.5 && (
-									<li className="d-flex align-items-center gap-2 mb-2 text-success">
-										<RiLineChartLine size={18} />
-										<small>Significant peak in {peakSalesMonth.month} - analyze success factors</small>
-									</li>
-								)}
-								{lowestSalesMonth.earned_revenue < averageRevenue * 0.5 && (
-									<li className="d-flex align-items-center gap-2 mb-2 text-danger">
-										<RiErrorWarningLine size={18} />
-										<small>Notable dip in {lowestSalesMonth.month} - investigate causes</small>
-									</li>
-								)}
-							</ul>
-						</div>
+				<div className="row g-4 pt-3 border-top">
+					<div className="col-md-6">
+						<section>
+							<h2 className="h6 fw-semibold mb-3">Peak performance</h2>
+							<dl className="row mb-0">
+								<dt className="col-7 small text-muted fw-normal">Highest revenue month</dt>
+								<dd className="col-5 text-end fw-medium">{peakSalesMonth.month}</dd>
+								<dt className="col-7 small text-muted fw-normal">Earned revenue</dt>
+								<dd className="col-5 text-end fw-medium text-success">{currencyFormatter.format(peakSalesMonth.earned_revenue)}</dd>
+							</dl>
+						</section>
+					</div>
+					<div className="col-md-6">
+						<section>
+							<h2 className="h6 fw-semibold mb-3">Lowest performance</h2>
+							<dl className="row mb-0">
+								<dt className="col-7 small text-muted fw-normal">Lowest revenue month</dt>
+								<dd className="col-5 text-end fw-medium">{lowestSalesMonth.month}</dd>
+								<dt className="col-7 small text-muted fw-normal">Earned revenue</dt>
+								<dd className="col-5 text-end fw-medium text-danger">{currencyFormatter.format(lowestSalesMonth.earned_revenue)}</dd>
+							</dl>
+						</section>
 					</div>
 				</div>
-			</div>
+
+				<section className="pt-3 mt-3 border-top" aria-labelledby="monthly-sales-insights-title">
+					<h2 className="h6 fw-semibold mb-3" id="monthly-sales-insights-title">Key insights</h2>
+					{hasInsights ? (
+						<ul className="row g-2 list-unstyled mb-0">
+							{discountImpact > 20 && (
+								<li className="col-md-6 d-flex align-items-start gap-2 text-warning">
+									<RiErrorWarningLine size={18} className="flex-shrink-0" aria-hidden="true" />
+									<small>High discount rate may be affecting profitability.</small>
+								</li>
+							)}
+							{refundRate > 15 && (
+								<li className="col-md-6 d-flex align-items-start gap-2 text-danger">
+									<RiErrorWarningLine size={18} className="flex-shrink-0" aria-hidden="true" />
+									<small>High refund rate ({refundRate.toFixed(1)}%) requires attention.</small>
+								</li>
+							)}
+							{paymentRate < 70 && (
+								<li className="col-md-6 d-flex align-items-start gap-2 text-warning">
+									<RiErrorWarningLine size={18} className="flex-shrink-0" aria-hidden="true" />
+									<small>Low payment rate ({paymentRate.toFixed(1)}%) may indicate collection issues.</small>
+								</li>
+							)}
+							{peakSalesMonth.earned_revenue > averageRevenue * 1.5 && (
+								<li className="col-md-6 d-flex align-items-start gap-2 text-success">
+									<RiLineChartLine size={18} className="flex-shrink-0" aria-hidden="true" />
+									<small>Significant peak in {peakSalesMonth.month}; review the factors behind it.</small>
+								</li>
+							)}
+							{lowestSalesMonth.earned_revenue < averageRevenue * 0.5 && (
+								<li className="col-md-6 d-flex align-items-start gap-2 text-danger">
+									<RiErrorWarningLine size={18} className="flex-shrink-0" aria-hidden="true" />
+									<small>Notable dip in {lowestSalesMonth.month}; investigate possible causes.</small>
+								</li>
+							)}
+						</ul>
+					) : (
+						<p className="small text-muted mb-0">No notable sales or collection alerts for this reporting year.</p>
+					)}
+				</section>
+			</section>
 		);
 	};
 
 	return (
-		<div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
+		<div className="d-grid gap-4">
+			{generateReport()}
+			<div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
 			<div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
 				<div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
 					<h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
@@ -790,7 +804,6 @@ export default function MonthlySalesTrend() {
 							</tfoot>
 						</table>
 					</div>
-					{generateReport()}
 				</div>
 			)}
 
@@ -827,6 +840,7 @@ export default function MonthlySalesTrend() {
                     }
                 }
             `}</style>
+			</div>
 		</div>
 	);
 }

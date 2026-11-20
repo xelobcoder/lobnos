@@ -3,6 +3,7 @@
 /* Global dropdown animations must not override Popper positioning or hide a portalled menu. */
 .menu:global(.dropdown-menu){animation:none!important;transition:none!important;position:fixed!important}
 .menu:global(.dropdown-menu.show){display:block!important;visibility:visible;pointer-events:auto}
+.menu:global(.dropdown-menu:not(.show)){display:none!important;pointer-events:none}
 
 .menu :global(.dropdown-header){font:inherit;font-weight:600;color:var(--bs-secondary-color,#52606d);padding:5px 10px;max-width:20rem}
 .menu :global(.dropdown-item.text-danger){color:var(--bs-danger,#dc3545)}

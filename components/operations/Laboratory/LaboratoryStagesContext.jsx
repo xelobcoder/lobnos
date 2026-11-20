@@ -9,7 +9,7 @@ const LaboratoryContext = createContext({ isLoading: true, collection: [] });
 
 
 
-export function LaboratoryStagesProvider({ children }) {
+export function LaboratoryStagesProvider({ children, allDates = false }) {
        const [collection, setCollection] = useState([]);
        const [loadCounter, setLoadCounter] = useState(0);
        const [isLoading, setLoading] = useState(true);
@@ -36,8 +36,8 @@ export function LaboratoryStagesProvider({ children }) {
        const currentDate = `${yyyy}-${mm}-${dd}`;
 
        const [queryParams, setQueryParams] = useState({
-              _dateFrom: parsedStartDate || currentDate,
-              _dateEnd: parsedEndDate || currentDate,
+              _dateFrom: parsedStartDate || (allDates ? '' : currentDate),
+              _dateEnd: parsedEndDate || (allDates ? '' : currentDate),
               searchString: '',
               page: 1,
               count: 10,

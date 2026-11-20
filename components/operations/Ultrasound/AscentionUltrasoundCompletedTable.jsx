@@ -1,3 +1,4 @@
+import TableDropdownMenu, { TableDropdown } from '../../accessories/Datatables/TableDropdownMenu';
 import React, { useMemo, useState } from "react";
 import { Info } from "@mui/icons-material";
 import {
@@ -71,19 +72,19 @@ export default function AscentionUltrasoundCompletedTable() {
 			Header: 'Action',
 			accessor: 'action',
 			Cell: ({ row }) => (
-				<Dropdown>
+				<TableDropdown>
 					<Dropdown.Toggle variant="link" size="sm" className="p-0">
 						<MoreHorizIcon />
 					</Dropdown.Toggle>
-					<Dropdown.Menu>
+					<TableDropdownMenu>
 						<Dropdown.Item onClick={() => PrepareResultEntryHeader(row.original)}>
 							<CheckIcon fontSize="small" /> Enter result
 						</Dropdown.Item>
 						<Dropdown.Item onClick={() => console.log(`Enter All related for ${row.original.patientid}`)}>
 							<CloseIcon fontSize="small" /> Enter All related
 						</Dropdown.Item>
-					</Dropdown.Menu>
-				</Dropdown>
+					</TableDropdownMenu>
+				</TableDropdown>
 			),
 			width: 50
 		},

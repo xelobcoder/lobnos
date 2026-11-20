@@ -35,7 +35,9 @@ function renderResult(records) {
             return {};
         },
     });
-    return exports.default({ billingid: 1, testid: 2, test: 'Ultrasound', patientid: 3, isResultView: false });
+    const tree = exports.default({ billingid: 1, testid: 2, test: 'Ultrasound', patientid: 3, isResultView: false });
+    assert.equal(tree.type, exports.ResultReviewValues, 'Validation uses the same snapshot renderer as Sign & Release');
+    return tree.type(tree.props);
 }
 
 test('ultrasound validation preview renders report content instead of the laboratory result table', () => {

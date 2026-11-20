@@ -40,7 +40,41 @@ const PERMISSION_LABELS: Record<string, string> = {
      "accounting.journal.approve": "Approve journal entries",
      "accounting.journal.post": "Post journal entries",
      "accounting.period.close": "Close accounting periods",
+     "accounting.daily_close.submit": "Submit daily close",
+     "accounting.daily_close.manager_approve": "Approve daily close",
+     "accounting.daily_close.finalize": "Finalize daily close",
+     "accounting.daily_close.view_audit": "View daily close audit",
+     "accounting.financial_correction.execute": "Execute financial corrections",
      "billing.refund.approve": "Approve refunds",
+};
+
+const PERMISSION_DESCRIPTIONS: Record<string, string> = {
+     "expense.create": "Create new expense records.",
+     "expense.view": "View expense records and their details.",
+     "expense.edit": "Update existing expense information.",
+     "expense.submit": "Submit expenses into the approval workflow.",
+     "expense.approve": "Approve expenses; amount limits may apply.",
+     "expense.reject": "Reject expenses submitted for approval.",
+     "expense.pay": "Pay expenses within the selected branch and amount limits.",
+     "expense.cancel": "Cancel an expense record.",
+     "expense.reverse": "Reverse a previously recorded expense transaction.",
+     "expense.override_approval": "Override configured expense approval controls.",
+     "expense.override_sod": "Override expense approval and payment separation-of-duties controls.",
+     "expense.view_audit": "Review the expense audit history.",
+     "expense.configure": "Manage expense workflow settings and controls.",
+     "payment_account.manage": "Manage payment accounts and their access settings.",
+     "purchase_order.approve": "Approve purchase orders.",
+     "purchase_order.pay": "Pay purchase orders or suppliers within amount limits.",
+     "inventory.adjust": "Record authorized inventory adjustments.",
+     "accounting.journal.approve": "Review and approve journal entries before posting.",
+     "accounting.journal.post": "Post approved journal entries to the ledger.",
+     "accounting.period.close": "Perform the accounting period close action.",
+     "accounting.daily_close.submit": "Submit a branch daily close for review.",
+     "accounting.daily_close.manager_approve": "Approve a branch daily close as a manager.",
+     "accounting.daily_close.finalize": "Finalize a reviewed branch daily close.",
+     "accounting.daily_close.view_audit": "View the audit history for branch daily closes.",
+     "accounting.financial_correction.execute": "Execute authorized financial corrections for a branch.",
+     "billing.refund.approve": "Review and approve billing refunds.",
 };
 
 const AMOUNT_BOUND = [
@@ -75,6 +109,7 @@ export default function DelegationsPage() {
      const [branches, setBranches] = useState<any[]>([]);
      const [busy, setBusy] = useState(false);
      const [editingId, setEditingId] = useState<number | null>(null);
+     const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
 
      const [form, setForm] = useState({
           employeeid: "",
@@ -119,20 +154,29 @@ export default function DelegationsPage() {
           load();
      }, [load]);
 
-     const amountBound = AMOUNT_BOUND.includes(form.permission);
-     const branchRequired = BRANCH_SCOPED.includes(form.permission);
-
-     const selectedPermissionLabel =
-          PERMISSION_LABELS[form.permission] || form.permission;
+     const selectedPermissionCodes = editingId !== null
+          ? (form.permission ? [form.permission] : [])
+          : selectedPermissions;
+     const amountBoundPermissions = selectedPermissionCodes.filter((permission) => AMOUNT_BOUND.includes(permission));
+     const branchScopedPermissions = selectedPermissionCodes.filter((permission) => BRANCH_SCOPED.includes(permission));
+     const amountBound = amountBoundPermissions.length > 0;
+     const branchRequired = branchScopedPermissions.length > 0;
+     const selectedPermissionLabels = selectedPermissionCodes.map((permission) =>
+          PERMISSION_LABELS[permission] || permission
+     );
 
      const grant = async () => {
-          if (!form.employeeid || !form.permission) {
-               toast.error("Choose a person and a permission");
+          const permissionsToGrant = editingId !== null
+               ? (form.permission ? [form.permission] : [])
+               : selectedPermissions;
+
+          if (!form.employeeid || permissionsToGrant.length === 0) {
+               toast.error("Choose an employee and at least one authority");
                return;
           }
 
           if (branchRequired && !form.branchid) {
-               toast.error("Choose the branch this authority should cover");
+               toast.error("Choose the branch these authorities should cover");
                return;
           }
 
@@ -149,33 +193,37 @@ export default function DelegationsPage() {
           setBusy(true);
 
           try {
-               const payload = {
+               const payloadForPermission = (permission: string) => ({
                     employeeid: Number(form.employeeid),
-                    permission: form.permission,
-                    branchid: branchRequired && form.branchid ? Number(form.branchid) : null,
-                    minAmount:
-                         amountBound && form.minAmount !== ""
-                              ? Number(form.minAmount)
-                              : null,
-                    maxAmount:
-                         amountBound && form.maxAmount !== ""
-                              ? Number(form.maxAmount)
-                              : null,
+                    permission,
+                    branchid: BRANCH_SCOPED.includes(permission) && form.branchid
+                         ? Number(form.branchid)
+                         : null,
+                    minAmount: AMOUNT_BOUND.includes(permission) && form.minAmount !== ""
+                         ? Number(form.minAmount)
+                         : null,
+                    maxAmount: AMOUNT_BOUND.includes(permission) && form.maxAmount !== ""
+                         ? Number(form.maxAmount)
+                         : null,
                     expiresAt: form.expiresAt || null,
                     notes: form.notes || null,
-               };
-               const response: any = editingId
-                    ? await accountingApi.reviseDelegation(editingId, payload)
-                    : await accountingApi.grantDelegation(payload);
+               });
 
-               if (response?.status === "error") {
-                    toast.error(
-                         response?.message ||
-                         "Unable to grant the delegation"
-                    );
-               } else {
-                    toast.success(editingId ? "Delegation updated" : "Authority delegated");
+               if (editingId !== null) {
+                    const { minAmount, maxAmount, branchid, expiresAt, notes } = payloadForPermission(form.permission);
+                    const response: any = await accountingApi.reviseDelegation(editingId, {
+                         minAmount,
+                         maxAmount,
+                         branchid,
+                         expiresAt,
+                         notes,
+                    });
+                    if (response?.status === "error") {
+                         toast.error(response?.message || "Unable to update the delegation");
+                         return;
+                    }
 
+                    toast.success("Delegation updated");
                     setForm({
                          employeeid: "",
                          permission: "",
@@ -185,10 +233,57 @@ export default function DelegationsPage() {
                          expiresAt: "",
                          notes: "",
                     });
+                    setSelectedPermissions([]);
                     setEditingId(null);
-
                     await load();
+                    return;
                }
+
+               const results = await Promise.all(
+                    permissionsToGrant.map(async (permission) => {
+                         try {
+                              const response: any = await accountingApi.grantDelegation(payloadForPermission(permission));
+                              if (response?.status === "error") {
+                                   throw new Error(response.message || `Unable to grant ${PERMISSION_LABELS[permission] || permission}`);
+                              }
+                              return { permission, error: null };
+                         } catch (error) {
+                              return {
+                                   permission,
+                                   error: error instanceof Error ? error.message : "Request failed",
+                              };
+                         }
+                    })
+               );
+               const grantedPermissions = results.filter((result) => result.error === null).map((result) => result.permission);
+               const failedPermissions = results.filter((result) => result.error !== null);
+
+               if (grantedPermissions.length === 0) {
+                    toast.error(failedPermissions[0]?.error || "Unable to grant the selected authorities");
+                    return;
+               }
+
+               await load();
+               if (failedPermissions.length > 0) {
+                    setSelectedPermissions(failedPermissions.map((result) => result.permission));
+                    const failedLabels = failedPermissions.map((result) =>
+                         `${PERMISSION_LABELS[result.permission] || result.permission}: ${result.error}`
+                    );
+                    toast.warn(`${grantedPermissions.length} of ${permissionsToGrant.length} authorities were granted. ${failedLabels.join("; ")}`);
+                    return;
+               }
+
+               toast.success(`${grantedPermissions.length} ${grantedPermissions.length === 1 ? "authority" : "authorities"} delegated`);
+               setForm({
+                    employeeid: "",
+                    permission: "",
+                    branchid: activeBranchId == null ? "" : String(activeBranchId),
+                    minAmount: "",
+                    maxAmount: "",
+                    expiresAt: "",
+                    notes: "",
+               });
+               setSelectedPermissions([]);
           } catch (error: any) {
                toast.error(
                     error?.message || "Unable to grant the delegation"
@@ -200,6 +295,7 @@ export default function DelegationsPage() {
 
      const edit = (delegation: any) => {
           setEditingId(Number(delegation.id));
+          setSelectedPermissions([]);
           setForm({
                employeeid: String(delegation.employeeid),
                permission: String(delegation.permission),
@@ -214,6 +310,7 @@ export default function DelegationsPage() {
 
      const cancelEdit = () => {
           setEditingId(null);
+          setSelectedPermissions([]);
           setForm({ employeeid: "", permission: "", branchid: activeBranchId == null ? "" : String(activeBranchId), minAmount: "", maxAmount: "", expiresAt: "", notes: "" });
      };
 
@@ -613,12 +710,11 @@ export default function DelegationsPage() {
 
                               <div>
                                    <h5 className="mb-1 fw-bold">
-                                        {editingId ? "Edit authority" : "Grant authority"}
+                                        {editingId ? "Edit authority" : "Grant authorities"}
                                    </h5>
 
                                    <p className="small text-muted mb-0">
-                                        Assign a specific financial
-                                        permission to an employee.
+                                        Grant several authorities to one employee in a single step. Expiry and notes are shared; branch and amount limits apply only where required.
                                    </p>
                               </div>
                          </div>
@@ -635,7 +731,7 @@ export default function DelegationsPage() {
                                    <select
                                         className="form-select"
                                         value={form.employeeid}
-                                        disabled={editingId !== null}
+                                        disabled={editingId !== null || busy}
                                         onChange={(e) =>
                                              setForm({
                                                   ...form,
@@ -670,74 +766,145 @@ export default function DelegationsPage() {
                                    </select>
                               </div>
 
-                              {/* Permission */}
-                              <div className="col-12 col-lg-4">
-                                   <label className="form-label fw-semibold small">
-                                        Authority
-                                   </label>
-
-                                   <select
-                                        className="form-select"
-                                        value={form.permission}
-                                        disabled={editingId !== null}
-                                        onChange={(e) =>
-                                             setForm({
-                                                  ...form,
-                                                  permission:
-                                                       e.target.value,
-                                             })
-                                        }
-                                   >
-                                        <option value="">
-                                             Select authority
-                                        </option>
-
-                                        {Object.entries(
-                                             permissionGroups
-                                        ).map(
-                                             ([
-                                                  group,
-                                                  groupPermissions,
-                                             ]) => (
-                                                  <optgroup
-                                                       key={group}
-                                                       label={group
-                                                            .replaceAll(
-                                                                 "_",
-                                                                 " "
-                                                            )
-                                                            .replace(
-                                                                 /^./,
-                                                                 (
-                                                                      char
-                                                                 ) =>
-                                                                      char.toUpperCase()
-                                                            )}
+                              {/* Authorities */}
+                              {editingId !== null ? (
+                                   <div className="col-12 col-lg-8">
+                                        <label className="form-label fw-semibold small">Authority</label>
+                                        <div className="form-control bg-light">{selectedPermissionLabels[0]}</div>
+                                        <div className="form-text">Edit one authority at a time. Use Grant authority to add more permissions.</div>
+                                   </div>
+                              ) : (
+                                   <fieldset className="col-12">
+                                        <legend className="form-label fw-semibold small mb-1">Authorities</legend>
+                                        <p className="small text-muted mb-3">Select every permission this employee needs. You can grant several at once.</p>
+                                        <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                                             <span className="small fw-semibold">
+                                                  {selectedPermissions.length} {selectedPermissions.length === 1 ? "authority" : "authorities"} selected
+                                             </span>
+                                             {selectedPermissions.length > 0 && (
+                                                  <button
+                                                       type="button"
+                                                       className="btn btn-sm btn-link p-0 text-decoration-none"
+                                                       onClick={() => setSelectedPermissions([])}
+                                                       disabled={busy}
                                                   >
-                                                       {groupPermissions.map(
-                                                            (
-                                                                 permission
-                                                            ) => (
-                                                                 <option
-                                                                      key={
-                                                                           permission
-                                                                      }
-                                                                      value={
-                                                                           permission
-                                                                      }
-                                                                 >
-                                                                      {PERMISSION_LABELS[
-                                                                           permission
-                                                                      ] ||
-                                                                           permission}
-                                                                 </option>
-                                                            )
-                                                       )}
-                                                  </optgroup>
-                                             )
+                                                       Clear selection
+                                                  </button>
+                                             )}
+                                        </div>
+                                        <div className="table-responsive rounded-3 border">
+                                             <table className="table table-hover align-middle mb-0">
+                                                  <caption className="visually-hidden">Select one or more authorities to delegate</caption>
+                                                  <thead className="table-light">
+                                                       <tr>
+                                                            <th scope="col" className="text-center" style={{ width: "4.5rem" }}>Select</th>
+                                                            <th scope="col">Authority</th>
+                                                            <th scope="col">Description</th>
+                                                            <th scope="col">Requirements</th>
+                                                       </tr>
+                                                  </thead>
+                                                  {Object.entries(permissionGroups).map(([group, groupPermissions]) => {
+                                                       const groupLabel = group.replaceAll("_", " ");
+                                                       const selectedInGroup = groupPermissions.filter((permission) =>
+                                                            selectedPermissions.includes(permission)
+                                                       ).length;
+                                                       const allSelected = selectedInGroup === groupPermissions.length;
+                                                       const groupCheckboxId = `authority-group-${group.replaceAll(".", "-")}`;
+
+                                                       return (
+                                                            <tbody key={group}>
+                                                                 <tr className="table-group-divider table-light">
+                                                                      <td className="text-center">
+                                                                           <input
+                                                                                id={groupCheckboxId}
+                                                                                className="form-check-input m-0"
+                                                                                type="checkbox"
+                                                                                checked={allSelected}
+                                                                                ref={(input) => {
+                                                                                     if (input) input.indeterminate = selectedInGroup > 0 && !allSelected;
+                                                                                }}
+                                                                                disabled={busy}
+                                                                                aria-label={`Select all ${groupLabel} authorities`}
+                                                                                onChange={(event) => {
+                                                                                     setSelectedPermissions((current) =>
+                                                                                          event.target.checked
+                                                                                               ? Array.from(new Set([...current, ...groupPermissions]))
+                                                                                               : current.filter((permission) => !groupPermissions.includes(permission))
+                                                                                     );
+                                                                                }}
+                                                                           />
+                                                                      </td>
+                                                                      <th scope="rowgroup" colSpan={3} className="small text-uppercase text-muted py-2">
+                                                                           <label htmlFor={groupCheckboxId} className="me-2">{groupLabel}</label>
+                                                                           <span className="text-lowercase fw-normal">
+                                                                                {selectedInGroup} of {groupPermissions.length} selected
+                                                                           </span>
+                                                                      </th>
+                                                                 </tr>
+                                                                 {groupPermissions.map((permission) => {
+                                                                      const checkboxId = `authority-${permission.replaceAll(".", "-")}`;
+                                                                      const amountLimited = AMOUNT_BOUND.includes(permission);
+                                                                      const branchScoped = BRANCH_SCOPED.includes(permission);
+
+                                                                      return (
+                                                                           <tr key={permission}>
+                                                                                <td className="text-center">
+                                                                                     <input
+                                                                                          id={checkboxId}
+                                                                                          className="form-check-input m-0"
+                                                                                          type="checkbox"
+                                                                                          checked={selectedPermissions.includes(permission)}
+                                                                                          disabled={busy}
+                                                                                          aria-label={`Select ${PERMISSION_LABELS[permission] || permission}`}
+                                                                                          onChange={(event) => {
+                                                                                               setSelectedPermissions((current) =>
+                                                                                                    event.target.checked
+                                                                                                         ? [...current, permission]
+                                                                                                         : current.filter((selected) => selected !== permission)
+                                                                                               );
+                                                                                          }}
+                                                                                     />
+                                                                                </td>
+                                                                                <td>
+                                                                                     <label htmlFor={checkboxId} className="mb-0 fw-semibold">
+                                                                                          {PERMISSION_LABELS[permission] || permission}
+                                                                                     </label>
+                                                                                </td>
+                                                                                <td className="small text-muted">
+                                                                                     {PERMISSION_DESCRIPTIONS[permission] || "Perform this delegated action."}
+                                                                                </td>
+                                                                                <td>
+                                                                                     <div className="d-flex flex-wrap gap-1">
+                                                                                          {branchScoped && <span className="badge bg-info-subtle text-info-emphasis border border-info-subtle">Branch scope</span>}
+                                                                                          {amountLimited && <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Amount limit</span>}
+                                                                                          {!branchScoped && <span className="badge bg-light text-secondary border">All branches</span>}
+                                                                                     </div>
+                                                                                </td>
+                                                                           </tr>
+                                                                      );
+                                                                 })}
+                                                            </tbody>
+                                                       );
+                                                  })}
+                                             </table>
+                                        </div>
+                                        {selectedPermissionLabels.length > 0 && (
+                                             <div className="mt-3">
+                                                  <div className="small text-muted mb-2">Selected for this employee</div>
+                                                  <div className="d-flex flex-wrap gap-2">
+                                                       {selectedPermissionCodes.map((permission) => (
+                                                            <span className="badge rounded-pill bg-success-subtle text-success-emphasis border border-success-subtle" key={permission}>
+                                                                 {PERMISSION_LABELS[permission] || permission}
+                                                            </span>
+                                                       ))}
+                                                  </div>
+                                             </div>
                                         )}
-                                   </select>
-                              </div>
+                                        <p className="form-text mt-3 mb-0">
+                                             Granting a permission the employee already has replaces its current scope and limits. Use Edit below to update an existing grant.
+                                        </p>
+                                   </fieldset>
+                              )}
 
                               {branchRequired && (
                                    <div className="col-12 col-lg-4">
@@ -745,6 +912,7 @@ export default function DelegationsPage() {
                                         <select
                                              className="form-select"
                                              value={form.branchid}
+                                             disabled={busy}
                                              onChange={(e) => setForm({ ...form, branchid: e.target.value })}
                                              required
                                         >
@@ -756,7 +924,9 @@ export default function DelegationsPage() {
                                                   <option key={branch.branchid} value={branch.branchid}>{branch.name}</option>
                                              ))}
                                         </select>
-                                        <div className="form-text">This payment authority will only work for expenses in the selected branch.</div>
+                                        <div className="form-text">
+                                             This branch applies to the {branchScopedPermissions.length} selected branch-scoped {branchScopedPermissions.length === 1 ? "authority" : "authorities"}. Other selected permissions keep their standard scope.
+                                        </div>
                                    </div>
                               )}
 
@@ -770,6 +940,7 @@ export default function DelegationsPage() {
                                         type="date"
                                         className="form-control"
                                         value={form.expiresAt}
+                                        disabled={busy}
                                         onChange={(e) =>
                                              setForm({
                                                   ...form,
@@ -800,16 +971,11 @@ export default function DelegationsPage() {
 
                                                        <div>
                                                             <div className="fw-semibold small">
-                                                                 Payment
-                                                                 authority
+                                                                 Amount limits
                                                             </div>
 
                                                             <div className="text-muted small">
-                                                                 Define the
-                                                                 amount this
-                                                                 person is
-                                                                 permitted
-                                                                 to handle.
+                                                                 These limits apply to all {amountBoundPermissions.length} selected amount-limited {amountBoundPermissions.length === 1 ? "authority" : "authorities"}.
                                                             </div>
                                                        </div>
                                                   </div>
@@ -837,6 +1003,7 @@ export default function DelegationsPage() {
                                                                       value={
                                                                            form.minAmount
                                                                       }
+                                                                      disabled={busy}
                                                                       onChange={(
                                                                            e
                                                                       ) =>
@@ -876,6 +1043,7 @@ export default function DelegationsPage() {
                                                                       value={
                                                                            form.maxAmount
                                                                       }
+                                                                      disabled={busy}
                                                                       onChange={(
                                                                            e
                                                                       ) =>
@@ -895,11 +1063,7 @@ export default function DelegationsPage() {
                                                   </div>
 
                                                   <div className="small text-muted mt-2">
-                                                       Leave both limits
-                                                       blank to allow the
-                                                       delegated authority
-                                                       without an amount
-                                                       ceiling.
+                                                       Leave both limits blank to allow these payment authorities without an amount ceiling.
                                                   </div>
                                              </div>
                                         </div>
@@ -917,6 +1081,7 @@ export default function DelegationsPage() {
                                         className="form-control"
                                         placeholder="e.g. Temporary payment authority for Tamale branch"
                                         value={form.notes}
+                                        disabled={busy}
                                         onChange={(e) =>
                                              setForm({
                                                   ...form,
@@ -929,9 +1094,9 @@ export default function DelegationsPage() {
                               {/* Action */}
                               <div className="col-12 d-flex justify-content-between align-items-center pt-2">
                                    <div className="small text-muted">
-                                        {form.permission
-                                             ? `Selected: ${selectedPermissionLabel}`
-                                             : "Select an employee and authority to continue"}
+                                        {selectedPermissionCodes.length > 0
+                                             ? `${selectedPermissionCodes.length} ${selectedPermissionCodes.length === 1 ? "authority" : "authorities"} selected${amountBound ? ` · amount limits apply to ${amountBoundPermissions.length}` : ""}${branchRequired ? ` · branch applies to ${branchScopedPermissions.length}` : ""}`
+                                             : "Select an employee and at least one authority to continue"}
                                    </div>
 
                                    <div className="d-flex gap-2">
@@ -940,13 +1105,17 @@ export default function DelegationsPage() {
                                              type="button"
                                              className="btn btn-success px-4 d-flex align-items-center gap-2"
                                              onClick={grant}
-                                             disabled={busy}
+                                             disabled={busy || !form.employeeid || selectedPermissionCodes.length === 0 || (branchRequired && !form.branchid)}
                                         >
                                              <RiShieldCheckLine size={17} />
 
                                              {busy
                                                   ? "Saving..."
-                                                  : editingId ? "Save changes" : "Grant authority"}
+                                                  : editingId
+                                                       ? "Save changes"
+                                                       : selectedPermissionCodes.length > 0
+                                                            ? `Grant ${selectedPermissionCodes.length} ${selectedPermissionCodes.length === 1 ? "authority" : "authorities"}`
+                                                            : "Grant authorities"}
                                         </button>
                                    </div>
                               </div>

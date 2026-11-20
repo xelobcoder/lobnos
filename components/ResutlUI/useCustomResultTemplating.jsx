@@ -40,6 +40,10 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
 	}, [billingid, test, testid, patientid])
 
 	if (isloading) return <Loader />;
+	return <ResultReviewValues result={result} testname={testname || test} isResultView={isResultView} resultsettings={resultsettings} />;
+}
+
+export function ResultReviewValues({ result, testname, isResultView = false, resultsettings }) {
 
 	if (Array.isArray(result) === false || result.length == 0) return <h4>No data provided</h4>
 
@@ -48,7 +52,7 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
 		return (
 			<article className="ultrasound-content">
 				<h5 className="text-uppercase ui text-center border-bottom border-2 border-secondary">
-					<span className="fw-bold">{testname || test}</span>
+					<span className="fw-bold">{testname}</span>
 				</h5>
 				<div className="mt-3">
 					{ultrasoundRecords.map((item, index) => (

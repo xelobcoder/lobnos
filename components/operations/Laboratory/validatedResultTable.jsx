@@ -1,3 +1,4 @@
+import TableDropdownMenu, { TableDropdown } from '../../accessories/Datatables/TableDropdownMenu';
 import React, { useState, useEffect } from 'react';
 import { PrepareResultEntryHeader } from '../../Auth/customFetch';
 
@@ -6,8 +7,20 @@ function isPaidResult(item) {
      return String(paymentStatus || '').trim().toLowerCase() === 'paid';
 }
 
+function isReleasedResult(item) {
+     return item?.releaseStatus === 'released' || item?.released === true;
+}
+
+const releaseStatusLabel = item => item.released ? `Released by ${item.releasedByName || 'staff #' + item.releasedBy}`
+     : item.releaseStatus === 'awaiting_manager_approval' ? 'Awaiting manager approval'
+     : item.releaseStatus === 'awaiting_different_validator' ? 'Different validator required' : 'Awaiting sign-off and release';
+
 function canPrintResult(item, allowPrintingUnpaid) {
      const printableItems = Array.isArray(item?.tests) ? item.tests : [item];
+     if (!printableItems.some(isReleasedResult)) {
+          alert("The result must be signed and released before it can be printed.");
+          return false;
+     }
      if (Number(allowPrintingUnpaid) === 1 || printableItems.some(isPaidResult)) return true;
      alert("Printing of results is not allowed for unpaid tests.");
      return false;
@@ -15,7 +28,8 @@ function canPrintResult(item, allowPrintingUnpaid) {
 
 function handlePrintMultipleResults(row, allowPrintingUnpaid) {
      const item = Array.isArray(row.original?.tests)
-          ? row.original.tests.find((test) => isPaidResult(test)) || row.original.tests[0]
+          ? row.original.tests.find((test) => isReleasedResult(test) && isPaidResult(test)) ||
+               row.original.tests.find(isReleasedResult)
           : row.original;
      if (!canPrintResult(row.original, allowPrintingUnpaid)) return;
      const { testid, name, patientid, ascensionid, billingid } = item
@@ -44,6 +58,7 @@ import { useApplication } from '../../Auth/useApplicationContext';
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
 import dayjs from 'dayjs';
 import SingleWorkFlowResultDeliveryModal from './singleWorkFlowDeliveryResult';
+import ResultReleaseWorkflowActions from './ResultReleaseWorkflowActions';
 import BulkWorkFlowResultDeliveryModal from './bulkWorkFlowDeliveryResult';
 
 
@@ -127,7 +142,7 @@ const Print = (
      </svg>
 );
 
-const MobileDataDisplay = ({ data, handleResult }) => {
+const MobileDataDisplay = ({ data, handleResult, renderAuthorization }) => {
 
      return (
           <React.Fragment>
@@ -188,6 +203,8 @@ const MobileDataDisplay = ({ data, handleResult }) => {
                               )}
                               <hr />
                               <span>Validators:</span>
+                              <div className="fw-semibold my-2">{Array.isArray(item.tests) ? '' : releaseStatusLabel(item)}</div>
+                              {item.releasedAt && <div className="small text-muted">Released {dayjs(item.releasedAt).format('DD MMM YYYY HH:mm')}</div>}
                               <ul className="list-unstyled">
                                    {(item.validators && Array.isArray(item.validators) ? item.validators : (item.allValidators && Array.isArray(item.allValidators) ? item.allValidators : [])).map((validator, idx) => (
                                         <li key={idx}>
@@ -195,6 +212,9 @@ const MobileDataDisplay = ({ data, handleResult }) => {
                                         </li>
                                    ))}
                               </ul>
+                              {renderAuthorization && (Array.isArray(item.tests) ? item.tests : [item]).map(test => (
+                                   <div key={test.ascensionid} className="mt-2">{renderAuthorization(test)}</div>
+                              ))}
                          </ListGroup.Item>
                     </ListGroup>
                ))}
@@ -202,7 +222,7 @@ const MobileDataDisplay = ({ data, handleResult }) => {
      );
 };
 
-export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
+export default function ValidatedResultTable({ employeeid, mode = 'full', stage = 'VALIDATED' }) {
      const { isLoading, collection, queryParams, setQueryParams, setCollection, _getAscensionData, category = 'grouped' } = useLaboratoryContext();
      const [isClient, setIsClient] = useState(false);
      const [groupByPatient, setGroupByPatient] = useState(mode === 'crm' ? false : category === 'grouped');
@@ -223,7 +243,7 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
           const { testid, name, patientid, ascensionid, billingid } = item;
           const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
           const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
-          const url = `csvid=${csvid}&&testid=${testid}&&testname=${name}&&employeeid=${employeeid}&&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=${multiple}&&isUltrasound=false&&is_password_encrypted=false&&password=`;
+          const url = `csvid=${csvid}&&testid=${testid}&&testname=${name}&&employeeid=${employeeid}&&ptid=${ptid}&&target=70,50&&ascensionId=${ascensionid}&&isMultiple=${multiple}&&isUltrasound=false&&is_password_encrypted=false&&password=`;
           window.open(`/result/labreport?${url}`);
      };
 
@@ -299,12 +319,14 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                     <br /> <span className='text-muted fw-normal'>({row.original.patientid}) ({row.original.age})</span>
                </div>
           },
-          { Header: 'BillingId/Ascension ID', accessor: 'ascensionid', Cell: ({ row }) => <div><div>Bill:{row.original.billingid}</div><br /><div>Ascension:{row.original.ascensionid}</div></div> },
-          {
-               Header: 'Ascension Date',
-               accessor: 'ascension_date',
-               Cell: ({ row }) => <div>{dayjs(row.original.ascension_date).format('DD-MM-YYYY hh:mm:ss')}</div>
-          },
+          { Header: 'Billing ID / Ascension ID', accessor: 'ascensionid', Cell: ({ row }) => <div className="d-flex flex-column gap-1">
+               <div>Bill: {row.original.billingid}</div>
+               <div>Ascension: {row.original.ascensionid}</div>
+               <div className="small text-muted">{row.original.ascension_date && dayjs(row.original.ascension_date).isValid()
+                    ? dayjs(row.original.ascension_date).format('DD MMM YYYY · HH:mm') : 'Date not recorded'}</div>
+          </div> },
+          { Header: 'Authorization', accessor: 'releaseStatus', Cell: ({ row }) => <span className="fw-semibold">{releaseStatusLabel(row.original)}</span> },
+          { Header: 'Released at', accessor: 'releasedAt', Cell: ({ row }) => row.original.releasedAt ? dayjs(row.original.releasedAt).format('DD MMM YYYY HH:mm') : '—' },
 
           {
                Header: 'Test/Department',
@@ -347,11 +369,11 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                Header: 'Action',
                accessor: '',
                Cell: ({ row }) => {
-                    return <Dropdown align="end">
-                         <Dropdown.Toggle variant='link' size="sm" className="p-0 text-decoration-none border-0 shadow-none">
+                    return <TableDropdown align="end">
+                         <Dropdown.Toggle variant='link' size="sm" aria-label={`Result actions for accession ${row.original.ascensionid}`} className="p-0 text-decoration-none border-0 shadow-none">
                               <RiMoreLine fontSize="small" />
                          </Dropdown.Toggle>
-                         <Dropdown.Menu className="validated-action-menu py-1" style={{ display: 'block', minWidth: '15rem' }}>
+                         <TableDropdownMenu className="validated-action-menu py-1" style={{ minWidth: '15rem' }}>
                               {role === "clinician" ? (
                                    <Dropdown.Item
                                         className='pls-label d-flex align-items-center gap-2' onClick={() => handlePrintMultipleResults(row, allowPrintingUnpaid)}>
@@ -359,6 +381,9 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                                    </Dropdown.Item>
                               ) : (
                                    <>
+                                        <ResultReleaseWorkflowActions ascensionId={Number(row.original.ascensionid)}
+                                             patientName={row.original.fullname} testName={row.original.name}
+                                             workflow={row.original} onUpdated={() => _getAscensionData(stage, employeeid, branchid, {})} />
                                         <Dropdown.Item
                                              className='pls-label d-flex align-items-center gap-2'
                                              onClick={() => {
@@ -419,8 +444,8 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                                         ) : null}
                                    </>
                               )}
-                         </Dropdown.Menu>
-                    </Dropdown>
+                         </TableDropdownMenu>
+                    </TableDropdown>
                }
           },
      ];
@@ -691,7 +716,7 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                          onSuccess={async () => {
                               setSelectedRows(new Set());
                               if (typeof _getAscensionData === 'function') {
-                                   await _getAscensionData('VALIDATED', employeeid, branchid, {});
+                                   await _getAscensionData(stage, employeeid, branchid, {});
                               }
                          }}
                     />
@@ -711,7 +736,7 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                               setShowDeliveryModal(false);
                               setSelectedDeliveryItem(null);
                               if (typeof _getAscensionData === 'function') {
-                                   await _getAscensionData('VALIDATED', employeeid, branchid, {});
+                                   await _getAscensionData(stage, employeeid, branchid, {});
                               }
                          }}
                     />
@@ -747,7 +772,17 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                </div>
 
                {isClient && (isMobile ? (
-                    <MobileDataDisplay data={groupedData} handleResult={viewResultHandler} />
+                    <MobileDataDisplay data={groupedData} handleResult={viewResultHandler}
+                         renderAuthorization={mode === 'crm' ? undefined : item => (
+                              <TableDropdown>
+                                   <Dropdown.Toggle size="sm" variant="outline-primary">Result authorization · {item.name}</Dropdown.Toggle>
+                                   <TableDropdownMenu>
+                                        <ResultReleaseWorkflowActions ascensionId={Number(item.ascensionid)} patientName={item.fullname}
+                                             testName={item.name} workflow={item}
+                                             onUpdated={() => _getAscensionData(stage, employeeid, branchid, {})} />
+                                   </TableDropdownMenu>
+                              </TableDropdown>
+                         )} />
                ) : groupByPatient ? (
                     <PrimeTable
                          column={groupedColumns}
@@ -757,7 +792,7 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                               _dateEnd: queryParams._dateEnd,
                               isUltrasound: queryParams.isUltrasound,
                               grouped: "grouped",
-                              employeeid, ascension_stage: 'VALIDATED',
+                              employeeid, ascension_stage: stage,
                               billingid: queryParams.billingid,
                               patientname: queryParams.patientname,
                               patientid: queryParams.patientid,
@@ -806,7 +841,7 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                               patientid: queryParams.patientid,
                               billingid: queryParams.billingid,
                               ascensionid: queryParams.ascensionid,
-                              employeeid, ascension_stage: 'VALIDATED',
+                              employeeid, ascension_stage: stage,
                               testid: queryParams.testid,
                          }}
                          serverSideFiltering={true}
@@ -827,10 +862,6 @@ export default function ValidatedResultTable({ employeeid, mode = 'full' }) {
                ))}
 
                <style jsx global>{`
-                    .validated-action-menu {
-                         display: block !important;
-                    }
-
                     .validated-action-menu .dropdown-item {
                          display: flex;
                          align-items: center;
