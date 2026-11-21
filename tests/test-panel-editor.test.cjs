@@ -321,3 +321,21 @@ test('blur and immediate apply persist the typed position without waiting for an
     button(view,'Apply order').props.onClick();
     assert.deepEqual(clean(applied[0].map(row=>row.name)),['Second','First']);
 });
+
+test('editing zero reference limits preserves zero in both inputs',()=>{
+ const f=fixture(),component=f.load(editorFile).default;
+ const props={testid:12,testRules:[{...rules()[0],plan:'limits',lowerlimit:0,upperlimit:0}],fieldConstraintsCategorization:[],testdata:{name:'Panel'}};
+ f.render(component,props);let view=f.render(component,props);
+ nodes(view).find(node=>node.props?.['aria-label']==='Edit field').props.onClick();view=f.render(component,props);
+ for(const placeholder of ['Min','Max'])assert.equal(nodes(view).filter(node=>node.type==='input'&&node.props.placeholder===placeholder).at(-1).props.value,0);
+});
+
+test('newly saved parameters reload their server IDs before the next edit',async()=>{
+ const f=fixture(),component=f.load(editorFile).default;
+ const props={testid:12,testRules:[{...rules()[0],id:undefined}],fieldConstraintsCategorization:[],testdata:{name:'Panel'}};
+ f.render(component,props);let view=f.render(component,props);
+ f.setPost(async()=>({status:true,data:[{...rules()[0],id:801}]}));
+ await button(view,'Save All Changes').props.onClick();view=f.render(component,props);
+ await button(view,'Save All Changes').props.onClick();
+ assert.equal(f.mutations[1][2].data[0].id,801);
+});

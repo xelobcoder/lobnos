@@ -181,10 +181,10 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 				if (hasDemographicLimits(field)) {
 					return (
 						<div style={{ fontSize: '0.65rem', lineHeight: '1.2', minWidth: '140px' }}>
-							<div><span className="fw-semibold">M:</span> {getDemographicLimitValue(field, 'lowerLimitMale') || '-'} - {getDemographicLimitValue(field, 'upperLimitMale') || '-'}</div>
-							<div><span className="fw-semibold">F:</span> {getDemographicLimitValue(field, 'lowerLimitFemale') || '-'} - {getDemographicLimitValue(field, 'upperLimitFemale') || '-'}</div>
-							<div><span className="fw-semibold">C:</span> {getDemographicLimitValue(field, 'lowerLimitChildren') || '-'} - {getDemographicLimitValue(field, 'upperLimitChildren') || '-'}</div>
-							<div><span className="fw-semibold">N:</span> {getDemographicLimitValue(field, 'lowerLimitNeonates') || '-'} - {getDemographicLimitValue(field, 'upperLimitNeonates') || '-'}</div>
+							<div><span className="fw-semibold">M:</span> {getDemographicLimitValue(field, 'lowerLimitMale') ?? '-'} - {getDemographicLimitValue(field, 'upperLimitMale') ?? '-'}</div>
+							<div><span className="fw-semibold">F:</span> {getDemographicLimitValue(field, 'lowerLimitFemale') ?? '-'} - {getDemographicLimitValue(field, 'upperLimitFemale') ?? '-'}</div>
+							<div><span className="fw-semibold">C:</span> {getDemographicLimitValue(field, 'lowerLimitChildren') ?? '-'} - {getDemographicLimitValue(field, 'upperLimitChildren') ?? '-'}</div>
+							<div><span className="fw-semibold">N:</span> {getDemographicLimitValue(field, 'lowerLimitNeonates') ?? '-'} - {getDemographicLimitValue(field, 'upperLimitNeonates') ?? '-'}</div>
 							{units && <div className="text-secondary mt-1">{units}</div>}
 						</div>
 					);
@@ -192,9 +192,9 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 
 				return (
 					<div className="d-flex align-items-center gap-1" style={{ fontSize: '0.75rem' }}>
-						<span className="fw-bold">{lowerlimit || '0'}</span>
+						<span className="fw-bold">{lowerlimit ?? '0'}</span>
 						<span className="text-muted">-</span>
-						<span className="fw-bold">{upperlimit || '100'}</span>
+						<span className="fw-bold">{upperlimit ?? '100'}</span>
 						{units && <span className="text-secondary ms-1">{units}</span>}
 					</div>
 				);
@@ -310,7 +310,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 							<input
 								type="number"
 								className="form-control form-control-sm"
-								value={fieldState.lowerlimit || ''}
+								value={fieldState.lowerlimit ?? ''}
 								onChange={(e) => setFieldState({ ...fieldState, lowerlimit: e.target.value })}
 								placeholder="Min"
 								style={{ width: '85px' }}
@@ -318,7 +318,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 							<input
 								type="number"
 								className="form-control form-control-sm"
-								value={fieldState.upperlimit || ''}
+								value={fieldState.upperlimit ?? ''}
 								onChange={(e) => setFieldState({ ...fieldState, upperlimit: e.target.value })}
 								placeholder="Max"
 								style={{ width: '85px' }}
@@ -379,7 +379,8 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 		}
 		setIsLoading(true);
 		try {
-			await updateFieldsRules(data, testid);
+			const saved = await updateFieldsRules(data, testid);
+			if (Array.isArray(saved.data)) setData(orderedTestParameters(saved.data));
 			toast.success("Fields updated successfully!");
 			setOrderChanged(false);
 		} catch (error) {
@@ -400,8 +401,8 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 		const normalizedField = {
 			...defaultCreationRule,
 			...field,
-			lowerlimit: field.lowerlimit || field.lowerLimit || '',
-			upperlimit: field.upperlimit || field.upperLimit || '',
+			lowerlimit: field.lowerlimit ?? field.lowerLimit ?? '',
+			upperlimit: field.upperlimit ?? field.upperLimit ?? '',
 			lowerLimitFemale: field.lowerLimitFemale ?? '',
 			upperLimitFemale: field.upperLimitFemale ?? '',
 			lowerLimitMale: field.lowerLimitMale ?? '',
@@ -623,8 +624,8 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 															renderConfigInput(newField, setNewField)
 														) : (
 															<div style={{ fontSize: '0.8rem' }}>
-																{field.plan === 'limits' && hasDemographicLimits(field) ? `M:${field.lowerLimitMale || '-'}-${field.upperLimitMale || '-'} F:${field.lowerLimitFemale || '-'}-${field.upperLimitFemale || '-'} C:${field.lowerLimitChildren || '-'}-${field.upperLimitChildren || '-'} N:${field.lowerLimitNeonates || '-'}-${field.upperLimitNeonates || '-'}` :
-																	field.plan === 'limits' && ((field.lowerlimit || field.lowerLimit) || (field.upperlimit || field.upperLimit)) ? `${field.lowerlimit || field.lowerLimit || 0} - ${field.upperlimit || field.upperLimit || 0}` :
+																{field.plan === 'limits' && hasDemographicLimits(field) ? `M:${field.lowerLimitMale ?? '-'}-${field.upperLimitMale ?? '-'} F:${field.lowerLimitFemale ?? '-'}-${field.upperLimitFemale ?? '-'} C:${field.lowerLimitChildren ?? '-'}-${field.upperLimitChildren ?? '-'} N:${field.lowerLimitNeonates ?? '-'}-${field.upperLimitNeonates ?? '-'}` :
+																	field.plan === 'limits' && ((field.lowerlimit ?? field.lowerLimit) != null || (field.upperlimit ?? field.upperLimit) != null) ? `${field.lowerlimit ?? field.lowerLimit ?? 0} - ${field.upperlimit ?? field.upperLimit ?? 0}` :
 																		field.plan === 'fetalBiometry' ? 'BPD, FL, HC, AC (Hadlock)' :
 																			field.plan === 'options' ? (Array.isArray(field.options) ? field.options.join(', ') : field.options || '-') :
 																				field.plan === 'textReference' ? (field.textReference || '-') :

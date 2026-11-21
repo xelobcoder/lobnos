@@ -1,4 +1,5 @@
 export interface CreationRule {
+    id?: number;
     name: string;
     field: string;
     value: string;
