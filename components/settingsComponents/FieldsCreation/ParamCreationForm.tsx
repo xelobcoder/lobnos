@@ -1,3 +1,5 @@
+import UnitCatalogueSelect from './UnitCatalogueSelect';
+import {parameterDefinition,resultTypes,referenceModes,withDefinition} from '../../../lib/parameterDefinition';
 import dynamic from "next/dynamic";
 import { handleChangeWithState, reactSelectCustomStyles } from "../../Auth/customFetch";
 import { handleCreationMasterRUle } from "./data/testUtil";
@@ -19,29 +21,9 @@ export default function ParamCreationGForm({ field, setField, fieldConstraintsCa
         label: cat.categoryname
     })) || [];
 
-    const inputTypes = [
-        { value: 'options', label: 'Dropdown List' },
-        { value: 'input', label: 'Single Line' },
-        { value: 'textReference', label: 'Text with Ref' },
-        { value: 'limits', label: 'Numeric Range' },
-        { value: 'fetalBiometry', label: 'Fetal Biometry (Hadlock)' },
-        { value: 'greaterLess', label: 'Greater Than / Less Than Value' },
-        { value: 'plain', label: 'Text Area' },
-        { value: 'ultrasoundFields', label: 'Ultrasound Fields' },
-        { value: "greaterLessEqualTo", label: "Greater Than / Less Than or Equal To Value" },
-        { value: "time", label: "Time" }
-    ];
+    const inputTypes = resultTypes.map(([value,label])=>({value,label}));
 
-    const handleTypeSelect = (value: string | null) => {
-        if (value === null) {
-            const updatedField = handleCreationMasterRUle({ target: { value: null } }, field);
-            setField(updatedField);
-            return;
-        }
-        const ev = { target: { value } };
-        const updatedField = handleCreationMasterRUle(ev, field);
-        setField(updatedField);
-    };
+    const handleTypeSelect = (value:string|null) => setField(withDefinition(field,{result_type:value||''}));
 
     return (
         <div className="d-flex flex-column gap-3">
@@ -61,7 +43,7 @@ export default function ParamCreationGForm({ field, setField, fieldConstraintsCa
                 <Select
                     options={inputTypes}
                     styles={reactSelectCustomStyles}
-                    value={inputTypes.find(option => option.value === field?.plan) || null}
+                    value={inputTypes.find(option => option.value === parameterDefinition(field).result_type) || null}
                     onChange={(selectedOption: {value: string; label: string} | null) => handleTypeSelect(selectedOption?.value || null)}
                     placeholder="Select input type"
                     isClearable
@@ -69,35 +51,8 @@ export default function ParamCreationGForm({ field, setField, fieldConstraintsCa
                 />
             </div>
 
-            <div className="form-check mb-3">
-                <input
-                    type="checkbox"
-                    id="hasUnits"
-                    checked={!!field?.hasunits || (field?.units && field.units.toString().length > 0)}
-                    onChange={(e) => setField({ ...field, hasunits: e.target.checked, units: e.target.checked ? field.units : '' })}
-                    className="form-check-input"
-                />
-                <label className="form-check-label pls-label" htmlFor="hasUnits">
-                    Has Units
-                </label>
-            </div>
-
-            {(!!field?.hasunits || (field?.units && field.units.toString().length > 0)) && (
-                <div className="mb-3">
-                    <label htmlFor="unitsInput">Units</label>
-                    <input
-                        id="unitsInput"
-                        type="text"
-                        onChange={(ev) => {
-                            const newUnits = ev.target.value;
-                            setField({ ...field, units: newUnits, hasunits: newUnits.length > 0 });
-                        }}
-                        value={field?.units || ''}
-                        placeholder="Specify units (e.g., mg/dL)"
-                        className="form-control"
-                    />
-                </div>
-            )}
+            <div className="mb-3"><label className="form-label">Reference mode</label><select className="form-select" aria-label="Reference mode" value={parameterDefinition(field).reference_mode} onChange={e=>setField(withDefinition(field,{reference_mode:e.target.value}))}>{referenceModes(parameterDefinition(field).result_type).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></div>
+            <div className="mb-3"><label className="form-label">Units</label><UnitCatalogueSelect field={field} onChange={setField}/></div>
 
             <div className="form-check mb-3">
                 <input

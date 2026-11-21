@@ -339,3 +339,30 @@ test('newly saved parameters reload their server IDs before the next edit',async
  await button(view,'Save All Changes').props.onClick();
  assert.equal(f.mutations[1][2].data[0].id,801);
 });
+
+test('new numeric parameters select result type, reference mode and catalogue unit independently',async()=>{
+ const f=fixture(),component=f.load(editorFile).default,props={testid:12,testRules:rules(),fieldConstraintsCategorization:[],testdata:{name:'Panel'}};
+ f.render(component,props);let view=f.render(component,props);
+ nodes(view).find(n=>n.props?.['aria-label']==='Result type').props.onChange({target:{value:'numeric'}});view=f.render(component,props);
+ assert.equal(nodes(view).find(n=>n.props?.['aria-label']==='Reference mode').props.value,'none');
+ nodes(view).find(n=>n.props?.['aria-label']==='Reference mode').props.onChange({target:{value:'interval'}});view=f.render(component,props);
+ nodes(view).find(n=>n.props?.placeholder==='Enter field name').props.onChange({target:{value:'QA Numeric'}});
+ view=f.render(component,props);nodes(view).find(n=>n.props?.['aria-label']==='Lower reference limit').props.onChange({target:{value:'0'}});
+ view=f.render(component,props);nodes(view).find(n=>n.props?.['aria-label']==='Upper reference limit').props.onChange({target:{value:'10'}});
+ view=f.render(component,props);const unit=named(view,'UnitCatalogueSelect');unit.props.onChange({...unit.props.field,units:'g/L',unit_code:'g/L',hasunits:true});
+ view=f.render(component,props);button(view,'Add').props.onClick();view=f.render(component,props);
+ await button(view,'Save All Changes').props.onClick();
+ const row=f.mutations[0][2].data.at(-1);assert.equal(row.result_type,'numeric');assert.equal(row.reference_mode,'interval');assert.equal(row.unit_code,'g/L');assert.equal(row.lowerlimit,'0');assert.equal(row.plan,'limits');
+});
+
+test('unit selector loads the shared catalogue and never normalizes an existing alias merely by opening',async()=>{
+ const f=fixture(),component=f.load('components/settingsComponents/FieldsCreation/UnitCatalogueSelect.tsx').default,changes=[];
+ f.setFetch(async()=>({success:true,data:[{code:'s',symbol:'s',label:'Seconds',aliases:['sec']}]}));
+ const props={field:{units:'sec',unit_code:null},onChange:value=>changes.push(value)};
+ f.render(component,props);await flush();let view=f.render(component,props);
+ assert.equal(changes.length,0);assert.equal(nodes(view).find(n=>n.type==='select').props.value,'__legacy');
+ nodes(view).find(n=>n.type==='select').props.onChange({target:{value:'s'}});
+ assert.equal(changes[0].units,'s');assert.equal(changes[0].unit_code,'s');
+ assert.equal(nodes(view).some(n=>n.type==='details'),false);
+ assert.ok(f.requests.includes('testpanel/unit-catalogue'));
+});

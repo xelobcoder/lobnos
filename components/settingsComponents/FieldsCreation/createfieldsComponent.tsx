@@ -8,6 +8,8 @@ import TestFieldsHeader from './TestFieldsHeader';
 import { RiAddLine, RiSaveLine, RiCloseLine, RiEditLine, RiArrowLeftLine, RiRefreshLine } from '@remixicon/react';
 import ParameterOrderModal from './ParameterOrderModal';
 import {applyTestParameterOrder, orderedTestParameters} from '../../../lib/testParameterOrder';
+import UnitCatalogueSelect from './UnitCatalogueSelect';
+import {parameterDefinition,referenceModes,resultTypes,withDefinition} from '../../../lib/parameterDefinition';
 import type {CreationRule} from './data/types';
 
 export default function CreateTestFields({ testid, testname, testRules, fieldConstraintsCategorization, testdata, onRefresh }: {testid: string | number; testname: string; testRules: CreationRule[]; fieldConstraintsCategorization: {categoryid: string | number; categoryname: string}[]; testdata: unknown; onRefresh?: () => void}) {
@@ -18,130 +20,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 	const [isLoading, setIsLoading] = useState(false);
 	const [editingIndex, setEditingIndex] = useState<number | null>(null);
 	const [newField, setNewField] = useState<CreationRule>(defaultCreationRule);
-	const [showCustomUnit, setShowCustomUnit] = useState(false);
-	const STANDARD_UNITS = Array.from(new Set([
-		"mg/dL", "g/dL", "µg/dL", "ng/dL",
-		"mg/L", "g/L", "µg/L", "ng/mL", "pg/mL",
-		"mmol/L", "µmol/L", "nmol/L",
-		"mEq/L",
-
-		"U/L", "IU/L", "IU/mL", "mIU/mL",
-		"µIU/mL", "ng/mL", "pg/mL",
-
-		"×10⁹/L", "×10¹²/L",
-		"cells/µL", "cells/mm³",
-		"/µL", "/mm³",
-		"%",
-
-		"seconds", "sec",
-		"INR",
-		"g/L",
-		"mg/dL",
-
-		"mmHg",
-		"kPa",
-		"pH",
-		"mEq/L",
-		"mmol/L",
-		"%",
-
-		"µL",
-		"mL",
-		"L",
-		"dL",
-
-		"pg",
-		"ng",
-		"µg",
-		"mg",
-		"g",
-		"kg",
-
-		"µm",
-		"mm",
-		"cm",
-		"m",
-
-		"°C",
-		"°F",
-
-		"seconds",
-		"minutes",
-		"hours",
-		"days",
-
-		"mOsm/kg",
-		"mOsm/L",
-
-		"mmHg",
-		"kPa",
-
-		"mL/min",
-		"L/min",
-		"mL/hr",
-
-		"titer",
-		"ratio",
-
-		"OD",
-		"AU",
-
-		"CFU/mL",
-		"CFU/g",
-		"log CFU/mL",
-
-		"mg/24h",
-		"mL/24h",
-		"µg/24h",
-		"mmol/24h",
-		"g/24h",
-
-		"index",
-		"S/CO",
-		"AU/mL",
-		"RU/mL",
-
-		"ng/dL",
-		"µg/dL",
-		"pmol/L",
-		"nmol/L",
-		"pg/mL",
-
-		"ppm",
-		"ppb",
-		"mg/L",
-		"µg/L",
-
-		"HPF",
-		"LPF",
-		"cells/HPF",
-		"cells/LPF",
-
-		"beats/min",
-		"breaths/min",
-		"m²",
-		"kg/m²",
-
-		"N/A",
-		"unitless"
-	]));
-
-
-	const typeOptions = [
-		{ value: 'options', label: 'Dropdown' },
-		{ value: 'input', label: 'Text' },
-		{ value: 'textReference', label: 'Reference' },
-		{ value: 'limits', label: 'Range (M/F/Child/Neonate)' },
-		{ value: 'fetalBiometry', label: 'Fetal Biometry (Hadlock)' },
-		{ value: 'greaterLess', label: 'Compare' },
-		{ value: 'greaterLessEqualTo', label: 'Compare (<=/>=)' },
-		{ value: 'plain', label: 'Text Area' },
-		{ value: 'time', label: 'Time' },
-		{ value: 'ultrasoundFields', label: 'Ultrasound' },
-		{ value: 'datetime', label: 'Date & Time' },
-		{ value: 'date', label: 'Date' }
-	];
-
+	const typeOptions=resultTypes.map(([value,label])=>({value,label}));
 	const getDemographicLimitValue = (field: any, key: string) => {
 		return field?.[key] ?? '';
 	};
@@ -224,7 +103,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 		}
 	};
 
-	const renderConfigInput = (fieldState: CreationRule, setFieldState: React.Dispatch<React.SetStateAction<CreationRule>>) => {
+	const renderLegacyConfigInput = (fieldState: CreationRule, setFieldState: React.Dispatch<React.SetStateAction<CreationRule>>) => {
 		switch (fieldState.plan) {
 			case 'limits':
 				return (
@@ -367,6 +246,19 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 		}
 	};
 
+	const renderConfigInput = (fieldState:CreationRule,setFieldState:React.Dispatch<React.SetStateAction<CreationRule>>) => {
+  const definition=parameterDefinition(fieldState);
+  return <div className="d-flex flex-column gap-2">
+   <select aria-label="Reference mode" className="form-select form-select-sm" value={definition.reference_mode} onChange={e=>setFieldState(withDefinition(fieldState,{reference_mode:e.target.value}))}>
+    {referenceModes(definition.result_type).map(([key,label])=><option key={key} value={key}>{label}</option>)}
+   </select>
+   {definition.result_type==='numeric'&&definition.reference_mode==='interval' ? <div className="d-flex gap-1">
+    <input aria-label="Lower reference limit" placeholder="Min" type="number" step="any" className="form-control form-control-sm" value={fieldState.lowerlimit??fieldState.lowerLimit??''} onChange={e=>setFieldState({...fieldState,lowerlimit:e.target.value})}/>
+    <input aria-label="Upper reference limit" placeholder="Max" type="number" step="any" className="form-control form-control-sm" value={fieldState.upperlimit??fieldState.upperLimit??''} onChange={e=>setFieldState({...fieldState,upperlimit:e.target.value})}/>
+   </div> : renderLegacyConfigInput(fieldState,setFieldState)}
+  </div>;
+ };
+
 	useEffect(() => {
 		setData(orderedTestParameters(testRules));
 		setOrderChanged(false);
@@ -414,13 +306,11 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 		};
 		setNewField(normalizedField);
 		// If the existing unit is not in standard list, show custom input
-		setShowCustomUnit(!!field.units && !STANDARD_UNITS.includes(field.units));
 	};
 
 	const cancelEditing = () => {
 		setEditingIndex(null);
 		setNewField(defaultCreationRule);
-		setShowCustomUnit(false);
 	};
 
 	const saveField = () => {
@@ -434,11 +324,6 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 		}
 
 		let fieldToSave = { ...newField };
-
-		// Ensure we don't save "Other" as the actual unit text
-		if (showCustomUnit && fieldToSave.units === 'Other') {
-			fieldToSave.units = '';
-		}
 
 		// Ensure options is a string for consistency
 		if (Array.isArray(fieldToSave.options)) {
@@ -477,13 +362,11 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 
 		setEditingIndex(null);
 		setNewField(defaultCreationRule);
-		setShowCustomUnit(false);
 	};
 
 	const addNewRow = () => {
 		setEditingIndex(null);
 		setNewField(defaultCreationRule);
-		setShowCustomUnit(false);
 		setTimeout(() => {
 			const table = document.querySelector('.field-creation-table');
 			if (table) {
@@ -527,6 +410,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 									</Button>
 								</div>
 							</div>
+							<p className="small text-muted">Result type controls entry. Reference rules control interpretation. Selecting a unit does not convert result values.</p>
 							{orderChanged && <p className="alert alert-info" role="status">Parameter order has changed in the draft. Save All Changes to persist it.</p>}
 							{(editingIndex !== null || !!newField.name?.trim()) && <p className="text-muted small">Finish or cancel the current field edit before arranging parameters.</p>}
 
@@ -537,9 +421,9 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 										<thead className="">
 											<tr>
 												<th style={{ width: '18%' }}>Field Name</th>
-												<th style={{ width: '12%' }}>Plan</th>
+												<th style={{ width: '12%' }}>Result type</th>
 												<th style={{ width: '10%' }}>Units</th>
-												<th style={{ width: '15%' }}>Specific Config</th>
+												<th style={{ width: '15%' }}>Reference / options</th>
 												<th style={{ width: '12%' }}>Preview</th>
 												<th style={{ width: '10%' }}>Category</th>
 												<th style={{ width: '8%' }}>Req?</th>
@@ -569,8 +453,8 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 														{editingIndex === index ? (
 															<select
 																className="form-select form-select-sm"
-																value={newField.plan || ''}
-																onChange={(e) => setNewField({ ...newField, plan: e.target.value })}
+																aria-label="Result type" value={parameterDefinition(newField).result_type}
+																onChange={(e) => setNewField(withDefinition(newField,{result_type:e.target.value}))}
 															>
 																<option value="">-- Select Type --</option>
 																{typeOptions.map(type => (
@@ -578,47 +462,10 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 																))}
 															</select>
 														) : (
-															<span className="text-muted">{field.plan || '-'}</span>
+															<span className="text-muted">{typeOptions.find(type=>type.value===parameterDefinition(field).result_type)?.label || field.plan || '-'}</span>
 														)}
 													</td>
-													<td>
-														{editingIndex === index ? (
-															showCustomUnit ? (
-																<div className="d-flex gap-1">
-																	<input
-																		type="text"
-																		className="form-control form-control-sm"
-																		value={newField.units === 'Other' ? '' : newField.units || ''}
-																		onChange={(e) => setNewField({ ...newField, units: e.target.value, hasunits: e.target.value.length > 0 })}
-																		placeholder="Enter unit"
-																		autoFocus
-																	/>
-																	<Button size="sm" variant="outline-secondary" onClick={() => setShowCustomUnit(false)}>
-																		<RiCloseLine size={14} />
-																	</Button>
-																</div>
-															) : (
-																<select
-																	className="form-select form-select-sm"
-																	value={STANDARD_UNITS.includes(newField.units) || newField.units === 'Order' ? newField.units : (newField.units ? 'Other' : '')}
-																	onChange={(e) => {
-																		if (e.target.value === 'Other') {
-																			setShowCustomUnit(true);
-																		} else {
-																			setNewField({ ...newField, units: e.target.value, hasunits: e.target.value.length > 0 });
-																		}
-																	}}
-																>
-																	<option value="">-- Unit --</option>
-																	{STANDARD_UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-																	<option value="Other">Other...</option>
-																	<option value="Order">Order</option>
-																</select>
-															)
-														) : (
-															field.units || '-'
-														)}
-													</td>
+													<td>{editingIndex === index ? <UnitCatalogueSelect field={newField} onChange={setNewField}/> : (field.units || '-')}</td>
 													<td>
 														{editingIndex === index ? (
 															renderConfigInput(newField, setNewField)
@@ -714,8 +561,8 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 													<td>
 														<select
 															className="form-select form-select-sm"
-															value={newField.plan || ''}
-															onChange={(e) => setNewField({ ...newField, plan: e.target.value })}
+															aria-label="Result type" value={parameterDefinition(newField).result_type}
+															onChange={(e) => setNewField(withDefinition(newField,{result_type:e.target.value}))}
 														>
 															<option value="">-- Select Type --</option>
 															{typeOptions.map(type => (
@@ -723,40 +570,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 															))}
 														</select>
 													</td>
-													<td>
-														{showCustomUnit ? (
-															<div className="d-flex gap-1">
-																<input
-																	type="text"
-																	className="form-control form-control-sm"
-																	value={newField.units === 'Other' ? '' : newField.units || ''}
-																	onChange={(e) => setNewField({ ...newField, units: e.target.value, hasunits: e.target.value.length > 0 })}
-																	placeholder="Enter unit"
-																	autoFocus
-																/>
-																<Button size="sm" variant="outline-secondary" onClick={() => setShowCustomUnit(false)}>
-																	<RiCloseLine size={14} />
-																</Button>
-															</div>
-														) : (
-															<select
-																className="form-select form-select-sm"
-																value={STANDARD_UNITS.includes(newField.units) || newField.units === 'Order' ? newField.units : (newField.units ? 'Other' : '')}
-																onChange={(e) => {
-																	if (e.target.value === 'Other') {
-																		setShowCustomUnit(true);
-																	} else {
-																		setNewField({ ...newField, units: e.target.value, hasunits: e.target.value.length > 0 });
-																	}
-																}}
-															>
-																<option value="">-- Unit --</option>
-																{STANDARD_UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-																<option value="Other">Other...</option>
-																<option value="Order">Order</option>
-															</select>
-														)}
-													</td>
+													<td><UnitCatalogueSelect field={newField} onChange={setNewField}/></td>
 													<td>
 														{renderConfigInput(newField, setNewField)}
 													</td>

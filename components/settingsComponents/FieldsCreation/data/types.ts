@@ -1,5 +1,8 @@
 export interface CreationRule {
     id?: number;
+    result_type?: string | null;
+    reference_mode?: string | null;
+    unit_code?: string | null;
     name: string;
     field: string;
     value: string;

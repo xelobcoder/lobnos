@@ -5,7 +5,7 @@ export default function PlainViewHtmlGenerator({ fieldItem, statehandler, index 
 
     return <tr>
         <td>{name}</td>
-        <td><input value={value} type="text" onChange={(ev) => { statehandler(ev, index) }} className="custom-input" style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }} /></td>
+        <td><input value={value} type={fieldItem.result_type === "numeric" ? "number" : "text"} step={fieldItem.result_type === "numeric" ? "any" : undefined} onChange={(ev) => { statehandler(ev, index) }} className="custom-input" style={{ backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }} /></td>
         <td>{units}</td>
         <td></td>
         <td className="pls-d-none">
