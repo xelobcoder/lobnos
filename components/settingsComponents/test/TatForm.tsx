@@ -1,118 +1,21 @@
-import React, { ChangeEvent } from "react";
-
-interface TestData {
-    tatCount: string;
-    tatEvaluation: string;
-    pre_Tat: string;
-    pre_TatEvaluation: string;
-    tat: string;
-    post_Tat: string;
-    post_TatEvaluation: string;
-    [key: string]: any;
+import React from 'react';
+function initialTat(data:any){
+ const value=String(data.tat??'').trim();
+ if(/^\d+(?:\.\d+)?$/.test(value)){
+  const n=Number(value)*(data.tatEvaluation==='hour'?60:data.tatEvaluation==='seconds'?1/60:1);
+  const total=Math.ceil(n);return {days:Math.floor(total/1440),hours:Math.floor(total%1440/60),minutes:total%60};
+ }
+ const amount=(pattern:RegExp)=>Number(value.match(pattern)?.[1]??0);
+ return {days:amount(/(\d+)\s*days?/i),hours:amount(/(\d+)\s*(?:hours?|hrs?)/i),minutes:amount(/(\d+)\s*min/i)};
 }
-
-interface TatFormProps {
-    data: TestData;
-    handleChangeWithState: (
-        ev: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-        field: string,
-        setter: React.Dispatch<React.SetStateAction<TestData>>,
-        data: TestData
-    ) => void;
-    setTestData: React.Dispatch<React.SetStateAction<TestData>>;
+export default function TatForm({data,setTestData}:any){
+ const duration=data.analyticTat??initialTat(data);
+ return <section aria-labelledby="analytic-tat-heading">
+  <h5 id="analytic-tat-heading">Analytic TAT</h5>
+  <p className="text-muted">Expected analytical turnaround time. Enter days, hours and minutes.</p>
+  <div className="row g-3">{(['days','hours','minutes'] as const).map(key=><div className="col-12 col-sm-4" key={key}>
+   <label className="pls-label d-block" htmlFor={`analytic-tat-${key}`}>{key==='minutes'?'Minutes':key==='hours'?'Hours':'Days'}</label>
+   <input id={`analytic-tat-${key}`} className="custom-input w-100" type="number" min="0" step="1" value={duration[key]} onChange={event=>setTestData((previous:any)=>({...previous,analyticTat:{...duration,[key]:event.target.value}}))}/>
+  </div>)}</div>
+ </section>;
 }
-
-const TatForm: React.FC<TatFormProps> = ({ data, handleChangeWithState, setTestData }) => {
-    return (
-        <>
-            <h5>Tat(Turn Around Time) Set Up</h5>
-            <div className="form-row grid-reg d-flex flex-column">
-                {/* Tat Count Row */}
-                <div className="d-flex align-items-center mb-3 gap-2">
-                    <label className="col-3 pls-label">Tat Count:</label>
-                    <input
-                        type="number"
-                        onChange={(ev) => handleChangeWithState(ev, "tatCount", setTestData, data)}
-                        className="custom-input flex-grow-1"
-                        value={data.tatCount ?? ""}
-                        placeholder="Count of test to use"
-                    />
-                    <select
-                        value={data.tatEvaluation ?? ""}
-                        onChange={(ev) => handleChangeWithState(ev, "tatEvaluation", setTestData, data)}
-                        className="custom-select flex-grow-1"
-                    >
-                        <option value={'min'}>min</option>
-                        <option value={'hour'}>hours</option>
-                        <option value={'seconds'}>seconds</option>
-                    </select>
-                </div>
-
-                {/* Pre Tat Row */}
-                <div className="d-flex align-items-center mb-3 gap-2">
-                    <label className="col-3 pls-label">Pre Tat:</label>
-                    <input
-                        type="number"
-                        onChange={(ev) => handleChangeWithState(ev, "pre_Tat", setTestData, data)}
-                        className="custom-input flex-grow-1"
-                        value={data.pre_Tat ?? ""}
-                        placeholder="Pre Tat value"
-                    />
-                    <select
-                        value={data.pre_TatEvaluation ?? ""}
-                        onChange={(ev) => handleChangeWithState(ev, "pre_TatEvaluation", setTestData, data)}
-                        className="custom-select flex-grow-1"
-                    >
-                        <option value={'min'}>min</option>
-                        <option value={'hour'}>hours</option>
-                        <option value={'seconds'}>seconds</option>
-                    </select>
-                </div>
-
-                {/* Tat Row */}
-                <div className="d-flex align-items-center mb-3 gap-2">
-                    <label className="col-3 pls-label">Tat:</label>
-                    <input
-                        type="number"
-                        onChange={(ev) => handleChangeWithState(ev, "tat", setTestData, data)}
-                        className="custom-input flex-grow-1"
-                        value={data.tat ?? ""}
-                        placeholder="Tat Value"
-                    />
-                    <select
-                        value={data.tatEvaluation ?? ""}
-                        onChange={(ev) => handleChangeWithState(ev, "tatEvaluation", setTestData, data)}
-                        className="custom-select flex-grow-1"
-                    >
-                        <option value={'min'}>min</option>
-                        <option value={'hour'}>hours</option>
-                        <option value={'seconds'}>seconds</option>
-                    </select>
-                </div>
-
-                {/* Post Tat Row */}
-                <div className="d-flex align-items-center mb-3 gap-2">
-                    <label className="col-3 pls-label">Post Tat:</label>
-                    <input
-                        type="number"
-                        onChange={(ev) => handleChangeWithState(ev, "post_Tat", setTestData, data)}
-                        className="custom-input flex-grow-1"
-                        value={data.post_Tat ?? ""}
-                        placeholder="Post Tat Value"
-                    />
-                    <select
-                        value={data.post_TatEvaluation ?? ""}
-                        onChange={(ev) => handleChangeWithState(ev, "post_TatEvaluation", setTestData, data)}
-                        className="custom-select flex-grow-1"
-                    >
-                        <option value={'min'}>min</option>
-                        <option value={'hour'}>hours</option>
-                        <option value={'seconds'}>seconds</option>
-                    </select>
-                </div>
-            </div>
-        </>
-    );
-};
-
-export default TatForm;

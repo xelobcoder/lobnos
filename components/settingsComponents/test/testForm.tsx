@@ -1,3 +1,4 @@
+import ReportValidationRules,{ReportValidationDraft} from './ReportValidationRules';
 import { useTestPanelBasePath } from '../TestPanelWorkspace';
 import { useEffect, useState, useCallback, useRef, ChangeEvent, FormEvent, ReactNode, FC } from "react";
 import { ToastContainer, toast } from 'react-toastify';
@@ -82,6 +83,12 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router, onNav
 		reportitle: '',
 		method: null
 	});
+	const [isSaving,setSaving]=useState(false);
+	const saveInFlight=useRef(false);
+    const [validationDraft,setValidationDraft]=useState<ReportValidationDraft|null>(null);
+    const updateValidationDraft=useCallback((draft:ReportValidationDraft)=>{setValidationDraft(draft);setSaveFeedback(null);},[]);
+	const [saveFeedback,setSaveFeedback]=useState<{kind:'success'|'error';message:string}|null>(null);
+	const showSaveError=(message:string)=>{setSaveFeedback({kind:'error',message});toast.error(message,{autoClose:5000});};
 	const [FieldDisabledDueNone, setFieldDisabledDueNone] = useState<boolean>(false);
 	const [isLoading, setLoading] = useState<boolean>(true);
 	const [loadError, setLoadError] = useState('');
@@ -122,6 +129,8 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router, onNav
 
 	const handleForm = async (ev: FormEvent): Promise<void> => {
 		ev.preventDefault();
+		if(saveInFlight.current)return;
+		setSaveFeedback(null);
 		const { category, sample_container, sample, name, testprice, reportitle, method: testMethod, deviceInterfaceMapping } = data;
 		const resolvedSampleContainerId = sample === 8
 			? ""
@@ -140,7 +149,7 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router, onNav
 			})();
 
 		if (sample === 0 || (resolvedSampleContainerId === "" && sample !== 8) || name === "" || category === 0) {
-			toast.error("Sample type, container, and category are required", { autoClose: 2000 });
+			showSaveError("Sample type, container, and category are required");
 			return;
 		}
 		// if (!reportitle || reportitle.trim() === "") {
@@ -149,26 +158,32 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router, onNav
 		// }
 
 
-		if (!testMethod || testMethod.trim() === "") {
-			toast.error("Method is required", { autoClose: 2000 });
+		if (typeof testMethod !== "string" || testMethod.trim() === "") {
+			showSaveError("Method is required");
 			return;
 		}
 		if (parseFloat(testprice) < 0) {
-			toast.error("Test price must be 0 or more", { autoClose: 2000 });
+			showSaveError("Test price must be 0 or more");
 			return;
 		}
 
+		if(method==='PUT'&&testid&&(!validationDraft||validationDraft.testid!==testid||validationDraft.loading||validationDraft.error)){showSaveError(validationDraft?.error||'Wait for report validation rules to load before saving.');return;}
+		saveInFlight.current=true;
+		setSaving(true);
+		let detailsSaved=false;
 		try {
 			const response = await customPost(`testpanel/list`, method, {
 				...data,
+				...(method==='PUT'&&testid?{reportValidationRules:validationDraft!.rules}:{}),
 				sample_container: resolvedSampleContainerId,
 				employeeid,
 			});
-			if (response.status !== "success") {
-				toast.error("Test panel not updated", { autoClose: 500 });
+			if (response?.status !== "success") {
+				showSaveError(response?.message || "Test panel not updated");
 				return;
 			}
 
+			detailsSaved=true;
 			if (method === 'PUT' && testid) {
 				const qcResponse = await customFetchMutation('testpanel/qc-requirement', 'PUT', {
 					testid: Number(testid),
@@ -176,14 +191,18 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router, onNav
 					employeeid,
 				});
 				if (qcResponse?.status !== 'success') {
-					toast.error(qcResponse?.message || 'QC requirement was not saved', { autoClose: 2000 });
+					showSaveError(`Test details and report validation rules saved, but QC settings were not saved: ${qcResponse?.message || 'Please retry.'}`);
 					return;
 				}
 			}
 
-			toast.success("Test panel updated successfully", { autoClose: 500 });
+			setSaveFeedback({kind:"success",message:"Test details and report validation rules saved successfully."});
+			toast.success("Test details and report validation rules saved successfully.", { autoClose: 2500 });
 		} catch (error) {
-			toast.error("An error occurred during submission", { autoClose: 2000 });
+			showSaveError(detailsSaved?"Test details and report validation rules saved, but QC settings could not be confirmed. Please retry.":"Unable to confirm the save. Please retry.");
+		} finally {
+			saveInFlight.current=false;
+			setSaving(false);
 		}
 	};
 
@@ -257,7 +276,8 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router, onNav
 				</div>
 
 				<div className="border bg-white border-secondary-subtle mx-2 p-2">
-					<form className="mx-4">
+					<form className="mx-4" noValidate onSubmit={handleForm} aria-busy={isSaving} onChangeCapture={()=>setSaveFeedback(null)}>
+                        <fieldset disabled={isSaving} style={{minWidth:0}}>
 						{/* New fields for reportitle, method, deviceInterfaceMapping */}
 
 						<TestBasicForm
@@ -279,16 +299,21 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router, onNav
 							setTestData={setTestData}
 						/>
 						<hr />
+                        {method === 'PUT' && testid && <ReportValidationRules testid={testid} onStateChange={updateValidationDraft} disabled={isSaving}/> }
 						<div>
 							<button
-								type="button"
+								type="submit"
 								className="btn btn-success btn-sm mt-2"
-								onClick={handleForm}
+                                disabled={isSaving}
 							>
-								Save Changes
+								{isSaving ? "Saving..." : "Save Changes"}
 							</button>
 						</div>
+
+                        {saveFeedback && <div className={`alert mt-3 mb-0 ${saveFeedback.kind === "error" ? "alert-danger" : "alert-success"}`} role={saveFeedback.kind === "error" ? "alert" : "status"}>{saveFeedback.message}</div>}
+                        </fieldset>
 					</form>
+
 				</div>
 			</>
 		</div>

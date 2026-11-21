@@ -1,4 +1,6 @@
 "use client"
+import {reportPrintError} from "../../../lib/reportPrintError";
+import ReportPrintUnavailable from "../../../components/ResultView/ReportPrintUnavailable";
 import { useState, useEffect, Suspense, useRef } from "react"
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -22,6 +24,7 @@ import { toast } from "react-toastify";
 import { reportCanvasPng } from "../../../lib/pdfCanvas";
 
 export default function LabReportPrintingMultiple() {
+	const [loadError,setLoadError]=useState('');
 	const [loader, setLoader] = useState(false);
 	const [resultdata, setResultData] = useState<any>(null);
 	const [skippedReportCount, setSkippedReportCount] = useState(0);
@@ -48,6 +51,8 @@ export default function LabReportPrintingMultiple() {
 		let active = true;
 		if (billingid && testid && ascensionid && employeeid) {
 			setLoader(true);
+			setLoadError('');
+			setResultData(null);
 			setSkippedReportCount(0);
 			customFetch(url)
 				.then((data) => {
@@ -59,6 +64,8 @@ export default function LabReportPrintingMultiple() {
 					}
 
 
+					const failure=reportPrintError(data);
+					if(failure){setLoadError(failure);return;}
 					const { status, message } = data;
 					if (status === 'error') {
 						toast.error(message || 'An error occurred while fetching the report data.', { position: "top-right", autoClose: 5000 });
@@ -104,7 +111,7 @@ export default function LabReportPrintingMultiple() {
 						setResultData(data.test.length ? data : null);
 					}
 				})
-				.catch((err) => console.error(err))
+				.catch((err) => {if(active)setLoadError(err instanceof Error?err.message:'Unable to load report');})
 				.finally(() => { if (active) setLoader(false); });
 		}
 		return () => { active = false; };
@@ -575,6 +582,7 @@ export default function LabReportPrintingMultiple() {
 		return () => window.removeEventListener('keydown', handleKeyDown);
 	}, [pdfUrl, employeeid, selectedTests, resultdata]);
 
+	if(!loader && loadError)return <ReportPrintUnavailable message={loadError}/>;
 	let pdfControls;
 	if (pdfUrl && showPdfControls) {
 		pdfControls = (

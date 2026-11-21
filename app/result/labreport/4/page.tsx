@@ -1,4 +1,5 @@
 'use client';
+import ReportPrintUnavailable from '../../../../components/ResultView/ReportPrintUnavailable';
 import React, { useEffect, useState } from 'react';
 import styles from './MDSLancet.Template.module.css';
 import MdsCompanyInformation from '../../../../components/ResultView/MdsCompanyInformation';
@@ -100,7 +101,7 @@ const MDSLancetTemplate: React.FC = () => {
                         trackReportView(ascensionid, employeeid);
                     }
                 })
-                .catch((err) => console.error(err))
+                .catch((err) => setResultData({message:err instanceof Error?err.message:'Unable to load report'} as any))
                 .finally(() => { setLoader(false); });
         }
     }, [employeeid, ascensionid, billingid, isScan]);
@@ -313,14 +314,7 @@ const MDSLancetTemplate: React.FC = () => {
     }, [pdfUrl, showPdfControls, showPdf, ascensionid, employeeid]);
 
     if (loader) return <h4>Loading .....</h4>;
-    if (!resultdata?.records) {
-        const message = (resultdata as { message?: string } | null)?.message;
-        return <main className="container py-4">
-            <h1 className="h4">Laboratory report unavailable</h1>
-            <p role="status">{message || 'The report could not be loaded.'}</p>
-            {ascensionid && <a href={`/operations/laboratory/validated/report-history/${encodeURIComponent(String(ascensionid))}`}>Open report versions and amendments</a>}
-        </main>;
-    }
+    if (!resultdata?.records) return <ReportPrintUnavailable message={(resultdata as {message?:string}|null)?.message || 'The report could not be loaded. Please retry.'}/>;
 
     let pdfControls;
     if (pdfUrl && showPdfControls) {

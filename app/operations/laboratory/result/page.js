@@ -1,4 +1,5 @@
 "use client"
+import ReportPrintUnavailable from "../../../../components/ResultView/ReportPrintUnavailable";
 import { useState, useEffect } from 'react';
 import CompanyHeaders from '../../../../components/ResultView/CompanyHeaders';
 import PersonalInformation from '../../../../components/ResultView/PersonalInformation';
@@ -47,6 +48,7 @@ export default function RESULT_FOR_PRINTING() {
 	}
 
 	const data = resultData || {};
+    if(!Array.isArray(data.records))return <ReportPrintUnavailable message={data.message || 'The report could not be loaded.'}/>;
 
 	return (
 		<>

@@ -53,7 +53,7 @@ function fixture() {
                 if(name.endsWith('TestPanelWorkspace'))return {useTestPanelBasePath:()=>'/settings/applicationsettings/testpanels'};
                 if(name==='next/navigation')return {useRouter:()=>({back(){},push(){}}),usePathname:()=>'/settings/applicationsettings/testpanels'};
                 if(name.endsWith('/useApplicationContext'))return {useApplicationSettings:()=>({applicationsettings:{user:{employeeid:1}}})};
-                if(name.endsWith('/customFetch'))return {defaultTestEditValues:{name:'',sample:0},customFetch:async url=>{requests.push(url);return api.fetch(url);},customPost:async(...args)=>{mutations.push(args);return api.post(...args);}};
+                if(name.endsWith('/customFetch'))return {defaultTestEditValues:{name:'',sample:0},customFetch:async url=>{requests.push(url);return api.fetch(url);},customPost:async(...args)=>{mutations.push(args);return api.post(...args);},customFetchMutation:async(...args)=>{mutations.push(args);return api.post(...args);}};
                 if(name.endsWith('.module.css'))return {__esModule:true,default:new Proxy({}, {get:(_,key)=>String(key)})};
                 if(/\/(TestFieldsHeader|TestBasicForm|ConfigurationForm|TatForm)$/.test(name))return {__esModule:true,default:name.split('/').pop()};
                 if(name.startsWith('.')){
@@ -365,4 +365,38 @@ test('unit selector loads the shared catalogue and never normalizes an existing 
  assert.equal(changes[0].units,'s');assert.equal(changes[0].unit_code,'s');
  assert.equal(nodes(view).some(n=>n.type==='details'),false);
  assert.ok(f.requests.includes('testpanel/unit-catalogue'));
+});
+
+async function detailsFixture(overrides={}){
+ const f=fixture();f.setFetch(async url=>url.startsWith('gettestpanel/')?{id:5,testid:12,name:'QA panel',sample:2,sample_container:1,category:3,method:'QA method',testprice:0,...overrides}:[]);
+ const component=f.load(formFile).default,props={method:'PUT',customtest:0,testid:12,router:{}};
+ f.render(component,props);await flush();const loaded=f.render(component,props);nodes(loaded).find(node=>node.type?.name==='ReportValidationRules').props.onStateChange({testid:12,loading:false,error:'',rules:[{fieldid:10,linearity_enabled:true,linearity_lower:0,linearity_upper:10,delta_enabled:true,max_percent:20}]});return {f,component,props,view:()=>f.render(component,props)};
+}
+const submitDetails=view=>{const form=nodes(view).find(node=>node.type==='form');return (form.props.onSubmit||button(view,'Save Changes').props.onClick)({preventDefault(){}});};
+test('detail save shows progress, prevents duplicate submissions and leaves a persistent confirmation',async()=>{
+ const {f,view}=await detailsFixture();let finish;f.setPost(url=>url==='testpanel/list'?new Promise(resolve=>finish=resolve):Promise.resolve({status:'success'}));
+ const pending=submitDetails(view());let current=view();assert.equal(button(current,'Saving...')?.props.disabled,true);
+ await submitDetails(current);assert.equal(f.mutations.length,1);
+ finish({status:'success'});await pending;current=view();assert.equal(button(current,'Save Changes').props.disabled,false);
+ assert.ok(nodes(current).some(node=>node.props?.role==='status'&&text(node).includes('Test details and report validation rules saved successfully')));
+});
+test('detail save displays required field and backend errors beside the save action',async()=>{
+ const {f,view}=await detailsFixture({method:''});await submitDetails(view());
+ assert.ok(nodes(view()).some(node=>node.props?.role==='alert'&&text(node).includes('Method is required')));assert.equal(f.mutations.length,0);
+ const other=await detailsFixture();other.f.setPost(async()=>({status:false,message:'Configuration changed; reload and retry'}));await submitDetails(other.view());
+ assert.ok(nodes(other.view()).some(node=>node.props?.role==='alert'&&text(node).includes('Configuration changed; reload and retry')));
+});
+test('a QC failure reports the partial save accurately and allows retry',async()=>{
+ const {f,view}=await detailsFixture();f.setPost(async url=>url==='testpanel/list'?{status:'success'}:{status:'error',message:'Permission revoked'});await submitDetails(view());
+ assert.ok(nodes(view()).some(node=>node.props?.role==='alert'&&/Test details and report validation rules saved.*QC.*Permission revoked/.test(text(node))));assert.equal(button(view(),'Save Changes').props.disabled,false);
+});
+
+test('one detail save includes the current linearity and delta drafts without a separate rule mutation',async()=>{
+ const {f,view}=await detailsFixture();f.setPost(async()=>({status:'success'}));await submitDetails(view());
+ assert.deepEqual(clean(f.mutations[0][2].reportValidationRules),[{fieldid:10,linearity_enabled:true,linearity_lower:0,linearity_upper:10,delta_enabled:true,max_percent:20}]);
+ assert.equal(f.mutations.some(([url])=>url.includes('/validation-rules')),false);
+});
+test('detail save waits for validation rules and never overwrites them with an empty failed load',async()=>{
+ const {f,view}=await detailsFixture();nodes(view()).find(node=>node.type?.name==='ReportValidationRules').props.onStateChange({testid:12,loading:false,error:'Rules unavailable',rules:[]});
+ await submitDetails(view());assert.equal(f.mutations.length,0);assert.ok(text(view()).includes('Rules unavailable'));
 });

@@ -1,4 +1,5 @@
 'use client';
+import ReportPrintUnavailable from '../../../components/ResultView/ReportPrintUnavailable';
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
@@ -135,7 +136,7 @@ export default function RESULT_FOR_PRINTING() {
         setLoader(true);
         customFetch(url)
             .then((data) => setResultData(data))
-            .catch((err) => console.error(err))
+            .catch((err) => setResultData({message:err instanceof Error?err.message:'Unable to load report'} as any))
             .finally(() => { setLoader(false); });
     }, []);
 
@@ -198,14 +199,7 @@ export default function RESULT_FOR_PRINTING() {
     }, [loader, resultdata]);
 
     if (loader) return <h4>Loading .....</h4>;
-    if (!resultdata?.records) {
-        const message = (resultdata as { message?: string } | null)?.message;
-        return <main className="container py-4">
-            <h1 className="h4">Laboratory report unavailable</h1>
-            <p role="status">{message || 'The report could not be loaded.'}</p>
-            {ascensionid && <a href={`/operations/laboratory/validated/report-history/${encodeURIComponent(String(ascensionid))}`}>Open report versions and amendments</a>}
-        </main>;
-    }
+    if (!resultdata?.records) return <ReportPrintUnavailable message={(resultdata as {message?:string}|null)?.message || 'The report could not be loaded. Please retry.'}/>;
 
     // Show the PDF iframe once ready
     if (pdfUrl) {
