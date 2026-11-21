@@ -34,7 +34,8 @@
     "lint": "eslint .",
     "lint:security": "eslint lib/serverRequestContext.ts lib/serverBackendRequest.ts lib/serverBackendProxy.ts lib/sessionCookies.ts components/serverActions/requestHeaders.tsx components/serverActions/backendRequest.ts app/api/auth",
     "typecheck": "tsc --noEmit",
-    "typecheck:security": "tsc --project tsconfig.security.json"
+    "typecheck:security": "tsc --project tsconfig.security.json",
+    "create-distribution": "node ./scripts/create-distribution.cjs"
   },
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^40.2.0",

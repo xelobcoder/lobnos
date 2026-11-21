@@ -4,9 +4,11 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { parse } = require("dotenv");
 const { validateLicensePolicy } = require("../license-policy.cjs");
+const { verifyExports } = require("./verify-database-exports.cjs");
 
 const frontendRoot = path.resolve(__dirname, "..", "..");
 const runtimeRoot = path.join(frontendRoot, ".desktop-runtime");
+verifyExports(path.join(runtimeRoot, "backend"));
 const requiredFiles = [
 	path.join(runtimeRoot, "frontend", "server.js"),
 	path.join(runtimeRoot, "frontend", ".next", "static"),

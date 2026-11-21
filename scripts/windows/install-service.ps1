@@ -30,6 +30,9 @@ if (-not (Test-IsAdministrator)) {
      if (-not [string]::IsNullOrWhiteSpace($NodePath)) {
           $argList += @("-NodePath", "`"$NodePath`"")
      }
+     if (-not [string]::IsNullOrWhiteSpace($NssmPath)) {
+          $argList += @("-NssmPath", "`"$NssmPath`"")
+     }
 
      try {
           Start-Process -FilePath "powershell.exe" -ArgumentList $argList -Verb RunAs | Out-Null
@@ -42,7 +45,7 @@ if (-not (Test-IsAdministrator)) {
 }
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..\")).Path
-$appEntry = Join-Path $repoRoot "server.js"
+$appEntry = Join-Path $repoRoot "node_modules\next\dist\bin\next"
 $nextBuildMarker = Join-Path $repoRoot ".next\BUILD_ID"
 
 
@@ -51,6 +54,9 @@ if ($BuildBeforeInstall) {
      Push-Location $repoRoot
      try {
           npm run build | Out-Host
+          if ($LASTEXITCODE -ne 0) {
+               throw "Next.js build failed. Service installation stopped."
+          }
      }
      finally {
           Pop-Location
@@ -108,7 +114,11 @@ if (-not (Test-Path $logsDir)) {
 $serviceStdOut = Join-Path $logsDir "lobnos-service-out.log"
 $serviceStdErr = Join-Path $logsDir "lobnos-service-error.log"
 
-& $NssmPath install $ServiceName $NodePath "--env-file=.env" ".\\server.js" | Out-Null
+# Run the same production command as package.json's start script: next start -p 2377.
+& $NssmPath install $ServiceName $NodePath "--env-file=.env" "`"$appEntry`" start -p 2377" | Out-Null
+if ($LASTEXITCODE -ne 0) {
+     throw "NSSM failed to install service '$ServiceName'."
+}
 & $NssmPath set $ServiceName AppDirectory $repoRoot | Out-Null
 & $NssmPath set $ServiceName DisplayName $DisplayName | Out-Null
 & $NssmPath set $ServiceName Description $Description | Out-Null

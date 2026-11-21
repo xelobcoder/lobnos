@@ -6,6 +6,7 @@ const path = require("node:path");
 const { parse } = require("dotenv");
 const { pruneRuntimeSources } = require("./prune-runtime-sources.cjs");
 const { validateLicensePolicy } = require("../license-policy.cjs");
+const { verifyExports } = require("./verify-database-exports.cjs");
 
 const frontendRoot = path.resolve(__dirname, "..", "..");
 const backendRoot = path.resolve(
@@ -48,6 +49,7 @@ function copyDirectory(source, destination) {
 }
 
 requirePath(path.join(backendRoot, "package.json"), "PLS backend sibling project");
+verifyExports(backendRoot);
 const requestedBackendConfig = process.env.PLS_DESKTOP_BACKEND_ENV ||
 	path.join(frontendRoot, "desktop", "config", "backend.env");
 const genericBuildRequested = fs.existsSync(requestedBackendConfig) &&
@@ -60,6 +62,7 @@ if (!skipBuild) {
 	run(pnpmCommand, ["run", "build"], backendRoot);
 	run(pnpmCommand, ["run", "build"], frontendRoot, {
 		NODE_ENV: "production",
+		PLS_DESKTOP_BUILD: "true",
 		PRODUCTION_BASEURL: "http://127.0.0.1:2300/api/v1/",
 	});
 }
@@ -94,6 +97,8 @@ run(
 	backendRuntime,
 );
 copyDirectory(path.join(backendRoot, "dist"), path.join(backendRuntime, "dist"));
+copyDirectory(path.join(backendRoot, "db-exports"), path.join(backendRuntime, "db-exports"));
+verifyExports(backendRuntime);
 if (fs.existsSync(path.join(backendRoot, "public"))) {
 	copyDirectory(path.join(backendRoot, "public"), path.join(backendRuntime, "public"));
 }

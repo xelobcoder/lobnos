@@ -16,7 +16,7 @@ const nextConfig = {
     },
 	distDir: process.env.PLS_BUILD_OUTPUT_DIR || ".next",
 	reactStrictMode: true,
-	// output: "standalone",
+	output: process.env.PLS_DESKTOP_BUILD === "true" ? "standalone" : undefined,
 	env: {
 		PRODUCTION_BASEURL: productionBaseUrl,
 		DEVELOPMENT_BASEURL:

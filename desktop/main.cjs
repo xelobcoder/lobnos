@@ -9,6 +9,7 @@ const net = require("node:net");
 const path = require("node:path");
 const { runLicenseCommand } = require("./license-commands.cjs");
 const { applyPackagedLicensePolicy } = require("./license-policy.cjs");
+const { parseDatabaseEnvironment } = require("./database-environment.cjs");
 
 const BACKEND_PORT = 2300;
 const LOOPBACK = "127.0.0.1";
@@ -25,9 +26,9 @@ let desktopConfig;
 
 function backendConfigs() {
 	const { parse } = require(path.join(runtimeRoot(), "backend", "vendor", "dotenv"));
-	const packaged = parse(fs.readFileSync(path.join(runtimeRoot(), "config", "backend.env"), "utf8"));
+	const packaged = parseDatabaseEnvironment(fs.readFileSync(path.join(runtimeRoot(), "config", "backend.env"), "utf8"), parse);
 	const userPath = path.join(app.getPath("userData"), "config", "backend.env");
-	const user = fs.existsSync(userPath) ? parse(fs.readFileSync(userPath, "utf8")) : {};
+	const user = fs.existsSync(userPath) ? parseDatabaseEnvironment(fs.readFileSync(userPath, "utf8"), parse) : {};
 	return { packaged, user };
 }
 
