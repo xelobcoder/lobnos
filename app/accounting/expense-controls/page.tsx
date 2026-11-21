@@ -6,11 +6,12 @@ import { toast } from "react-toastify";
 import ReportShell from "../../../components/accounting/ReportShell";
 import { customFetch, customFetchMutation } from "../../../components/Auth/customFetch";
 
-const DEFAULTS = { allow_self_approval: false, require_separate_payer: true, allow_approval_override: false };
+const DEFAULTS = { accounting_enabled: true, allow_self_approval: false, require_separate_payer: true, allow_approval_override: false };
 
 function normalizeControls(data: any) {
      const isEnabled = (value: unknown) => value === true || value === 1 || value === '1';
      return {
+          accounting_enabled: data?.accounting_enabled === undefined ? true : isEnabled(data.accounting_enabled),
           allow_self_approval: isEnabled(data?.allow_self_approval),
           require_separate_payer: data?.require_separate_payer === undefined ? DEFAULTS.require_separate_payer : isEnabled(data.require_separate_payer),
           allow_approval_override: isEnabled(data?.allow_approval_override),
@@ -52,6 +53,7 @@ export default function ExpenseControlsPage() {
                <div className="alert alert-info d-flex gap-2 align-items-start"><RiShieldCheckLine size={22} /><div>Administrators can approve expenses by role. Other users require delegated approval authority. Payment authority remains separately delegated, and these controls decide whether one person may perform conflicting steps.</div></div>
                <section className="card border-0 shadow-sm" style={{ maxWidth: 850 }}>
                     <div className="card-body p-4">
+                         <div className="border-bottom py-3"><label className="form-check form-switch"><input className="form-check-input" type="checkbox" checked={controls.accounting_enabled} onChange={event=>setControls({...controls,accounting_enabled:event.target.checked})} />Use Accounting for new expenses</label><p className="text-muted">When off, expense payments use standalone payment sources without ledger setup. Existing expenses retain their original accounting mode. This setting applies to this branch.</p></div>
                          <div className="d-flex justify-content-between gap-4 border-bottom py-3"><div><h2 className="h6 mb-1">Allow self-approval</h2><p className="text-muted mb-0">Permit an expense creator to approve their own expense. A delegated expense-approval permission alone does not bypass this control. Enable it when a facility has a sole approver.</p></div><div className="form-check form-switch"><input className="form-check-input" type="checkbox" checked={controls.allow_self_approval} onChange={(event) => setControls({ ...controls, allow_self_approval: event.target.checked })} aria-label="Allow self-approval" /></div></div>
                          <div className="d-flex justify-content-between gap-4 border-bottom py-3"><div><h2 className="h6 mb-1">Require a separate payer</h2><p className="text-muted mb-0">Prevent the person who approved an expense from recording its payment. This setting is independent of self-approval.</p></div><div className="form-check form-switch"><input className="form-check-input" type="checkbox" checked={controls.require_separate_payer} onChange={(event) => setControls({ ...controls, require_separate_payer: event.target.checked })} aria-label="Require separate payer" /></div></div>
                          <div className="d-flex justify-content-between gap-4 py-3"><div><h2 className="h6 mb-1">Allow explicit approval override</h2><p className="text-muted mb-0">Allow self-approval only when the user also has the dedicated override permission.</p></div><div className="form-check form-switch"><input className="form-check-input" type="checkbox" checked={controls.allow_approval_override} onChange={(event) => setControls({ ...controls, allow_approval_override: event.target.checked })} aria-label="Allow explicit approval override" /></div></div>

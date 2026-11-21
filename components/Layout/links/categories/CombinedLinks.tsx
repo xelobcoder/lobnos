@@ -607,7 +607,8 @@ const ApplicationSettingsLinks: Link[] = [
                { title: "Test Panels", link: "/settings/applicationsettings/testpanels/testlist", icon: <RiListCheck2 /> },
                { title: 'Sample Container', link: '/settings/applicationsettings/sample-containers', icon: <RiSteamLine /> },
                { title: "Registration Fields", link: "/settings/applicationsettings/registrationFields", icon: <RiFileListLine /> },
-               { title: "Result Entry Settings", link: "/settings/applicationsettings/resultentrysettings", icon: <RiAddBoxLine /> },
+               { title: "Facility Setup Presets", link: "/settings/applicationsettings/facility-setup", icon: <RiFileListLine /> },
+                { title: "Result Entry Settings", link: "/settings/applicationsettings/resultentrysettings", icon: <RiAddBoxLine /> },
                { title: "Report Settings", link: "/settings/applicationsettings/reportSettings", icon: <RiAddBoxLine /> }
           ]
      },

@@ -630,7 +630,8 @@ export default function ApplicationSettings() {
 					</h2>
 					<p className="text-muted mb-0">Configure system-wide settings and preferences</p>
 				</div>
-				<div className="d-flex gap-2">
+				<div className="d-flex gap-2 flex-wrap">
+                    <Link href="/settings/applicationsettings/facility-setup" className="btn btn-outline-primary">Simple / Standard / Advanced setup</Link>
 					{canManageLaboratoryAccess && (
 						<Link href="/operations/laboratory/settings" className="btn btn-outline-primary">
 							Laboratory Workflow Access

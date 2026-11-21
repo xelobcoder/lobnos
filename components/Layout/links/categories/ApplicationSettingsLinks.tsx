@@ -101,6 +101,7 @@ export const ApplicationSettingsLinks: Link[] =
                 { title: "Customizations", link: "/settings/applicationsettings/customization", icon: < RiTestTubeLine /> },
                 { title: 'Sample Container', link: '/settings/applicationsettings/sample-containers', icon: <RiSteamLine /> },
                 { title: "Registration Fields", link: "/settings/applicationsettings/registrationFields", icon: <RiFileListLine /> },
+                { title: "Facility Setup Presets", link: "/settings/applicationsettings/facility-setup", icon: <RiFileListLine /> },
                 { title: "Result Entry Settings", link: "/settings/applicationsettings/resultentrysettings", icon: <RiFileTextLine /> },
                 { title: "Laboratory Workflow Access", link: "/operations/laboratory/settings", icon: <RiShieldCheckLine />, roles: ['admin', 'manager'] },
                 { title: "Report Settings", link: "/settings/applicationsettings/reportSettings", icon: <RiFileTextLine /> },

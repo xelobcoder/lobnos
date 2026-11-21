@@ -22,6 +22,7 @@ const EMPTY_ACCESS = { accountId: "", employeeid: "", canPay: true, canView: tru
 export default function PaymentAccountsPage() {
      const [accounts, setAccounts] = useState<PaymentAccount[]>([]);
      const [employees, setEmployees] = useState<any[]>([]);
+     const [integrated, setIntegrated] = useState(true);
      const [chart, setChart] = useState<any[]>([]);
      const [accountForm, setAccountForm] = useState(EMPTY_ACCOUNT);
      const [accessForm, setAccessForm] = useState(EMPTY_ACCESS);
@@ -38,6 +39,7 @@ export default function PaymentAccountsPage() {
                setAccounts(accountsResponse.data || []);
                setEmployees(optionsResponse.data?.employees || []);
                setChart(optionsResponse.data?.ledgerAccounts || []);
+               setIntegrated(optionsResponse.data?.accountingEnabled !== false);
           } catch (error: any) {
                toast.error(error?.message || "Unable to load payment-account controls");
           }
@@ -48,7 +50,7 @@ export default function PaymentAccountsPage() {
      const assetAccounts = chart;
 
      const createAccount = async () => {
-          if (!accountForm.name.trim() || !accountForm.gl_account_code) {
+          if (!accountForm.name.trim() || integrated && !accountForm.gl_account_code) {
                toast.error("Enter an account name and choose its ledger account");
                return;
           }
@@ -102,7 +104,7 @@ export default function PaymentAccountsPage() {
                                         <div className="col-md-6"><label className="form-label">Account name</label><input className="form-control" value={accountForm.name} onChange={(event) => setAccountForm({ ...accountForm, name: event.target.value })} placeholder="Main Cash, Ecobank, MTN MoMo" /></div>
                                         <div className="col-md-3"><label className="form-label">Type</label><select className="form-select" value={accountForm.account_type} onChange={(event) => setAccountForm({ ...accountForm, account_type: event.target.value })}><option value="cash">Cash</option><option value="bank">Bank</option><option value="mobile_money">Mobile money</option><option value="other">Other</option></select></div>
                                         <div className="col-md-3"><label className="form-label">Currency</label><input className="form-control" maxLength={3} value={accountForm.currency} onChange={(event) => setAccountForm({ ...accountForm, currency: event.target.value.toUpperCase() })} /></div>
-                                        <div className="col-12"><label className="form-label">Posts to ledger account</label><select className="form-select" value={accountForm.gl_account_code} onChange={(event) => setAccountForm({ ...accountForm, gl_account_code: event.target.value })}>{assetAccounts.map((account) => <option key={account.account_code} value={account.account_code}>{account.account_code} - {account.name}</option>)}</select></div>
+                                        {integrated && <div className="col-12"><label className="form-label">Posts to ledger account</label><select className="form-select" value={accountForm.gl_account_code} onChange={(event) => setAccountForm({ ...accountForm, gl_account_code: event.target.value })}>{assetAccounts.map((account) => <option key={account.account_code} value={account.account_code}>{account.account_code} - {account.name}</option>)}</select></div>}
                                         <div className="col-12"><button className="btn btn-primary d-inline-flex align-items-center gap-2" disabled={busy} onClick={createAccount}><RiAddLine size={18} /> Create account</button></div>
                                    </div>
                               </div>
