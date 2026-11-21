@@ -1,4 +1,5 @@
 "use client";
+import MasterLookupImport from "../../../components/settingsComponents/MasterLookupImport";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation'
 import { customPost, getDepartment } from '../../../components/Auth/customFetch';
@@ -71,6 +72,7 @@ export default function Department() {
 
 	return (
 		<div>
+			<MasterLookupImport kind="departments" onImported={()=>getDepartment(setDepartments)}/>
 			<Add_department />
 			<div className='my-3'>
 				<DepartmentList data={department} handleDelete={handleDelete} handleEdit={handleEdit} />

@@ -1,184 +1,34 @@
 "use client";
-
-import { useEffect, useState } from 'react';
-import { Alert, Button, Spinner, Table } from 'react-bootstrap';
+import {useEffect,useState} from 'react';
 import moment from 'moment';
-import { customFetch } from '../../Auth/customFetch';
-import { useApplicationSettings } from '../../Auth/useApplicationContext';
-
-type ThresholdSummary = { hours: number; count: number };
-type PendingResultCase = {
-     ascensionId: number;
-     patientNumber: string;
-     patientName: string;
-     testName: string;
-     department: string | null;
-     clockStartedAt: string;
-     collectedAt: string | null;
-     elapsedMinutes: number;
-     configuredTat: string | number | null;
-};
-
-const THRESHOLDS = [6, 12, 24, 32, 64];
-const PAGE_SIZE = 10;
-
-function formatElapsed(minutes: number): string {
-     const safeMinutes = Math.max(0, Math.floor(Number(minutes) || 0));
-     const days = Math.floor(safeMinutes / 1440);
-     const hours = Math.floor((safeMinutes % 1440) / 60);
-     const remainder = safeMinutes % 60;
-     if (days > 0) return `${days}d ${hours}h`;
-     if (hours > 0) return `${hours}h ${remainder}m`;
-     return `${remainder}m`;
-}
-
-type Props = { view?: 'summary' | 'cases' | 'combined'; initialThreshold?: number; onThresholdSelect?: (hours: number) => void };
-export default function PendingResultTATOverview({ view = 'combined', initialThreshold = 6, onThresholdSelect }: Props) {
-     const employeeid = useApplicationSettings().applicationsettings?.user?.employeeid;
-     const [summary, setSummary] = useState<ThresholdSummary[]>([]);
-     const [selectedHours, setSelectedHours] = useState(initialThreshold);
-     const [cases, setCases] = useState<PendingResultCase[]>([]);
-     const [page, setPage] = useState(1);
-     const [total, setTotal] = useState(0);
-     const [summaryLoading, setSummaryLoading] = useState(true);
-     const [casesLoading, setCasesLoading] = useState(false);
-     const [summaryError, setSummaryError] = useState('');
-     const [casesError, setCasesError] = useState('');
-
-     useEffect(() => {
-          if (view === 'cases') return;
-          let cancelled = false;
-          setSummaryLoading(true);
-          customFetch(`testascension/pending-result-tat/summary?employeeid=${employeeid}`)
-               .then((response: any) => {
-                    if (!response?.success || !Array.isArray(response.data)) throw new Error(response?.message || 'Unable to load TAT summary');
-                    if (!cancelled) setSummary(response.data);
-               })
-               .catch((requestError: any) => {
-                    if (!cancelled) setSummaryError(requestError?.message || 'Unable to load pending-result TAT summary');
-               })
-               .finally(() => {
-                    if (!cancelled) setSummaryLoading(false);
-               });
-          return () => { cancelled = true; };
-     }, [employeeid, view]);
-
-     useEffect(() => { setSelectedHours(initialThreshold); setPage(1); }, [initialThreshold]);
-
-     useEffect(() => {
-          if (view === 'summary') return;
-          let cancelled = false;
-          setCasesLoading(true);
-          customFetch(`testascension/pending-result-tat/cases?employeeid=${employeeid}&thresholdHours=${selectedHours}&page=${page}&count=${PAGE_SIZE}`)
-               .then((response: any) => {
-                    if (!response?.success || !Array.isArray(response.data)) throw new Error(response?.message || 'Unable to load pending cases');
-                    if (!cancelled) {
-                         setCases(response.data);
-                         setTotal(Number(response.total) || 0);
-                         setCasesError('');
-                    }
-               })
-               .catch((requestError: any) => {
-                    if (!cancelled) {
-                         setCases([]);
-                         setTotal(0);
-                         setCasesError(requestError?.message || 'Unable to load pending cases');
-                    }
-               })
-               .finally(() => {
-                    if (!cancelled) setCasesLoading(false);
-               });
-          return () => { cancelled = true; };
-     }, [employeeid, page, selectedHours, view]);
-
-     const selectThreshold = (hours: number) => {
-          setSelectedHours(hours);
-          setPage(1);
-          onThresholdSelect?.(hours);
-     };
-
-     const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-
-     return (
-          <section className="mb-4" aria-labelledby={view === 'cases' ? 'pending-result-tat-cases-title' : 'pending-result-tat-title'}>
-               {view !== 'cases' && <><div className="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
-                    <div>
-                         <h2 id="pending-result-tat-title" className="h5 mb-1">Pending results by elapsed time</h2>
-                         <p className="text-muted small mb-0">Elapsed time starts at registration, matching the existing total TAT clock. Thresholds are cumulative.</p>
-                    </div>
-                    {summaryLoading && <Spinner animation="border" size="sm" aria-label="Loading TAT summary" />}
-               </div>
-
-               <div className="row g-2 mb-3">
-                    {THRESHOLDS.map((hours) => {
-                         const count = summary.find((item) => Number(item.hours) === hours)?.count ?? 0;
-                         const active = selectedHours === hours;
-                         return (
-                              <div className="col-6 col-md" key={hours}>
-                                   <button
-                                        type="button"
-                                        className={`w-100 h-100 text-start rounded-1 border p-3 bg-white ${active ? 'border-primary border-2' : 'border-secondary-subtle'}`}
-                                        aria-pressed={active}
-                                        onClick={() => selectThreshold(hours)}
-                                   >
-                                        <span className="d-block text-muted small">At least {hours} hours</span>
-                                        <span className="d-block fs-4 fw-semibold text-body">{count}</span>
-                                        <span className="d-block small text-muted">pending</span>
-                                   </button>
-                              </div>
-                         );
-                    })}
-               </div>
-
-               {summaryError && <Alert variant="danger" className="py-2">{summaryError}</Alert>}</>}
-               {view !== 'summary' && <>
-               {view === 'cases' && <div className="mb-3"><label className="form-label small fw-semibold" htmlFor="tat-pending-threshold">Pending for at least</label><select className="form-select" id="tat-pending-threshold" value={selectedHours} onChange={event => selectThreshold(Number(event.target.value))}>{THRESHOLDS.map(hours => <option key={hours} value={hours}>{hours} hours</option>)}</select></div>}
-               {casesError && <Alert variant="danger" className="py-2">{casesError}</Alert>}
-
-               <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-                    <h3 className="h6 mb-0" id="pending-result-tat-cases-title">Pending cases with at least {selectedHours} hours elapsed <span className="text-muted fw-normal">({total})</span></h3>
-                    <div className="d-flex align-items-center gap-2">
-                         <Button variant="outline-secondary" size="sm" disabled={page <= 1 || casesLoading} onClick={() => setPage((current) => Math.max(1, current - 1))}>Previous</Button>
-                         <span className="small text-muted">Page {page} of {totalPages}</span>
-                         <Button variant="outline-secondary" size="sm" disabled={page >= totalPages || casesLoading} onClick={() => setPage((current) => Math.min(totalPages, current + 1))}>Next</Button>
-                    </div>
-               </div>
-
-               <div className="table-responsive border rounded-1 bg-white">
-                    <Table hover responsive={false} size="sm" className="mb-0 align-middle">
-                         <thead className="table-light">
-                              <tr>
-                                   <th>Patient / Lab No.</th>
-                                   <th>Test</th>
-                                   <th>Section</th>
-                                   <th>Registered</th>
-                                   <th>Collected</th>
-                                   <th>Elapsed</th>
-                                   <th>Configured TAT</th>
-                                   <th>Status</th>
-                              </tr>
-                         </thead>
-                         <tbody>
-                              {casesLoading ? (
-                                   <tr><td colSpan={8} className="text-center py-4"><Spinner size="sm" className="me-2" />Loading cases</td></tr>
-                              ) : cases.length === 0 ? (
-                                   <tr><td colSpan={8} className="text-center text-muted py-4">No pending cases at this threshold.</td></tr>
-                              ) : cases.map((item) => (
-                                   <tr key={item.ascensionId}>
-                                        <td><span className="d-block fw-semibold">{item.patientName || 'Unknown patient'}</span><span className="small text-muted">{item.patientNumber || 'No lab number'} · #{item.ascensionId}</span></td>
-                                        <td>{item.testName}</td>
-                                        <td>{item.department || '—'}</td>
-                                        <td>{item.clockStartedAt ? moment(item.clockStartedAt).format('MMM D, YYYY HH:mm') : '—'}</td>
-                                        <td>{item.collectedAt ? moment(item.collectedAt).format('MMM D, YYYY HH:mm') : '—'}</td>
-                                        <td className="fw-semibold">{formatElapsed(item.elapsedMinutes)}</td>
-                                        <td>{item.configuredTat ? `${item.configuredTat} min` : 'Not set'}</td>
-                                        <td>Awaiting result</td>
-                                   </tr>
-                              ))}
-                         </tbody>
-                    </Table>
-               </div>
-               </>}
-          </section>
-     );
+import {customFetch} from '../../Auth/customFetch';
+import {formatAnalyticTat} from '../../../lib/analyticTat';
+import dashboard from '../../analytics/patients-analytics/components/Dashboards.module.css';
+const benchmarks=[
+ {key:'on_time',label:'Completed within target',detail:'Measured processing time met the configured target',tone:'green'},
+ {key:'in_progress',label:'Processing within target',detail:'Below 80% of the configured analytic target',tone:'blue'},
+ {key:'due_soon',label:'Approaching target',detail:'80–100% of the configured analytic target',tone:'orange'},
+ {key:'overdue',label:'Target exceeded',detail:'Measured processing time is above 100% of target',tone:'orange'},
+ {key:'not_started',label:'Processing not started',detail:'Pending records without a processing start',tone:'violet'},
+ {key:'no_target',label:'Target not configured',detail:'Configure Analytic TAT in Test Details',tone:'violet'},
+ {key:'data_review',label:'Timing needs review',detail:'Missing, identical or inconsistent processing timestamps',tone:'orange'},
+];
+const PAGE_SIZE=10;
+type Props={view?:'summary'|'cases'|'combined';initialBenchmark?:string;onBenchmarkSelect?:(key:string)=>void;initialPeriod?:{from:string;to:string};onPeriodChange?:(period:{from:string;to:string})=>void};
+export default function PendingResultTATOverview({view='combined',initialBenchmark='overdue',onBenchmarkSelect,initialPeriod,onPeriodChange}:Props){
+ const [summary,setSummary]=useState<any[]>([]),[cases,setCases]=useState<any[]>([]),[selected,setSelected]=useState(initialBenchmark),[page,setPage]=useState(1),[total,setTotal]=useState(0),[loading,setLoading]=useState(true),[casesLoading,setCasesLoading]=useState(false),[error,setError]=useState('');
+ const [from,setFrom]=useState(initialPeriod?.from??moment().startOf('month').format('YYYY-MM-DD')),[to,setTo]=useState(initialPeriod?.to??moment().format('YYYY-MM-DD')),[period,setPeriod]=useState({from,to}),[refresh,setRefresh]=useState(0);
+ const query=`from=${period.from}&to=${period.to}`;
+ useEffect(()=>{setSelected(initialBenchmark);setPage(1);},[initialBenchmark]);
+ useEffect(()=>{if(view==='cases')return;let active=true;setLoading(true);setError('');customFetch(`testascension/analytic-tat/summary?${query}`).then(r=>{if(!r?.success||!Array.isArray(r.data))throw new Error(r?.message||'Unable to load summary');if(active)setSummary(r.data);}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setLoading(false);});return()=>{active=false;};},[query,view,refresh]);
+ useEffect(()=>{if(view==='summary')return;let active=true;setCasesLoading(true);setError('');customFetch(`testascension/analytic-tat/cases?${query}&benchmark=${selected}&page=${page}&count=${PAGE_SIZE}`).then(r=>{if(!r?.success||!Array.isArray(r.data))throw new Error(r?.message||'Unable to load cases');if(active){setCases(r.data);setTotal(Number(r.total)||0);}}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setCasesLoading(false);});return()=>{active=false;};},[query,selected,page,view,refresh]);
+ return <section className={dashboard.dashboard} aria-label="Analytic TAT performance">
+ <div className={dashboard.header}><div><p className={dashboard.eyebrow}>LABORATORY PERFORMANCE</p><h2>Analytic turnaround</h2><p className={dashboard.subtitle}>Benchmarks use each test’s configured target, rather than fixed 24-hour or 64-hour groups.</p></div></div>
+ <form className="d-flex gap-3 flex-wrap align-items-end" onSubmit={e=>{e.preventDefault();const form=new FormData(e.currentTarget);const selectedPeriod={from:String(form.get('from')||''),to:String(form.get('to')||'')};if(selectedPeriod.from&&selectedPeriod.to&&selectedPeriod.from>selectedPeriod.to){setError('Start date must not follow end date');return;}setFrom(selectedPeriod.from);setTo(selectedPeriod.to);setPeriod(selectedPeriod);onPeriodChange?.(selectedPeriod);setPage(1);setRefresh(n=>n+1);}}><label>Registered from<input className="form-control" type="date" name="from" value={from} onChange={e=>setFrom(e.target.value)}/></label><label>Through<input className="form-control" type="date" name="to" value={to} onChange={e=>setTo(e.target.value)}/></label><button className="btn btn-primary" type="submit">Apply dates</button></form>
+ {error&&<div role="alert" className="alert alert-danger">{error}</div>}
+ {view!=='cases'&&<div className={dashboard.grid}>{benchmarks.map(item=>{const count=summary.find(row=>row.key===item.key)?.count??0;return <button type="button" key={item.key} className={dashboard.metricCard} data-tone={item.tone} style={{textAlign:'left'}} disabled={loading} aria-label={`${item.label}: ${count}`} onClick={()=>{setSelected(item.key);setPage(1);onBenchmarkSelect?.(item.key);}}><span className={dashboard.metricLabel}>{item.label}</span><strong className={dashboard.metricValue}>{loading?'…':count}</strong><span className={dashboard.metricDetail}>{item.detail}</span></button>;})}</div>}
+ <p className="alert alert-light border mb-0">Analytic TAT runs from processing start to processing end. Registration age and time waiting for a result are separate. Missing or bypassed timestamps are flagged for review, never counted as hundreds of days of analytical work.</p>
+ {view!=='summary'&&<><div className="d-flex justify-content-between flex-wrap gap-3 align-items-end"><label>Benchmark<select className="form-select" value={selected} onChange={e=>{setSelected(e.target.value);setPage(1);}}>{benchmarks.map(item=><option key={item.key} value={item.key}>{item.label}</option>)}</select></label><span>{total} records · Page {page}</span><div><button className="btn btn-outline-secondary me-2" disabled={page===1||casesLoading} onClick={()=>setPage(n=>n-1)}>Previous</button><button className="btn btn-outline-secondary" disabled={page*PAGE_SIZE>=total||casesLoading} onClick={()=>setPage(n=>n+1)}>Next</button></div></div>
+ {casesLoading?<p role="status">Loading records...</p>:<div className="table-responsive border rounded bg-white"><table className="table align-middle mb-0"><thead><tr><th>Patient / accession</th><th>Test</th><th>Registered / collected</th><th>Analytic TAT</th><th>Configured target</th><th>Result status</th></tr></thead><tbody>{cases.map(row=><tr key={row.ascensionId}><td><strong>{row.patientName}</strong><small className="d-block">{row.patientNumber} · #{row.ascensionId}</small></td><td>{row.testName}<small className="d-block">{row.department}</small></td><td>{moment(row.registeredAt).format('DD MMM YYYY HH:mm')}<small className="d-block">Collected: {row.collectedAt?moment(row.collectedAt).format('DD MMM YYYY HH:mm'):'Not recorded'}</small></td><td>{formatAnalyticTat(row.analyticMinutes)}</td><td>{row.configuredTat==null?'Not configured':formatAnalyticTat(row.configuredTat)}</td><td>{row.resultEntryEnd?'Result completed':row.hasResults?'Saved result; completion timestamp missing':row.processingEndDate?'Processing complete; awaiting result':'Awaiting result'}</td></tr>)}{!cases.length&&<tr><td colSpan={6} className="p-4 text-center">No records in this benchmark for the selected dates.</td></tr>}</tbody></table></div>}</>}
+ </section>;
 }

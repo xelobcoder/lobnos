@@ -1192,6 +1192,8 @@ export const ResultEntrydefaultData = {
 	notificationType: "Email",
 	requireDifferentValidatorFromResultAuthor: false,
 	requireManagerApprovalBeforeRelease: false,
+	requireExplicitResultRelease:true,
+	electronicConsentMode: /** @type {'off' | 'optional' | 'required'} */ ('off'),
 	staffQualifiedToReleaseResult: [],
 	allowResultAuthorToRelease: false,
 };

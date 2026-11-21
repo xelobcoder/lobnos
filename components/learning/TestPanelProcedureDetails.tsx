@@ -8,7 +8,7 @@ const uiLabels = [
     'Sample Type', 'Test Details', 'Test Fields', 'Add Tests', 'Save Changes', 'Add Field',
     'Add Row', 'Field Name', 'Specific Config', 'Category', 'Instrumentation', 'Calculations',
     'Procedure Manual', 'Literature', 'Report Settings', 'Outsourcing', 'Critical-value actions',
-    'Apply order', 'Calculate preview', 'Revert to General', 'TAT Count', 'Pre Tat', 'Post Tat',
+    'Apply order', 'Calculate preview', 'Revert to General', 'Analytic TAT', 'Days', 'Hours', 'Minutes',
     'Configuration', 'Test Panels', 'Staff Access', 'View page', 'Manage tests', 'Save',
     'Preview', 'Plan', 'Units', 'Req?', 'Add', 'new test', 'Operations', 'Laboratory',
     'Effective from', 'Formula History', 'Active', 'Scheduled', 'Historical', 'Inactive', 'Legacy',

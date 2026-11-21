@@ -1,0 +1,3 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
+const box={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/analyticTat.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,box);
+test('analytic duration format retains days, hours, minutes and true zero',()=>{const format=box.exports.formatAnalyticTat;assert.equal(format(1563),'1d 2h 3min');assert.equal(format(0),'0d 0h 0min');assert.equal(format(null),'Not recorded');assert.equal(format(undefined),'Not recorded');});

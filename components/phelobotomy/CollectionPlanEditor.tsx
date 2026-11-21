@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 type Test = { ascensionId: number; testName: string };
 type Group = { sampleTypeId?: number; containerTypeId?: number; suggestedQuantity: number; unit: string | null; ascensions: Test[] };
 type Container = { key: string; ascensionIds: number[]; sampleTypeId: string; containerTypeId: string; quantity: string; unit: string };
-export default function CollectionPlanEditor({ billingid, groups, collectionCenterId, onSaved, onCancel }: { billingid: number; groups: Group[]; collectionCenterId?: number; onSaved: () => Promise<void>; onCancel: () => void }) {
+export default function CollectionPlanEditor({ billingid, groups, collectionCenterId, consent, onSaved, onCancel }: { billingid: number; consent?:{blocked:boolean;payload?:any};groups: Group[]; collectionCenterId?: number; onSaved: () => Promise<void>; onCancel: () => void }) {
      const [containers, setContainers] = useState<Container[]>(() => groups.map((group, index) => ({ key: String(index), ascensionIds: group.ascensions.map(test => test.ascensionId), sampleTypeId: String(group.sampleTypeId || ''), containerTypeId: String(group.containerTypeId || ''), quantity: group.suggestedQuantity ? String(group.suggestedQuantity) : '', unit: group.unit || 'ml' })));
      const [options, setOptions] = useState<{ sampleTypes: any[]; containerTypes: any[] }>({ sampleTypes: [], containerTypes: [] });
      const [reason, setReason] = useState('');
@@ -27,6 +27,7 @@ export default function CollectionPlanEditor({ billingid, groups, collectionCent
      const update = (key: string, changes: Partial<Container>) => setContainers(previous => previous.map(container => container.key === key ? { ...container, ...changes } : container));
      const save = async () => {
           if (saving.current) return;
+          if(consent?.blocked)return toast.error('Complete the collection consent confirmation first.');
           if (!intent.current && !reason.trim()) return toast.error('Enter the reason for changing the proposed containers.');
           if (!intent.current && tests.some(test => !containers.some(container => container.ascensionIds.includes(test.ascensionId)))) return toast.error('Assign every proposed test to at least one container.');
           saving.current = true; setBusy(true); setError('');
@@ -34,7 +35,7 @@ export default function CollectionPlanEditor({ billingid, groups, collectionCent
                intent.current ||= { billingid, collectionCenterId, idempotencyKey: crypto.randomUUID(), reason: reason.trim(), drawnQuantity: drawnQuantity || null, containers: containers.map(({ key, ...container }) => container) };
                if (!storageKey.current) throw new Error('Load container options before saving');
                sessionStorage.setItem(storageKey.current, JSON.stringify(intent.current)); setPending(true);
-               const response = await customFetchMutation('physical-samples/collection-plan', 'POST', intent.current);
+               const response = await customFetchMutation('physical-samples/collection-plan', 'POST', {...intent.current,consent:consent?.payload});
                if (!response?.success) {
                     if (response.statusCode >= 400 && response.statusCode < 500 && !String(response.message).includes('Retry key')) { intent.current = null; setPending(false); sessionStorage.removeItem(storageKey.current); }
                     throw new Error(response?.message || 'Unable to save container plan');

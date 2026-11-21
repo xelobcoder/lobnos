@@ -43,7 +43,8 @@ export default function ResultEntryMainEntryBase({ handlestate, handleCreateFiel
 							<input
 								className="custom-input form-control"
 								type="password"
-								placeholder={isPinShared ? "Using shared PIN" : "Enter pin here"}
+								aria-label="Result entry PIN"
+                                placeholder={isPinShared ? "Using shared PIN" : "Enter pin here"}
 								style={{ fontSize: '0.85rem', height: 28, padding: '2px 6px', backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}
 								value={pin} disabled={isPinShared}
 								autoComplete="off"
@@ -65,7 +66,7 @@ export default function ResultEntryMainEntryBase({ handlestate, handleCreateFiel
 	return (
 		<section>
 			<div className="table-responsive my-2">
-				<table theme='dark' className="table billing-cart-table table-bordered table-sm" style={{ fontSize: '12px', fontFamily: 'Cambria, serif', backgroundColor: 'var(--theme-card-bg)', color: 'var(--bs-body-color)' }}>
+				<table theme='dark' className="table billing-cart-table table-bordered table-sm" style={{ fontSize: '0.9rem', fontFamily: 'inherit', backgroundColor: 'var(--theme-card-bg)', color: 'var(--bs-body-color)' }}>
 					<thead className="text-sm" style={{ backgroundColor: 'var(--bs-tertiary-bg)', color: 'var(--bs-body-color)' }}>
 						<tr>
 							<th className="fw-bold text-capitalize text-sm" style={{ backgroundColor: 'var(--bs-tertiary-bg)', color: 'var(--bs-body-color)' }}>Parameter</th>
@@ -97,7 +98,8 @@ export default function ResultEntryMainEntryBase({ handlestate, handleCreateFiel
 						<input
 							className="custom-input form-control"
 							type="password"
-							placeholder={isPinShared ? "Using shared PIN" : "Enter pin here"}
+							aria-label="Result entry PIN"
+                                placeholder={isPinShared ? "Using shared PIN" : "Enter pin here"}
 							style={{ fontSize: '0.85rem', height: 28, padding: '2px 6px', backgroundColor: 'var(--bs-body-bg)', color: 'var(--bs-body-color)', borderColor: 'var(--bs-border-color)' }}
 							value={pin} disabled={isPinShared}
 							autoComplete="off"

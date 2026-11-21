@@ -40,6 +40,7 @@ export const LaboratoryOperationsLinks: Link[] = [
             { title: "Sign & Release", link: "/operations/laboratory/sign-release", icon: <RiShieldCheckLine /> },
             { title: "Released Results", link: "/operations/laboratory/released", icon: <RiFileListLine /> },
             { title: "Report Versions & Amendments", link: "/operations/laboratory/validated/report-history", icon: <RiFileListLine /> },
+            {title:"Electronic consent",link:"/crm/consents",icon:<RiFileListLine/>},
         ]
     },
     {

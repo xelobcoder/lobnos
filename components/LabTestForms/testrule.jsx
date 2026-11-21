@@ -9,6 +9,8 @@ import moment from "moment";
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { getAscensionEditCountServerideS, getResultEntryDataServerSide } from "../serverActions/ActionFiltering";
 import Link from "next/link";
+import ValidationModal from "../operations/Laboratory/ValidationModal";
+import ResultEntryWorkflowSummary from "./ResultEntryWorkflowSummary";
 import { createResultSaveSession } from "../../lib/resultSaveSession";
 
 
@@ -37,6 +39,10 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 		requested_mode: "HardCopy", requested_mode_detail: "",
 		updated_by_employeeid: null
 	})
+	const [saveFeedback, setSaveFeedback] = useState(null);
+    const [loadError, setLoadError] = useState("");
+    const [workflowRevision, setWorkflowRevision] = useState(0);
+
 
 
 
@@ -52,6 +58,7 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 
 	useEffect(() => {
 		const gettingFields = async function () {
+            setLoading(true); setLoadError("");
 			try {
 				const [resultResponse, commentsResponse] = await getResultEntryDataServerSide({ testid, billingid, patientid, ascensionid, employeeid })
 
@@ -77,7 +84,9 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 				setLoading(false);
 				await getAscensionEditCount();
 			} catch (err) {
-				setRule([]);
+				setLoading(false);
+                setLoadError("Unable to load this result form. Reload the page before entering results.");
+                setRule([]);
 				setComments({ comments: "" });
 			} finally {
 				if (resultEntryStart) return;
@@ -99,11 +108,12 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 		if (testid && billingid && patientid && employeeid) {
 			gettingFields();
 		}
-	}, [testid, billingid, patientid, employeeid]);
+	}, [testid, billingid, patientid, employeeid, ascensionid]);
 
 
 	const handlestate = async (ev, index) => {
-		const value = ev.target.value;
+		setSaveFeedback({tone:"warning", message:"Unsaved changes"});
+        const value = ev.target.value;
 		const newRule = [...rule];
 		newRule[index]["value"] = value;
 		setRule(newRule);
@@ -114,14 +124,16 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 	const handleSubmit = async () => {
 		if (!saveSession.current.start()) return;
 		setIsSaving(true);
+        setSaveFeedback({tone:"info", message:"Saving results…"});
 		try {
 			const pinOnResultEntry = settings?.pinOnResultEntry;
 			if (pinOnResultEntry == 1) {
 				if (!effectivePin) {
-					return toast.error("PIN is required");
+					setSaveFeedback({tone:"danger", message:"Enter your PIN before saving."});
+                    return toast.error("PIN is required");
 				}
 				const response = await validatePin(employeeid, effectivePin);
-				if (response?.status !== true) return toast.error(response?.message || "Invalid PIN");
+				if (response?.status !== true) {setSaveFeedback({tone:"danger",message:response?.message || "Invalid PIN"});return toast.error(response?.message || "Invalid PIN");}
 			}
 
 			const transformed = rule.map((item) => {
@@ -150,17 +162,24 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 				const { message, statusCode, status } = response;
 				if (status === "success" && statusCode === 200) {
 					setRequiresRevalidation(response.requires_revalidation === true);
+                    setSaveFeedback({tone:"success",message:response.requires_revalidation ? "Saved. Previous approvals were cleared; validate the updated result again." : "Results saved. Continue to validation when ready."});
+                    setWorkflowRevision(value=>value+1);
+                    void getAscensionEditCount();
 					toast.success(message, { autoClose: response.requires_revalidation ? 5000 : 500 });
 					if (typeof onSaved === "function") onSaved();
 					// A delayed retry may refer to a revision superseded by another editor.
 					if (!response.replayed) setShowValidationModal(true);
 				} else {
-					toast.error(message, { autoClose: 2000 });
+					setSaveFeedback({tone:"danger",message:message || "Results could not be saved."});
+                    toast.error(message, { autoClose: 2000 });
 				}
-			}
+			} else {
+                setSaveFeedback({tone:"danger",message:"The patient, test or result fields are missing. Reload this request before saving."});
+            }
 
 		} catch (err) {
-			toast.error("Something went wrong", { autoClose: 1000 });
+			setSaveFeedback({tone:"danger",message:"Results could not be saved. Check your connection and try again."});
+            toast.error("Something went wrong", { autoClose: 1000 });
 		} finally {
 			saveSession.current.finish();
 			setIsSaving(false);
@@ -187,6 +206,7 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 	}, []);
 
 	if (isloading) return <Loader />;
+    if (loadError) return <div className="alert alert-danger" role="alert">{loadError}</div>;
 
 	const AuditLogIcon = (
 		<svg width={16} height={16} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -216,7 +236,7 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 			<section className="card border-0 mx-auto my-4" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
 				<div style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderTopLeftRadius: '1rem', borderTopRightRadius: '1rem', borderBottom: '1px solid var(--bs-border-color)', fontSize: '1rem' }} className="card-header d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 fw-bold">
 					<div className="btn-group mb-2 mb-md-0 align-items-center" role="group" aria-label="result form entry label ">
-						<h5 className="mb-0 me-2" title={`test edited ${editCount} times`} style={{ color: 'var(--bs-secondary-color)', fontWeight: 500, fontSize: '1rem' }}>{editCount}</h5>
+						<h5 className="mb-0 me-2" title={`test edited ${editCount} times`} style={{ color: 'var(--bs-secondary-color)', fontWeight: 500, fontSize: '1rem' }}>{editCount} edits</h5>
 						<Indicator resultEntered={resultEntered} />
 						<span className="mb-0 ms-3 text-primary" style={{ fontSize: '1rem', fontWeight: 600 }}>{testname}</span>
 					</div>
@@ -246,7 +266,7 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 								</Link>
 							</li>
 							<li>
-								<Link className="dropdown-item d-flex align-items-center" href="/">
+								<Link className="dropdown-item d-flex align-items-center" href="/operations/laboratory/criticalvaluesAlert">
 									{ReportCriticalValuesIcon} <span className="ms-2">Report critical values</span>
 								</Link>
 							</li>
@@ -260,16 +280,16 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 							({resultDeliveryPreference.requested_mode_detail || ""})
 						</span>
 					</div>
-					<div className="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 mb-3 px-4 pt-4 px-2">
-						<span className="bg-body-tertiary p-2 px-3 rounded-3 border mb-2 mb-sm-0" style={{ minWidth: 220 }}>{resultEntryStart ? `Result Entry Started At: ${moment(resultEntryStart).format('LLLL')}` : null}</span>
-						<span className="bg-body-tertiary p-2 px-3 rounded-3 border" style={{ minWidth: 220 }}>{resultEntryEnd ? `Result Concluded on: ${moment(resultEntryEnd).format('LLLL')}` : null}</span>
-					</div>
-					<div className="rounded-4 mx-4 mb-4" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
+                    <div className="px-3 pt-3"><ResultEntryWorkflowSummary ascensionid={ascensionid} refreshKey={workflowRevision} testName={testname} blocked={isSaving || saveFeedback?.tone === "warning" || saveFeedback?.tone === "danger"} onValidate={() => setShowValidationModal(true)} />
+                        {(resultEntryStart || resultEntryEnd) && <p className="small text-body-secondary mt-2 mb-0">{resultEntryStart && `Entry started: ${moment(resultEntryStart).format('DD MMM YYYY, HH:mm')}`}{resultEntryStart && resultEntryEnd && ' · '}{resultEntryEnd && `Saved: ${moment(resultEntryEnd).format('DD MMM YYYY, HH:mm')}`}</p>}
+                    </div>
+					<div onChangeCapture={() => setSaveFeedback({tone:"warning",message:"Unsaved changes"})} className="rounded-4 mx-3 my-3" style={{ backgroundColor: 'var(--theme-card-bg)' }}>
+                        {saveFeedback && <div className={`alert alert-${saveFeedback.tone} py-2`} role={saveFeedback.tone === "danger" ? "alert" : "status"}>{saveFeedback.message}</div>}
 						<ResultEntryMainEntryBase
 							rule={rule}
 							handleComments={handleComments}
 							comments={comments}
-							setComments={setComments}
+							setComments={value => {setComments(value);setSaveFeedback({tone:"warning",message:"Unsaved changes"});}}
 							hasDrugs={hasDrugs}
 							testid={testid}
 							pin={effectivePin}
@@ -285,33 +305,8 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 					</div>
 				</div>
 			</section>
-			<Modal show={showValidationModal} onHide={() => setShowValidationModal(false)} centered>
-				<Modal.Header closeButton>
-					<Modal.Title>Result Validation</Modal.Title>
-				</Modal.Header>
-				<Modal.Body>
-					{requiresRevalidation ? 'The result was changed after validation. Previous approvals have been cleared. Validate the updated result again before printing or release.' : 'Do you want to continue to result validation?'}
-				</Modal.Body>
-				<Modal.Footer className="gap-2">
-					<Button variant="secondary" onClick={() => setShowValidationModal(false)}>
-						Cancel
-					</Button>
-					<Button variant="primary" onClick={() => {
-						const url = `/operations/laboratory/validation?ascensionid=${ascensionid}&isOpenSideBarShow=false`;
-						if (typeof onNavigate === "function") return onNavigate(url);
-						window.location.href = url;
-					}}>
-						Continue
-					</Button>
-					<Button variant="success" onClick={() => {
-						const url = `/operations/laboratory/validation?billingid=${billingid.slice(70)}&&isOpenSideBarShow=false`;
-						if (typeof onNavigate === "function") return onNavigate(url);
-						window.location.href = url;
-					}}>
-						Validate All
-					</Button>
-				</Modal.Footer>
-			</Modal>
+            {showValidationModal && <ValidationModal show selectedAscension={{ascensionid, id:testid, name:testname, patientid: Number(String(patientid).slice(50)), billingid: Number(String(billingid).slice(70))}} isBulk={false} onClose={() => {setShowValidationModal(false);setWorkflowRevision(value => value + 1);}} />}
+
 			<style jsx>{`
 				.hover-bg:hover {
 					background: var(--bs-tertiary-bg);

@@ -1,3 +1,4 @@
+import MasterLookupImport from '../MasterLookupImport';
 import { FC, useEffect, useState } from 'react';
 import { customFetch, customPost } from '../../Auth/customFetch';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
@@ -211,6 +212,7 @@ const SampleContainerForm: FC = () => {
 
   return (
     <div className="container-fluid">
+      <MasterLookupImport kind="containers" onImported={async()=>{const rows=await customFetch("sample/containers");if(Array.isArray(rows))setSavedContainers(rows);}}/>
       <Tab.Container defaultActiveKey="form">
         <Nav variant="tabs" className="mb-3">
           <Nav.Item>

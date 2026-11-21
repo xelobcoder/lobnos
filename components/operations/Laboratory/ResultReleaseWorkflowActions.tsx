@@ -16,6 +16,7 @@ const reviewReasons = [
 ];
 
 type Props = {
+     inline?: boolean;
      ascensionId: number;
      patientName: string;
      testName: string;
@@ -25,6 +26,7 @@ type Props = {
 
 const statusMessage = (workflow: any) => {
      if (!workflow) return 'Workflow status is unavailable.';
+     if(workflow.explicitReleaseRequired===false&&workflow.availableForPrinting)return 'Sign & Release is optional for this facility. This validated result is available for printing.';
      if (workflow.releaseBlockedReason) return workflow.releaseBlockedReason;
      if (workflow.releaseStatus === 'awaiting_validation') return 'Complete the required result validations first.';
      if (workflow.releaseStatus === 'awaiting_different_validator') return 'A validator who did not enter the result must approve it.';
@@ -35,7 +37,8 @@ const statusMessage = (workflow: any) => {
      return 'This result is ready for an authorized staff member to sign and release.';
 };
 
-export default function ResultReleaseWorkflowActions({ ascensionId, patientName, testName, workflow, onUpdated }: Props) {
+export default function ResultReleaseWorkflowActions({ inline = false, ascensionId, patientName, testName, workflow, onUpdated }: Props) {
+     const ActionItem = inline ? Button : Dropdown.Item;
      const [show, setShow] = useState(false);
      const [intent, setIntent] = useState<'manager' | 'release'>('release');
      const [preview, setPreview] = useState<any>(null);
@@ -110,27 +113,27 @@ export default function ResultReleaseWorkflowActions({ ascensionId, patientName,
      return (
           <>
                {workflow?.canApproveManager ? (
-                    <Dropdown.Item as="button" onClick={() => void open('manager')}>
+                    <ActionItem as="button" onClick={() => void open('manager')}>
                          Manager approval
-                    </Dropdown.Item>
+                    </ActionItem>
                ) : workflow?.managerApprovalRequired && !workflow?.managerApproved && workflow?.validationComplete ? (
-                    <Dropdown.Item as="button" disabled title="Only a manager or administrator can approve">
+                    <ActionItem as="button" disabled title="Only a manager or administrator can approve">
                          Manager approval pending
-                    </Dropdown.Item>
+                    </ActionItem>
                ) : null}
                {workflow?.releaseStatus !== 'released' ? (
-                    <Dropdown.Item
+                    <ActionItem
                          as="button"
                          disabled={!workflow?.canRelease}
                          title={!workflow?.canRelease ? statusMessage(workflow) : undefined}
                          onClick={() => void open('release')}
                     >
                          Sign &amp; Release Result
-                    </Dropdown.Item>
+                    </ActionItem>
                ) : (
-                    <Dropdown.Item as="button" onClick={() => void open('release')} title={statusMessage(workflow)}>
+                    <ActionItem as="button" onClick={() => void open('release')} title={statusMessage(workflow)}>
                        <Ri24HoursFill/>  View release
-                    </Dropdown.Item>
+                    </ActionItem>
                )}
                <Modal show={show} onHide={() => !busy && setShow(false)} size="xl" scrollable backdrop="static" dialogClassName={styles.dialog}>
                     <Modal.Header closeButton={!busy} className={styles.header}>

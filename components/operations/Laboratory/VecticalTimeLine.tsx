@@ -146,7 +146,7 @@ const VerticalTimeline = ({
                         <div className="col-md-4 mb-3">
                             <div className="card">
                                 <div className="card-body">
-                                    <h4 className="h6 text-muted mb-2">Pre TAT</h4>
+                                    <h4 className="h6 text-muted mb-2">Collection duration</h4>
                                     <p className="h5 mb-0">{preTAT}</p>
                                 </div>
                             </div>
@@ -154,7 +154,7 @@ const VerticalTimeline = ({
                         <div className="col-md-4 mb-3">
                             <div className="card">
                                 <div className="card-body">
-                                    <h4 className="h6 text-muted mb-2">Processing TAT</h4>
+                                    <h4 className="h6 text-muted mb-2">Analytic TAT</h4>
                                     <p className="h5 mb-0">{processingTAT}</p>
                                 </div>
                             </div>
@@ -162,7 +162,7 @@ const VerticalTimeline = ({
                         <div className="col-md-4 mb-3">
                             <div className="card">
                                 <div className="card-body">
-                                    <h4 className="h6 text-muted mb-2">Post TAT</h4>
+                                    <h4 className="h6 text-muted mb-2">Result entry duration</h4>
                                     <p className="h5 mb-0">{postTAT}</p>
                                 </div>
                             </div>

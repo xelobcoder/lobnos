@@ -44,7 +44,7 @@ function fixture() {
         if (cache.has(file)) return cache.get(file);
         const exports = {};cache.set(file,exports);
         const code = ts.transpileModule(fs.readFileSync(file,'utf8'), {compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,jsx:ts.JsxEmit.React}}).outputText;
-        vm.runInNewContext(code, {exports,React:react,Error,console,window:{confirm:()=>confirm},requestAnimationFrame:fn=>fn(),setTimeout:()=>{},
+        vm.runInNewContext(code, {exports,React:react,Error,console,crypto:{randomUUID:()=>"qa-consent-uuid-000001"},window:{confirm:()=>confirm},requestAnimationFrame:fn=>fn(),setTimeout:()=>{},
             require:name=>{
                 if(name==='react')return react;
                 if(name==='react-bootstrap')return {Modal,Button:'Button',Spinner:'Spinner'};
@@ -399,4 +399,20 @@ test('one detail save includes the current linearity and delta drafts without a 
 test('detail save waits for validation rules and never overwrites them with an empty failed load',async()=>{
  const {f,view}=await detailsFixture();nodes(view()).find(node=>node.type?.name==='ReportValidationRules').props.onStateChange({testid:12,loading:false,error:'Rules unavailable',rules:[]});
  await submitDetails(view());assert.equal(f.mutations.length,0);assert.ok(text(view()).includes('Rules unavailable'));
+});
+
+test('collection consent is hidden when off and needs only one confirmation when enabled',async()=>{
+ const f=fixture(),component=f.load('components/phelobotomy/CollectionConsent.tsx').default,states=[];let mode='off';
+ f.setFetch(async()=>({success:true,data:{mode,patientid:1,patientName:'QA Patient',canProceed:mode==='off',templates:[{id:9,title:'QA Consent',body:'Synthetic wording',version:1}]}}));
+ const props={billingid:1,active:true,onReady:value=>states.push(value)};f.render(component,props);await flush();let view=f.render(component,props);assert.equal(view,null);assert.equal(states.at(-1).blocked,false);
+ mode='required';const next={...props,billingid:2};f.render(component,next);await flush();view=f.render(component,next);assert.equal(states.at(-1).blocked,true);
+ const checkbox=nodes(view).find(node=>node.props?.['aria-label']==='Verbal consent confirmed');checkbox.props.onChange({target:{checked:true}});f.render(component,next);
+ assert.equal(states.at(-1).blocked,false);assert.equal(states.at(-1).payload.confirmed,true);assert.equal(states.at(-1).payload.billingid,2);assert.deepEqual(clean(states.at(-1).payload.template_ids),[9]);
+});
+test('a minor defaults to guardian confirmation and never requires signature typing for the patient',async()=>{
+ const f=fixture(),component=f.load('components/phelobotomy/CollectionConsent.tsx').default,states=[];
+ f.setFetch(async()=>({success:true,data:{mode:'required',patientid:1,patientName:'QA Child',isMinor:true,guardianName:'QA Parent',canProceed:false,templates:[{id:9,title:'QA Consent',body:'Synthetic wording',version:1}]}}));
+ const props={billingid:1,active:true,onReady:value=>states.push(value)};f.render(component,props);await flush();let view=f.render(component,props);
+ assert.equal(nodes(view).find(node=>node.props?.['aria-label']==='Consent signer').props.value,'guardian');assert.equal(nodes(view).find(node=>node.props?.['aria-label']==='Collection guardian name').props.value,'QA Parent');
+ nodes(view).find(node=>node.props?.['aria-label']==='Verbal consent confirmed').props.onChange({target:{checked:true}});f.render(component,props);assert.equal(states.at(-1).blocked,false);assert.equal(states.at(-1).payload.guardian_name,'QA Parent');
 });

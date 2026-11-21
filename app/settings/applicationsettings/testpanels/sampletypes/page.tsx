@@ -1,4 +1,5 @@
 "use client"
+import MasterLookupImport from "../../../../../components/settingsComponents/MasterLookupImport";
 import React, { useEffect, useMemo, useState } from "react";
 import { customPost, getSampleTypeList } from "../../../../../components/Auth/customFetch";
 import PrimeTable from "../../../../../components/accessories/Datatables/PrimeTable";
@@ -132,6 +133,7 @@ export default function Sampletypes() {
 
 	return (
 		<div className="container-fluid px-0 py-2">
+            <MasterLookupImport kind="samples" onImported={fetchSampleTypes}/>
 			<div className="d-flex flex-wrap align-items-center gap-2 p-3 border rounded bg-body-tertiary">
 				<input
 					className="form-control flex-grow-1"

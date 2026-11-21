@@ -198,7 +198,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                             "validation": "Dropdown options are comma-separated; comparison plans use the text-reference input."
                         },
                         {
-                            "field": "TAT Count; Pre Tat; Tat; Post Tat",
+                            "field": "Analytic TAT: days, hours and minutes",
                             "required": "No explicit required marker confirmed",
                             "entry": "Follow the facility's documented timing convention and approved values.",
                             "validation": "Each has a numeric value and a unit selector (min, hours, seconds); exact timing semantics require local confirmation."
@@ -366,7 +366,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                     "Enter Instrumentation when applicable.",
                     "Configure Device Interface Mapping only when the approved workflow requires it.",
                     "Set each Configuration switch to match the approved workflow.",
-                    "Enter TAT Count, Pre Tat, Tat and Post Tat values using the facility's documented timing convention.",
+                    "Enter Analytic TAT in days, hours and minutes.",
                     "Choose Save Changes in Test Details.",
                     "Open Test Fields.",
                     "Choose Add Field.",
@@ -423,7 +423,7 @@ export const workspaceLearning: WorkspaceLearningModule[] = [
                         "paragraphs": [
                             "In Test Details, confirm Test Name, then choose the approved Category and Sample Type. Choose Sample Container and enter Unit and Sample Quantity when applicable. Complete Short Text, Cost of Test, Test Price, Report Title, Method, Instrumentation and Device Interface Mapping only as specified for the test.",
                             "Review the Configuration switches: Has Manual, Show Trend, Has Varied Gender, Has Children Limit, Outsourced Test, Use Drugs, Use Literature and Require QC before result entry. Some switches reveal additional fields; for example, Procedure Code appears when Has Manual is selected. Set only those required by the approved workflow.",
-                            "Enter TAT Count, Pre Tat, Tat and Post Tat using your facility's documented timing convention. Each value has a unit selector. Confirm the intended meaning and units with the laboratory lead before saving.",
+                            "Enter Analytic TAT in days, hours and minutes. It is stored as total minutes; use Save Changes to save it together with report validation rules.",
                             "Choose Save Changes."
                         ],
                         "checklist": [
