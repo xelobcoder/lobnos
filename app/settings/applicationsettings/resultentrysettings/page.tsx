@@ -304,7 +304,7 @@ const ResultSettingsForm = () => {
                             <p className="small text-muted mt-2">When off, validated results can be printed without a separate signing step. Payment restrictions, critical-result holds and any configured manager approval still apply.</p>
                             <Form.Label htmlFor="electronic-consent-mode">Consent at sample collection</Form.Label>
                             <Form.Select id="electronic-consent-mode" className="mb-2" value={formData.electronicConsentMode||'off'} onChange={event=>setFormData(previous=>({...previous,electronicConsentMode:event.target.value as 'off'|'optional'|'required'}))}>
-                                <option value="off">Off — no collection consent prompt</option><option value="optional">Optional — staff can record consent in one confirmation</option><option value="required">Required — enforce forms marked required</option>
+                                <option value="off">Off — no collection consent prompt</option><option value="optional">Optional — one inline confirmation; collection may continue unchecked</option><option value="required">Required — confirm in the collection screen before proceeding</option>
                             </Form.Select><p className="small text-muted mb-4">Patient names are filled automatically. Only a guardian’s name is needed when signing for a child. Published wording and staff confirmation are saved with collection.</p>
                             <div className="d-flex flex-column gap-3 mb-4">
                                 <Form.Check

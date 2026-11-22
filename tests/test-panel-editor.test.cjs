@@ -50,6 +50,10 @@ function fixture() {
                 if(name==='react-bootstrap')return {Modal,Button:'Button',Spinner:'Spinner'};
                 if(name==='react-toastify')return {ToastContainer:'ToastContainer',toast:Object.fromEntries(['success','error','info'].map(kind=>[kind,message=>toastCalls.push({kind,message})]))};
                 if(name==='@remixicon/react')return new Proxy({}, {get:(_,name)=>String(name)});
+                if(name==='react-barcode')return {__esModule:true,default:'Barcode'};
+                if(['./CollectionConsent','../CollectionConsent','./SpecimenRecollectionPanel','./CollectionSupplies','./CollectionPlanEditor','./CollectionCenterPicker','../operations/OutsourceAssignment'].includes(name)){
+                    return {__esModule:true,default:name.endsWith('CollectionConsent')?function CollectionConsent(){}:function StubComponent(){}};
+                }
                 if(name.endsWith('TestPanelWorkspace'))return {useTestPanelBasePath:()=>'/settings/applicationsettings/testpanels'};
                 if(name==='next/navigation')return {useRouter:()=>({back(){},push(){}}),usePathname:()=>'/settings/applicationsettings/testpanels'};
                 if(name.endsWith('/useApplicationContext'))return {useApplicationSettings:()=>({applicationsettings:{user:{employeeid:1}}})};
@@ -401,18 +405,53 @@ test('detail save waits for validation rules and never overwrites them with an e
  await submitDetails(view());assert.equal(f.mutations.length,0);assert.ok(text(view()).includes('Rules unavailable'));
 });
 
-test('collection consent is hidden when off and needs only one confirmation when enabled',async()=>{
+test('collection consent is hidden when off and uses one inline checkbox when optional or required',async()=>{
  const f=fixture(),component=f.load('components/phelobotomy/CollectionConsent.tsx').default,states=[];let mode='off';
- f.setFetch(async()=>({success:true,data:{mode,patientid:1,patientName:'QA Patient',canProceed:mode==='off',templates:[{id:9,title:'QA Consent',body:'Synthetic wording',version:1}]}}));
- const props={billingid:1,active:true,onReady:value=>states.push(value)};f.render(component,props);await flush();let view=f.render(component,props);assert.equal(view,null);assert.equal(states.at(-1).blocked,false);
- mode='required';const next={...props,billingid:2};f.render(component,next);await flush();view=f.render(component,next);assert.equal(states.at(-1).blocked,true);
- const checkbox=nodes(view).find(node=>node.props?.['aria-label']==='Verbal consent confirmed');checkbox.props.onChange({target:{checked:true}});f.render(component,next);
- assert.equal(states.at(-1).blocked,false);assert.equal(states.at(-1).payload.confirmed,true);assert.equal(states.at(-1).payload.billingid,2);assert.deepEqual(clean(states.at(-1).payload.template_ids),[9]);
+ f.setFetch(async()=>({success:true,data:{mode}}));
+ const onReady=value=>states.push(value),props={billingid:1,onReady};
+ f.render(component,props);await flush();let view=f.render(component,props);
+ assert.equal(view,null);assert.equal(states.at(-1).blocked,false);assert.equal(states.at(-1).mode,'off');
+
+ mode='optional';const optional={...props,billingid:2};f.render(component,optional);await flush();view=f.render(component,optional);
+ assert.equal(states.at(-1).blocked,false);assert.equal(states.at(-1).mode,'optional');
+ let checkbox=nodes(view).find(node=>node.props?.['aria-label']==='Patient or guardian consent confirmed');
+ assert.ok(checkbox);assert.match(text(view),/has agreed to collection of this sample/);assert.equal(nodes(view).some(node=>node.type==='a'||node.type==='details'),false);
+ checkbox.props.onChange({target:{checked:true}});f.render(component,optional);
+ assert.equal(states.at(-1).blocked,false);assert.deepEqual(clean(states.at(-1).payload),{confirmed:true});
+
+ mode='required';const required={...props,billingid:3};f.render(component,required);await flush();view=f.render(component,required);
+ assert.equal(states.at(-1).blocked,true);assert.equal(states.at(-1).mode,'required');
+ checkbox=nodes(view).find(node=>node.props?.['aria-label']==='Patient or guardian consent confirmed');
+ checkbox.props.onChange({target:{checked:true}});f.render(component,required);
+ assert.equal(states.at(-1).blocked,false);assert.deepEqual(clean(states.at(-1).payload),{confirmed:true});
 });
-test('a minor defaults to guardian confirmation and never requires signature typing for the patient',async()=>{
- const f=fixture(),component=f.load('components/phelobotomy/CollectionConsent.tsx').default,states=[];
- f.setFetch(async()=>({success:true,data:{mode:'required',patientid:1,patientName:'QA Child',isMinor:true,guardianName:'QA Parent',canProceed:false,templates:[{id:9,title:'QA Consent',body:'Synthetic wording',version:1}]}}));
- const props={billingid:1,active:true,onReady:value=>states.push(value)};f.render(component,props);await flush();let view=f.render(component,props);
- assert.equal(nodes(view).find(node=>node.props?.['aria-label']==='Consent signer').props.value,'guardian');assert.equal(nodes(view).find(node=>node.props?.['aria-label']==='Collection guardian name').props.value,'QA Parent');
- nodes(view).find(node=>node.props?.['aria-label']==='Verbal consent confirmed').props.onChange({target:{checked:true}});f.render(component,props);assert.equal(states.at(-1).blocked,false);assert.equal(states.at(-1).payload.guardian_name,'QA Parent');
+test('sample collection modal mounts consent state and allows Off-mode sample collection',async()=>{
+ const f=fixture(),component=f.load('components/phelobotomy/CollectionSampleModal.tsx').default;
+ f.setFetch(async url=>url.startsWith('physical-samples/candidates')
+  ?{success:true,data:{groups:[{requirementKey:'blood:edta',sampleType:'Blood',containerType:'EDTA tube',suggestedQuantity:2,unit:'ml',ascensions:[{ascensionId:10,testId:2,testName:'CBC'}]}],samples:[]}}
+  :{success:true,data:{mode:'off'}});
+ f.setPost(async()=>({success:true,data:{sample_uid:'S-QA-1'}}));
+ const props={show:true,hide(){},collection:{billingid:1,patientid:2,fullname:'QA patient'},employeeid:3};
+ let view=f.render(component,props),consent=nodes(view).find(node=>node.type?.name==='CollectionConsent');
+ assert.ok(consent);assert.equal(consent.props.billingid,1);assert.equal(typeof consent.props.onReady,'function');
+ consent.props.onReady({blocked:false,loading:false,mode:'off'});await flush();view=f.render(component,props);
+ await flush();view=f.render(component,props);
+ const start=nodes(view).find(node=>node.type==='button'&&text(node).includes('Start collection'));
+ assert.ok(start);assert.equal(start.props.disabled,false);await start.props.onClick();
+ assert.ok(f.mutations.some(([url,method,body])=>url==='physical-samples'&&method==='POST'&&body.action==='start'));
+});
+test('external sample reception requires and sends the same inline consent confirmation',async()=>{
+ const f=fixture(),component=f.load('components/phelobotomy/ReceiveLabSampleModal/ReceiveLabSampleModal.tsx').default;
+ f.setFetch(async()=>({success:true,data:{samples:[],groups:[{requirementKey:'blood:edta',sampleType:'Blood',containerType:'EDTA tube',suggestedQuantity:2,unit:'ml',ascensions:[{ascensionId:10,testName:'CBC'}]}]}}));
+ f.setPost(async()=>({success:true,data:{sample_uid:'S-QA-2'}}));
+ const props={show:true,hide(){},collection:{billingid:1,patientid:2,fullname:'QA patient'}};
+ let view=f.render(component,props);await flush();view=f.render(component,props);
+ const consent=nodes(view).find(node=>node.type?.name==='CollectionConsent');assert.ok(consent);
+ consent.props.onReady({blocked:true,loading:false,mode:'required',billingid:1});view=f.render(component,props);
+ let receive=nodes(view).find(node=>node.type==='button'&&text(node).includes('Receive selected'));
+ assert.equal(receive.props.disabled,true);
+ consent.props.onReady({blocked:false,loading:false,mode:'required',billingid:1,payload:{confirmed:true}});view=f.render(component,props);
+ receive=nodes(view).find(node=>node.type==='button'&&text(node).includes('Receive selected'));
+ assert.equal(receive.props.disabled,false);await receive.props.onClick();
+ assert.ok(f.mutations.some(([url,method,body])=>url==='physical-samples'&&method==='POST'&&body.action==='receive'&&body.consent.confirmed));
 });
