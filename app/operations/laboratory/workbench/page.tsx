@@ -7,6 +7,7 @@ import { Modal, Offcanvas } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { customFetch, customPost } from '../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
+import { randomId } from '../../../../lib/uuid';
 
 const base = 'operations/laboratory/workbench';
 const displayDate = (value: any) => value ? new Date(value).toLocaleString() : 'Not configured';
@@ -112,7 +113,7 @@ export default function LaboratoryWorkbench() {
                planIdentity.current=String(row.ascensionid);
                setPlan(result.data);
                setQuantities(Object.fromEntries((result.data.items || []).map((item: any) => [item.item_id, String(item.remaining)])));
-               setRetryKey(crypto.randomUUID());
+               setRetryKey(randomId());
           } catch (error: any) { if(generation===planGeneration.current)toast.error(error.message); } finally { if(generation===planGeneration.current)setPlanLoading(false); }
      }
      async function recordMaterials() {
@@ -175,7 +176,7 @@ export default function LaboratoryWorkbench() {
                {planLoading && <p>Loading materials...</p>}
                {plan && <><label className="form-label">Inventory template</label><select className="form-select mb-3" disabled={saving} value={plan.template_id || ''} onChange={event => loadPlan(materialRow, Number(event.target.value))}><option value="">Select a template</option>{plan.templates.map((template: any) => <option key={template.id} value={template.id}>{template.name}</option>)}</select>
                     {['missing_template', 'empty_template'].includes(plan.status) && <div className="alert alert-warning">This test has no usable material template. Configure its materials in <Link href="/inventory/templates">Inventory templates</Link> before recording usage.</div>}
-                    {!!plan.items.length && <div className="table-responsive"><table className="table"><thead><tr><th>Material</th><th>Expected</th><th>Already recorded</th><th>Actual quantity to record now</th></tr></thead><tbody>{plan.items.map((item: any) => <tr key={item.item_id}><td>{item.name}{Number(item.cost_price) === 0 && <div className="small text-warning">No unit cost recorded</div>}</td><td>{item.expected}</td><td>{item.recorded}</td><td><input aria-label={`Actual usage of ${item.name}`} className="form-control" type="number" min="0" step="any" disabled={saving} value={quantities[item.item_id] || ''} onChange={event => { setQuantities({ ...quantities, [item.item_id]: event.target.value }); setRetryKey(crypto.randomUUID()); }} /></td></tr>)}</tbody></table></div>}
+                    {!!plan.items.length && <div className="table-responsive"><table className="table"><thead><tr><th>Material</th><th>Expected</th><th>Already recorded</th><th>Actual quantity to record now</th></tr></thead><tbody>{plan.items.map((item: any) => <tr key={item.item_id}><td>{item.name}{Number(item.cost_price) === 0 && <div className="small text-warning">No unit cost recorded</div>}</td><td>{item.expected}</td><td>{item.recorded}</td><td><input aria-label={`Actual usage of ${item.name}`} className="form-control" type="number" min="0" step="any" disabled={saving} value={quantities[item.item_id] || ''} onChange={event => { setQuantities({ ...quantities, [item.item_id]: event.target.value }); setRetryKey(randomId()); }} /></td></tr>)}</tbody></table></div>}
                </>}
           </Modal.Body><Modal.Footer><button className="btn btn-secondary" disabled={saving} onClick={() => setMaterialRow(null)}>Close</button><button className="btn btn-primary" disabled={saving || planLoading || !plan?.items?.length} onClick={recordMaterials}>{saving ? 'Recording...' : 'Record actual usage'}</button></Modal.Footer></Modal>
      </div>;

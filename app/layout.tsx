@@ -56,7 +56,10 @@ export default function SRootLayout({
 
      return (
           <html lang="en" data-scroll-behavior="smooth" className={`${inter.variable} ${raleway.variable} ${openSans.variable} ${lato.variable} ${roboto.variable} ${nunitoSans.variable} ${sourceSans.variable} ${poppins.variable} ${ibmPlexSans.variable} ${notoSans.variable} ${workSans.variable} ${dmSans.variable} ${publicSans.variable} ${firaSans.variable}`} style={{ '--font-avenir-next': '"Avenir Next for Intuit", "Avenir Next", Avenir, var(--font-nunito-sans), sans-serif', '--font-zoho-puvi': '"Zoho Puvi", var(--font-inter), Arial, sans-serif', '--font-candara': 'Candara, sans-serif', '--font-segoe': '"Segoe UI", Tahoma, sans-serif' } as React.CSSProperties}>
-               <head></head>
+               <head>
+                    {/* crypto.randomUUID is missing on plain-HTTP (on-premise LAN) origins; polyfill before any app code runs. */}
+                    <script dangerouslySetInnerHTML={{ __html: `(function(){var c=window.crypto;if(!c||typeof c.randomUUID==='function')return;c.randomUUID=function(){var b=new Uint8Array(16);if(c.getRandomValues){c.getRandomValues(b)}else{for(var i=0;i<16;i++)b[i]=Math.floor(Math.random()*256)}b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;var h=Array.prototype.map.call(b,function(x){return(x+256).toString(16).slice(1)}).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20)}})();` }} />
+               </head>
                <body>
                     <ThemeProvider>
                          <PrimeToast />

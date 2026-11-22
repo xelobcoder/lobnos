@@ -401,7 +401,7 @@ export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings
                                    >
                                         <option value="">Select district</option>
                                         {districts.map(d => (
-                                             <option key={d.code} value={d.code}>{d.name}</option>
+                                             <option key={`${d.code}-${d.name}`} value={d.code}>{d.name}</option>
                                         ))}
                                    </Form.Select>
                               </div>
