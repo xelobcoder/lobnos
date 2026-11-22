@@ -134,7 +134,7 @@ export default function LaboratoryClientList() {
      const getStageTextClass = (stage: string) => {
           const normalized = (stage || '').trim().toLowerCase();
           if (normalized.includes('pending')) return 'text-warning';
-          if (normalized.includes('paid') || normalized.includes('completed') || normalized.includes('done')) return 'text-success';
+          if (normalized.includes('paid') || normalized.includes('completed') || normalized.includes('done') || normalized.includes('released')) return 'text-success';
           if (normalized.includes('partial')) return 'text-info';
           if (normalized.includes('cancel') || normalized.includes('rejected') || normalized.includes('failed')) return 'text-danger';
           return 'text-muted';
@@ -162,7 +162,7 @@ export default function LaboratoryClientList() {
      };
 
      const parseBreakdown = (testsWithStage: string) => {
-          const counts = { processing: 0, completed: 0, collected: 0, validated: 0, other: 0 };
+          const counts = { processing: 0, completed: 0, collected: 0, validated: 0, released: 0, other: 0 };
           if (!testsWithStage) return counts;
 
           testsWithStage
@@ -175,6 +175,7 @@ export default function LaboratoryClientList() {
                     if (stage.includes('processing') || stage.includes('processed')) counts.processing += 1;
                     else if (stage.includes('collected')) counts.collected += 1;
                     else if (stage.includes('validated') || stage.includes('approved')) counts.validated += 1;
+                    else if (stage.includes('released')) { counts.released += 1; counts.completed += 1; }
                     else if (stage.includes('completed') || stage.includes('done')) counts.completed += 1;
                     else counts.other += 1;
                });
@@ -338,7 +339,7 @@ export default function LaboratoryClientList() {
                                    style={{ flex: '0 0 auto', padding: '0.5rem 1rem', whiteSpace: 'nowrap' }}
                               >
                                    <span>↗</span>
-                                   Open Selected ({selectedClientKeys.size})
+                                   Open ({selectedClientKeys.size})
                               </button>
 
                               <button
@@ -447,7 +448,7 @@ export default function LaboratoryClientList() {
                                                        <td>
                                                             <div className="fw-semibold mb-2">Total: {client.total_tests}</div>
                                                             <div className="text-muted mb-2" style={{ fontSize: '0.85rem' }}>
-                                                                 Collected: {breakdown.collected} | Validated: {breakdown.validated} | Processing: {breakdown.processing} | Completed: {breakdown.completed} | Other: {breakdown.other}
+                                                                 Collected: {breakdown.collected} | Validated: {breakdown.validated} | Processing: {breakdown.processing} | Completed: {breakdown.completed} | Released: {breakdown.released} | Other: {breakdown.other}
                                                             </div>
                                                             <div className="mt-2">
                                                                  {(client.tests_with_stage || '')

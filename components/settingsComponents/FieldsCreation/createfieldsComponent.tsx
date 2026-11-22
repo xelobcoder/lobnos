@@ -313,6 +313,12 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 		setNewField(defaultCreationRule);
 	};
 
+	const setManualRerunEnabled = (index: number, enabled: boolean) => {
+		setData(current => current.map((field, fieldIndex) =>
+			fieldIndex === index ? { ...field, manual_rerun_enabled: enabled ? 1 : 0 } : field
+		));
+	};
+
 	const saveField = () => {
 		if (!newField.name?.trim()) {
 			toast.error("Field name is required");
@@ -427,6 +433,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 												<th style={{ width: '12%' }}>Preview</th>
 												<th style={{ width: '10%' }}>Category</th>
 												<th style={{ width: '8%' }}>Req?</th>
+												<th style={{ width: '10%' }}>Manual rerun</th>
 												<th style={{ width: '8%' }}>Order</th>
 												<th style={{ width: '15%' }}>Actions</th>
 											</tr>
@@ -519,6 +526,24 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 														)}
 													</td>
 													<td>
+														<label className="d-inline-flex align-items-center gap-1">
+															<input
+																type="checkbox"
+																className="form-check-input"
+																aria-label={`Allow manual rerun for ${field.name}`}
+																checked={Boolean(Number(editingIndex === index ? newField.manual_rerun_enabled : field.manual_rerun_enabled))}
+																onChange={(event) => {
+																	if (editingIndex === index) {
+																		setNewField({ ...newField, manual_rerun_enabled: event.target.checked ? 1 : 0 });
+																	} else {
+																		setManualRerunEnabled(index, event.target.checked);
+																	}
+																}}
+															/>
+															<span className="small">Enabled</span>
+														</label>
+													</td>
+													<td>
 														<span aria-label={`Parameter position ${index + 1}`}>{index + 1}</span>
 													</td>
 													<td>
@@ -557,6 +582,18 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 															placeholder="Enter field name"
 															autoFocus
 														/>
+													</td>
+													<td>
+														<label className="d-inline-flex align-items-center gap-1">
+															<input
+																type="checkbox"
+																className="form-check-input"
+																aria-label={`Allow manual rerun for ${newField.name || 'new parameter'}`}
+																checked={Boolean(Number(newField.manual_rerun_enabled))}
+																onChange={(event) => setNewField({ ...newField, manual_rerun_enabled: event.target.checked ? 1 : 0 })}
+															/>
+															<span className="small">Enabled</span>
+														</label>
 													</td>
 													<td>
 														<select

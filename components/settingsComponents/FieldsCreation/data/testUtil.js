@@ -94,6 +94,7 @@ export const defaultCreationRule = {
   fieldConstraints: [],
   ordering: "",
   isValueTracked: 0,
+  manual_rerun_enabled: 0,
   textReference: "",
   isRequired: false,
   lowerLimit: "",

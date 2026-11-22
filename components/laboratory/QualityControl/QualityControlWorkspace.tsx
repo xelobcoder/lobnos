@@ -2,13 +2,14 @@
 import { ComponentType, useState, useEffect } from 'react';
 import { Tab, Tabs } from 'react-bootstrap';
 import s from './QualityControlWorkspace.module.css';
-export type QCSection = 'dashboard' | 'sessions' | 'new-session' | 'controls' | 'devices' | 'setup';
+export type QCSection = 'dashboard' | 'sessions' | 'new-session' | 'controls' | 'devices' | 'maintenance' | 'setup';
 const sections: {key: QCSection; title: string; description: string}[] = [
  {key:'dashboard',title:'Overview',description:'Monitor today’s activity, review alerts and check recent control readings.'},
  {key:'sessions',title:'QC sessions',description:'Find recorded sessions, review readings and inspect Levey–Jennings charts.'},
  {key:'new-session',title:'New session',description:'Choose a device and its control material to create a QC session.'},
  {key:'controls',title:'Control materials',description:'Manage control lots, expiry dates and parameter limits.'},
  {key:'devices',title:'Devices',description:'Manage laboratory instruments and their calibration schedules.'},
+ {key:'maintenance',title:'Maintenance',description:'Schedule instrument maintenance, record checklist results and review corrective actions.'},
  {key:'setup',title:'Setup',description:'Review how QC rules and notification settings are configured.'},
 ];
 export function QualityControlWorkspace({panels}:{panels:Record<QCSection,ComponentType>}) {

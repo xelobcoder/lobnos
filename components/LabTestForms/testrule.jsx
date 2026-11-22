@@ -12,17 +12,21 @@ import Link from "next/link";
 import ValidationModal from "../operations/Laboratory/ValidationModal";
 import ResultEntryWorkflowSummary from "./ResultEntryWorkflowSummary";
 import { createResultSaveSession } from "../../lib/resultSaveSession";
+import ManualParameterRerun from "./ManualParameterRerun";
+import { roleAllowed } from "../Auth/roles";
 
 
 
 export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 	const { testid, test, patientid, billingid, employeeid, ascensionid, resultEntryStart, resultEntryEnd, globalPin } = clientdata;
-	const { result, settings } = useApplicationSettings().applicationsettings;
+	const applicationSettings = useApplicationSettings().applicationsettings || {};
+	const { result, settings, user } = applicationSettings;
 	const [comments, setComments] = useState({ comments: '' });
 	const [testname, setTestname] = useState("");
 	const [resultEntered, setResultEntered] = useState(false);
 	const [isloading, setLoading] = useState(true);
 	const [rule, setRule] = useState([]);
+	const [persistedRule, setPersistedRule] = useState([]);
 	const [editCount, setEditCount] = useState(0);
 	const [hasDrugs, setHasDrugs] = useState(false);
 	const [modifiedDrugs, setModifiedDrugs] = useState([]);
@@ -43,6 +47,13 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
     const [loadError, setLoadError] = useState("");
     const [workflowRevision, setWorkflowRevision] = useState(0);
 
+    const refreshPersistedReport = async () => {
+        const [latestResponse] = await getResultEntryDataServerSide({ testid, billingid, patientid, ascensionid, employeeid });
+        const latest = Array.isArray(latestResponse?.result) ? latestResponse.result : [];
+        setRule(latest);
+        setPersistedRule(latest);
+        setResultEntered(latest.some((item) => item?.value !== "" && item?.value !== null && item?.value !== undefined));
+    };
 
 
 
@@ -66,6 +77,7 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 					const { testname, result, hasDrugs, resultDeliveryPreference } = data;
 					if (result && Array.isArray(result)) {
 						setRule(result);
+						setPersistedRule(result);
 						if (result.length === 0) return;
 						const hasAnyValueEntered = result.some((item) => item?.value != "");
 						setResultEntered(hasAnyValueEntered);
@@ -167,6 +179,7 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
                     void getAscensionEditCount();
 					toast.success(message, { autoClose: response.requires_revalidation ? 5000 : 500 });
 					if (typeof onSaved === "function") onSaved();
+					void refreshPersistedReport().catch(() => {});
 					// A delayed retry may refer to a revision superseded by another editor.
 					if (!response.replayed) setShowValidationModal(true);
 				} else {
@@ -230,6 +243,7 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 	);
 
 	const decryptedPatientId = patientid ? patientid.slice(50) : null;
+	const authorizedForManualRerun = roleAllowed(user?.role, ["admin", "manager", "scientist"]);
 
 	return (
 		<div>
@@ -250,6 +264,15 @@ export default function CreateTestRule({ clientdata, onSaved, onNavigate }) {
 							Actions
 						</button>
 						<ul className="dropdown-menu" aria-labelledby="actionsDropdown" style={{ minWidth: 0, width: 'max-content', maxWidth: 220, whiteSpace: 'nowrap', right: 0, left: 'auto', fontSize: '0.92rem' }}>
+							{Number.isSafeInteger(Number(ascensionid)) && Number(ascensionid) > 0 && (
+								<ManualParameterRerun
+									ascensionid={ascensionid}
+									testid={testid}
+									persistedFields={persistedRule}
+									authorized={authorizedForManualRerun && !isSaving && saveFeedback?.tone !== "warning"}
+									onConfirmed={refreshPersistedReport}
+								/>
+							)}
 							<li>
 								<Link className="dropdown-item d-flex align-items-center" href={`/operations/laboratory/auditlogs/${ascensionid}`}>
 									{AuditLogIcon} <span className="ms-2">Audit log</span>

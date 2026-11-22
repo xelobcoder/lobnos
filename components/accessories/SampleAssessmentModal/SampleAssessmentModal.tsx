@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { BrowserMultiFormatReader } from '@zxing/library';
 import { useApplicationSettings } from '../../Auth/useApplicationContext';
 import { roleAllowed } from '../../Auth/roles';
 import { Modal, Spinner } from 'react-bootstrap';
@@ -24,10 +25,14 @@ export default function SampleAssessmentModal({ show, hide, billingid, removeCli
      const [processedItems, setProcessedItems] = useState<number[]>([]);
      const [samples, setSamples] = useState<Sample[]>([]);
      const [allSamples, setAllSamples] = useState<Sample[]>([]);
+     const [sampleValidationBypassed, setSampleValidationBypassed] = useState(false);
      const [unregisteredGroups, setUnregisteredGroups] = useState<CandidateGroup[]>([]);
      const [loadError, setLoadError] = useState('');
      const [barcode, setBarcode] = useState('');
      const [barcodeLoading, setBarcodeLoading] = useState(false);
+     const [scannerOpen, setScannerOpen] = useState(false);
+     const [scannerError, setScannerError] = useState('');
+     const videoRef = useRef<HTMLVideoElement>(null);
      const [loading, setLoading] = useState(false);
      const [busyId, setBusyId] = useState<number | null>(null);
      const [rejecting, setRejecting] = useState<Sample | null>(null);
@@ -45,9 +50,11 @@ export default function SampleAssessmentModal({ show, hide, billingid, removeCli
                const response = await customFetch(`physical-samples/candidates?billingid=${currentBillingId}`);
                if (!response?.success) throw new Error(response?.message || 'Unable to load samples for validation.');
                const physicalSamples: Sample[] = response.data?.samples || [];
+               const bypassed = response.data?.workflow?.sampleValidation === 'bypassed';
+               setSampleValidationBypassed(bypassed);
                setAllSamples(physicalSamples);
                setUnregisteredGroups(response.data?.groups || []);
-               setSamples(physicalSamples.filter((sample) => ['collected', 'received'].includes(sample.status)));
+               setSamples(bypassed ? [] : physicalSamples.filter((sample) => ['collected', 'received'].includes(sample.status)));
           } catch (error: any) {
                const message = error?.message || 'Unable to load samples for validation.';
                toast.error(message);
@@ -55,15 +62,63 @@ export default function SampleAssessmentModal({ show, hide, billingid, removeCli
                setSamples([]);
                setAllSamples([]);
                setUnregisteredGroups([]);
+               setSampleValidationBypassed(false);
           } finally { setLoading(false); }
      }, [currentBillingId]);
 
      useEffect(() => { if (show) { setCurrentIndex(0); setProcessedItems([]); } }, [show]);
      useEffect(() => { if (show) load(); }, [show, load]);
+     useEffect(() => {
+          if (!show) {
+               setScannerOpen(false);
+               setScannerError('');
+          }
+     }, [show]);
+     useEffect(() => {
+          setScannerOpen(false);
+          setScannerError('');
+     }, [currentBillingId]);
+
+     useEffect(() => {
+          if (!show || !scannerOpen) return;
+          const video = videoRef.current;
+          if (!video) {
+               setScannerError('The camera preview could not be started. Close the scanner and try again.');
+               return;
+          }
+
+          let active = true;
+          let scanned = false;
+          const reader = new BrowserMultiFormatReader();
+          reader.decodeFromVideoDevice(null, video, (result) => {
+               if (!active || scanned || !result) return;
+               const value = result.getText().trim();
+               if (!value) return;
+               scanned = true;
+               setBarcode(value);
+               setScannerError('');
+               setScannerOpen(false);
+          }).catch((error: unknown) => {
+               if (!active) return;
+               const denied = error instanceof DOMException && error.name === 'NotAllowedError';
+               const unavailable = error instanceof DOMException && error.name === 'NotFoundError';
+               setScannerError(denied
+                    ? 'Camera access was denied. Allow camera access in browser settings and try again.'
+                    : unavailable
+                         ? 'No camera was found on this device.'
+                         : 'Unable to start the camera. Check camera permissions and try again.');
+          });
+
+          return () => {
+               active = false;
+               reader.reset();
+          };
+     }, [scannerOpen, show]);
 
      const toggleChannel = (channel: 'sms' | 'email') => setChannels((current) => current.includes(channel) ? current.filter((item) => item !== channel) : [...current, channel]);
 
      const findByBarcode = async () => {
+          if (sampleValidationBypassed) return toast.info('Sample validation is bypassed for this facility.');
           const lookup = barcode.trim();
           if (!lookup) return toast.error('Scan or enter a sample barcode or ID.');
           setBarcodeLoading(true);
@@ -125,17 +180,18 @@ export default function SampleAssessmentModal({ show, hide, billingid, removeCli
      return <>
           <Modal show={show} size="xl" backdrop="static" animation={false} onHide={hide} dialogClassName="mt-3">
                <Modal.Header closeButton><div><Modal.Title className="h5">Physical Sample Validation</Modal.Title><div className="text-muted">{patient?.fullname || ''} · Billing {currentBillingId}</div></div></Modal.Header>
-               <Modal.Body><div className="border bg-body-tertiary p-3 mb-3" style={{ borderRadius: 6 }}><label className="form-label fw-semibold" htmlFor="sample-barcode-search"><RiBarcodeLine size={18} className="me-1" />Scan or enter sample barcode / ID</label><div className="input-group"><input id="sample-barcode-search" className="form-control" value={barcode} onChange={(event) => setBarcode(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') findByBarcode(); }} autoFocus placeholder="Scan barcode or enter S-... / numeric ID" /><button className="btn btn-primary" type="button" disabled={barcodeLoading || !barcode.trim()} onClick={findByBarcode} title="Find sample"><RiSearchLine size={18} /></button></div></div>{loading ? <div className="text-center py-5"><Spinner animation="border" /></div>
+               <Modal.Body><div className="border bg-body-tertiary p-3 mb-3" style={{ borderRadius: 6 }}><label className="form-label fw-semibold" htmlFor="sample-barcode-search"><RiBarcodeLine size={18} className="me-1" />Scan or enter sample barcode / ID</label><div className="input-group"><input id="sample-barcode-search" className="form-control" value={barcode} onChange={(event) => setBarcode(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') findByBarcode(); }} autoFocus placeholder="Scan barcode or enter S-... / numeric ID" disabled={sampleValidationBypassed} /><button className="btn btn-outline-secondary" type="button" disabled={barcodeLoading || sampleValidationBypassed} onClick={() => { setScannerError(''); setScannerOpen(true); }} title="Scan barcode with camera" aria-label="Scan barcode with camera"><RiBarcodeLine size={18} /></button><button className="btn btn-primary" type="button" disabled={barcodeLoading || !barcode.trim() || sampleValidationBypassed} onClick={findByBarcode} title="Find sample"><RiSearchLine size={18} /></button></div>{scannerOpen && <div className="mt-3 p-3 border rounded bg-dark text-white" role="region" aria-label="Camera barcode scanner"><div className="d-flex justify-content-between align-items-center gap-2 mb-2"><span className="small">Point the camera at the barcode. It will be scanned automatically.</span><button className="btn btn-sm btn-outline-light" type="button" onClick={() => setScannerOpen(false)}>Close camera</button></div>{scannerError ? <div className="alert alert-danger mb-0" role="alert">{scannerError}</div> : <video ref={videoRef} className="w-100 rounded" style={{ maxHeight: 320, objectFit: 'cover' }} autoPlay muted playsInline />}</div>}</div>{loading ? <div className="text-center py-5"><Spinner animation="border" /></div>
                     : loadError ? <div className="alert alert-danger mb-0"><strong>Could not load this billing&apos;s physical samples.</strong><div>{loadError}</div></div>
+                    : sampleValidationBypassed ? <div className="alert alert-info mb-0"><strong>Sample validation bypassed.</strong><div className="mt-1">This facility does not require separate sample assessment. No containers are awaiting validation.</div></div>
                     : samples.length ? <div className="row g-3">{samples.map((sample) => <div className="col-lg-6" key={sample.id}><article className="border p-3 h-100" style={{ borderRadius: 6, borderLeft: '5px solid #176b4d' }}><div className="d-flex justify-content-between"><div><strong>{sample.sample_uid}</strong><div className="text-muted">{sample.sample_type_name || 'Specimen'} · {sample.container_type_name || 'Container'}</div></div><span className="text-capitalize fw-semibold">{sample.status}</span></div><div className="mt-3"><span className="text-muted">This decision applies to:</span><ul className="mb-3">{sample.tests.map((test) => <li key={test.ascensionId}>{test.testName}</li>)}</ul></div><div className="d-flex gap-2"><button className="btn btn-success d-flex gap-2 align-items-center" disabled={busyId === sample.id} onClick={() => accept(sample)}><RiCheckboxCircleLine size={18} /> Accept container</button><button className="btn btn-outline-danger" disabled={busyId === sample.id} onClick={() => setRejecting(sample)}>Reject container</button>{canHandleStorage && sample.storage_state !== 'disposed' && <Link className="btn btn-outline-primary" href={`/operations/phelobotomy/specimen-storage?sampleId=${sample.id}&action=store`}>Store sample</Link>}</div></article></div>)}</div>
                     : waitingForReception.length ? <div className="alert alert-warning mb-0"><strong>Reception has not been completed.</strong><div className="mt-1">{waitingForReception.length} physical container{waitingForReception.length === 1 ? ' is' : 's are'} recorded as {waitingForReception.map((sample) => sample.status.replace(/_/g, ' ')).join(', ')}. Receive {waitingForReception.length === 1 ? 'it' : 'them'} in the Sample Reception workspace before validation.</div></div>
                     : unregisteredGroups.length ? <div className="alert alert-warning mb-0"><strong>No physical container has been received.</strong><div className="mt-1">The billed tests have sample requirements, but no container is registered. If the client brought a sample from another facility, register it in the Sample Reception workspace first.</div></div>
                     : processedSamples.length ? <div className="alert alert-info mb-0">All physical samples for this billing have already been processed.</div>
                     : <div className="alert alert-info mb-0">No physical samples are available for this billing.</div>}
-                    {!loading && !loadError && <SpecimenRecollectionPanel billingid={Number(currentBillingId)} samples={allSamples} onChanged={load} />}
+                    {!loading && !loadError && !sampleValidationBypassed && <SpecimenRecollectionPanel billingid={Number(currentBillingId)} samples={allSamples} onChanged={load} />}
                     {!loading && !loadError && acceptedSamples.length > 0 && <section className="mt-4" aria-labelledby="accepted-storage-heading"><h2 className="h6" id="accepted-storage-heading">Accepted containers — ready for storage</h2><p className="small text-muted">Choose a freezer, rack and position for each accepted container. You can continue validating the remaining samples.</p><div className="d-flex flex-column gap-2">{acceptedSamples.map(sample => <article className="border rounded p-3 d-flex flex-wrap align-items-center justify-content-between gap-3" key={sample.id}><div><strong>{sample.sample_uid}</strong><div className="small text-muted">{sample.sample_type_name || 'Specimen'} / {sample.container_type_name || 'Container'}</div></div>{canHandleStorage ? <Link className="btn btn-primary btn-sm" href={`/operations/phelobotomy/specimen-storage?sampleId=${sample.id}&action=store`}>{sample.storage_state === 'stored' ? 'Move sample' : sample.storage_state === 'retrieved' ? 'Return to storage' : 'Store sample'}</Link> : <span className="small text-muted">Ask authorized laboratory staff to store this sample.</span>}</article>)}</div></section>}
                </Modal.Body>
-               <Modal.Footer><button className="btn btn-outline-secondary d-flex align-items-center gap-2" onClick={hide}><RiCloseLine size={18} /> Close</button><button className="btn btn-primary" disabled={loading || samples.length > 0 || Boolean(loadError) || waitingForReception.length > 0 || unregisteredGroups.length > 0} onClick={finish}>{multiMode && currentIndex < selectedItems.length - 1 ? 'Next patient' : 'Finish validation'}</button></Modal.Footer>
+               <Modal.Footer><button className="btn btn-outline-secondary d-flex align-items-center gap-2" onClick={hide}><RiCloseLine size={18} /> Close</button><button className="btn btn-primary" disabled={loading || samples.length > 0 || Boolean(loadError) || (!sampleValidationBypassed && (waitingForReception.length > 0 || unregisteredGroups.length > 0))} onClick={finish}>{multiMode && currentIndex < selectedItems.length - 1 ? 'Next patient' : 'Finish validation'}</button></Modal.Footer>
           </Modal>
 
           {rejecting && <Modal show animation={false} backdrop="static" onHide={() => setRejecting(null)} dialogClassName="mt-3"><Modal.Header closeButton><Modal.Title className="h5">Reject {rejecting.sample_uid}</Modal.Title></Modal.Header><Modal.Body><div className="alert alert-warning">This rejects the physical container and every linked test: {rejecting.tests.map((test) => test.testName).join(', ')}.</div><label className="form-label fw-semibold" htmlFor="sample-reason">Rejection reason</label><textarea id="sample-reason" className="form-control mb-3" rows={3} value={reason} onChange={(event) => setReason(event.target.value)} /><fieldset><legend className="h6">Inform patient</legend><div className="d-flex gap-4 mb-3"><label className="form-check"><input className="form-check-input" type="checkbox" checked={channels.includes('sms')} onChange={() => toggleChannel('sms')} /><span className="form-check-label">SMS</span></label><label className="form-check"><input className="form-check-input" type="checkbox" checked={channels.includes('email')} onChange={() => toggleChannel('email')} /><span className="form-check-label">Email</span></label><label className="form-check"><input className="form-check-input" type="checkbox" checked={!channels.length} onChange={() => setChannels([])} /><span className="form-check-label">Do not notify</span></label></div></fieldset>{channels.length > 0 && <><label className="form-label fw-semibold" htmlFor="patient-message">Patient message</label><textarea id="patient-message" className="form-control" rows={4} value={message} onChange={(event) => setMessage(event.target.value)} /></>}</Modal.Body><Modal.Footer><button className="btn btn-outline-secondary" onClick={() => setRejecting(null)}>Cancel</button><button className="btn btn-danger" disabled={busyId === rejecting.id || reason.trim().length < 3} onClick={reject}>{busyId === rejecting.id ? 'Rejecting...' : 'Reject and save'}</button></Modal.Footer></Modal>}

@@ -17,6 +17,7 @@ export interface CreationRule {
     fieldConstraints: Array<any>;
     ordering: string | number;
     isValueTracked: number;
+    manual_rerun_enabled?: number | boolean;
     textReference: string;
     categoryid?: string | number;
     isRequired?: boolean | number;

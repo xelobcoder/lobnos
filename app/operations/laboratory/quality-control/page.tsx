@@ -8,6 +8,11 @@ const DeviceManager = dynamic(
   { loading: () => <div role="status" className="p-4">Loading quality-control workspace…</div> }
 )
 
+const InstrumentMaintenanceManager = dynamic(
+  () => import('../../../../components/laboratory/QualityControl/InstrumentMaintenanceManager').then(mod => ({ default: mod.InstrumentMaintenanceManager })),
+  { loading: () => <div role="status" className="p-4">Loading instrument maintenance…</div> }
+)
+
 const QCDashboard = dynamic(
   () => import('../../../../components/laboratory/QualityControl/Dashboard/QCDashboard').then(mod => ({ default: mod.QCDashboard })),
   { loading: () => <div role="status" className="p-4">Loading quality-control workspace…</div> }
@@ -33,5 +38,5 @@ const QCSessionCreator = dynamic(
   { loading: () => <div role="status" className="p-4">Loading quality-control workspace…</div> }
 )
 
-const panels={dashboard:QCDashboard,sessions:QCSessionsTable,'new-session':QCSessionCreator,controls:ControlMaterialManager,devices:DeviceManager,setup:QCSetup};
+const panels={dashboard:QCDashboard,sessions:QCSessionsTable,'new-session':QCSessionCreator,controls:ControlMaterialManager,devices:DeviceManager,maintenance:InstrumentMaintenanceManager,setup:QCSetup};
 export default function QualityControlPage(){return <QualityControlWorkspace panels={panels}/>}

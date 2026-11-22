@@ -124,6 +124,15 @@ export default function ListTable({ data, handleCollectSample, handleReceiveSamp
 			),
 		},
 		{
+			Header: "Sample workflow",
+			accessor: "workflow",
+			Cell: ({ value }) => value?.collection === "bypassed" ? (
+				<span className="badge text-bg-info">
+					{value.sampleValidation === "bypassed" ? "Collection bypassed" : "Specimen needed for validation"}
+				</span>
+			) : <span className="badge text-bg-primary">Collection required</span>,
+		},
+		{
 			Header: "Action",
 			accessor: "action",
 			Cell: ({ row }) => (
@@ -150,7 +159,7 @@ export default function ListTable({ data, handleCollectSample, handleReceiveSamp
 							}}
 						>
 							<RiTestTubeLine size={16} />
-							<span>Collect Samples</span>
+							<span>{row.original.workflow?.collection === "bypassed" ? "Register Specimen" : "Collect Samples"}</span>
 						</button>
 						<button className="btn btn-outline-primary btn-sm d-flex align-items-center gap-1" onClick={() => handleReceiveSample(row.original)}><RiInboxLine size={16} /><span>Receive Samples</span></button>
 						</>

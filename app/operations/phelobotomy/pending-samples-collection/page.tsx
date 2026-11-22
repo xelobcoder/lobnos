@@ -28,6 +28,10 @@ export default function PagePhelobotomy() {
     const [filter, setFilter] = useState<string>("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [workflow, setWorkflow] = useState<{ collection: string; sampleValidation: string }>({
+        collection: "active",
+        sampleValidation: "active",
+    });
 
     const url_start_date = searchParams?.get("start_date") || "";
     const url_end_date = searchParams?.get("end_date") || "";
@@ -55,7 +59,9 @@ export default function PagePhelobotomy() {
                       selectedDate._dateFrom
                   }&end_date=${selectedDate._dateEnd}`;
 
-            const { result } = await customFetch(url);
+            const response = await customFetch(url);
+            const { result } = response;
+            if (response?.workflow) setWorkflow(response.workflow);
 
             setData(
                 Array.isArray(result) && result.length > 0 ? result : []
@@ -174,6 +180,15 @@ export default function PagePhelobotomy() {
             </div>
 
             {/* Filters */}
+            {workflow.collection === "bypassed" && (
+                <Alert variant="info" className="mb-4 border-0 shadow-sm">
+                    <strong>Collection stage bypassed.</strong>{" "}
+                    {workflow.sampleValidation === "bypassed"
+                        ? "Sample collection and sample validation are bypassed for this facility; no collection tasks are due."
+                        : "A real specimen is still required for sample validation. These cases are shown only so that specimen can be registered."}
+                </Alert>
+            )}
+
             <div
                 className="card border-0 shadow-sm mb-4"
                 style={{
@@ -423,7 +438,9 @@ export default function PagePhelobotomy() {
                             </div>
 
                             <h6 className="fw-bold mb-1">
-                                No pending samples
+                                {workflow.collection === "bypassed" && workflow.sampleValidation === "bypassed"
+                                    ? "Collection and validation bypassed"
+                                    : "No pending samples"}
                             </h6>
 
                             <p
@@ -433,9 +450,9 @@ export default function PagePhelobotomy() {
                                     color: COLOR_TEXT_MUTED,
                                 }}
                             >
-                                There are no laboratory samples
-                                matching the selected date range or
-                                search criteria.
+                                {workflow.collection === "bypassed" && workflow.sampleValidation === "bypassed"
+                                    ? "The facility configuration bypasses both collection and sample validation, so no phlebotomy action is required."
+                                    : "There are no laboratory samples matching the selected date range or search criteria."}
                             </p>
 
                             {hasActiveFilters && (
