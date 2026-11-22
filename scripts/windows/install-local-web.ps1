@@ -7,6 +7,7 @@ param(
     [SecureString]$DatabasePassword,
     [SecureString]$AdministratorPassword,
     [string]$MySqlArchive,
+    [ValidateSet('Ask','Install','Skip')][string]$DatabaseSetup = 'Ask',
     [string]$FrontendRepository = 'https://github.com/xelobcoder/lobnos.git',
     [string]$BackendRepository = 'https://github.com/xelobcoder/lobnos-server.git',
     [string]$FrontendBranch = 'master',
@@ -18,8 +19,38 @@ param(
     [switch]$NoStart
 )
 $ErrorActionPreference = 'Stop'
+function Resolve-EnvironmentFile([string]$value,[string]$label) {
+    if([string]::IsNullOrWhiteSpace($value)){throw "$label configuration path is required."}
+    $candidate=$value.Trim().Trim('"')
+    if(Test-Path -LiteralPath $candidate -PathType Container){$candidate=Join-Path $candidate '.env'}
+    if(-not (Test-Path -LiteralPath $candidate -PathType Leaf)){throw "$label .env file was not found at '$candidate'. Select the existing .env file or the folder containing it. No download or database change was performed."}
+    $resolved=(Resolve-Path -LiteralPath $candidate).Path
+    try{$stream=[IO.File]::OpenRead($resolved);$stream.Dispose()}catch{throw "$label .env file cannot be read. Check its file permissions."}
+    return $resolved
+}
+if(-not $Resume -and -not $BackendEnvFile -and -not $FrontendEnvFile) {
+    if($DatabaseSetup -eq 'Ask' -and -not $FacilityName) {
+        do {
+            Write-Host 'Database setup:'
+            Write-Host '  1. Install a new dedicated MySQL database'
+            Write-Host '  2. Skip database installation (use an existing installation)'
+            $databaseChoice=Read-Host 'Choose 1 or 2'
+        } until($databaseChoice -in @('1','2'))
+        $DatabaseSetup=if($databaseChoice -eq '1'){'Install'}else{'Skip'}
+    }
+    if($DatabaseSetup -eq 'Skip') {
+        Write-Host 'Existing databases will not be created, reseeded, or replaced. Reuse the existing configuration to preserve its encryption and authentication keys.'
+        $BackendEnvFile=Read-Host 'Path to the existing backend .env file'
+        $FrontendEnvFile=Read-Host 'Path to the existing frontend .env file'
+        if(-not $BackendEnvFile -or -not $FrontendEnvFile){throw 'Skipping database installation requires the existing configuration files.'}
+    }
+}
 $automaticSetup = [string]::IsNullOrWhiteSpace($BackendEnvFile) -and [string]::IsNullOrWhiteSpace($FrontendEnvFile)
 if (-not $automaticSetup -and ([string]::IsNullOrWhiteSpace($BackendEnvFile) -or [string]::IsNullOrWhiteSpace($FrontendEnvFile))) { throw 'Provide both environment files, or neither to use automatic MySQL setup.' }
+if(-not $automaticSetup -and -not $Resume){
+    $BackendEnvFile=Resolve-EnvironmentFile $BackendEnvFile 'Backend'
+    $FrontendEnvFile=Resolve-EnvironmentFile $FrontendEnvFile 'Frontend'
+}
 if ($FrontendPort -eq $BackendPort) { throw 'Frontend and backend ports must differ.' }
 foreach ($tool in @('git', 'node')) {
     if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) {
@@ -40,6 +71,10 @@ if (Test-Path -LiteralPath $target) {
     $FrontendPort=[int]$previousTask.frontendPort; $BackendPort=[int]$previousTask.backendPort
     $automaticSetup=[bool]$previousTask.automaticSetup
     $backendConfig=Join-Path $target 'config/backend.env';$frontendConfig=Join-Path $target 'config/frontend.env'
+    if(-not $automaticSetup){
+        $backendConfig=Resolve-EnvironmentFile $previousTask.backendConfig 'Backend'
+        $frontendConfig=Resolve-EnvironmentFile $previousTask.frontendConfig 'Frontend'
+    }
 } elseif($Resume){throw 'There is no failed installation to resume.'}
 if (-not $automaticSetup -and -not $Resume) {
     $backendConfig = (Resolve-Path -LiteralPath $BackendEnvFile).Path

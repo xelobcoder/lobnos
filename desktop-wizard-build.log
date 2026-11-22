@@ -1,0 +1,13 @@
+Already up to date
+Done in 69ms using pnpm v11.20.0
+  • electron-builder  version=26.15.3 os=10.0.26200
+  • loaded configuration  file=D:\Primelabsys\PHIMS\primelabsys-current-working-version\lobnos\electron-builder.yml
+  • @electron/rebuild already used by electron-builder, please consider to remove excess dependency from devDependencies
+
+To ensure your native dependencies are always matched electron version, simply add script `"postinstall": "electron-builder install-app-deps" to your `package.json`
+  • building        target=nsis file=dist-electron\PLS-Setup-1.0.0-x64.exe archs=x64 oneClick=false perMachine=false
+  • signing with signtool.exe  path=dist-electron\win-unpacked\resources\elevate.exe
+  • output file is locked for writing (maybe by virus scanner) => waiting for unlock...  
+  • signing with signtool.exe  path=dist-electron\PLS-Setup-1.0.0-x64.__uninstaller.exe
+  • signing with signtool.exe  path=dist-electron\PLS-Setup-1.0.0-x64.exe
+  • building block map  blockMapFile=dist-electron\PLS-Setup-1.0.0-x64.exe.blockmap

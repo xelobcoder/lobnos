@@ -40,6 +40,8 @@ nsis:
   include: desktop/installer/password-gate.nsh
   artifactName: PLS-Setup-${version}-${arch}.${ext}
   oneClick: true
+  allowToChangeInstallationDirectory: false
+  allowElevation: true
   perMachine: false
   createDesktopShortcut: true
   createStartMenuShortcut: true

@@ -520,9 +520,12 @@ export default function FacilityOnboardingPage() {
           {
                Header: "Developer access",
                id: "developerAccess",
-               Cell: ({ row }: { row: { original: Facility } }) => !row.original.isControlTenant && row.original.status.toLowerCase() === "active"
+               Cell: ({ row }: { row: { original: Facility } }) => row.original.status.toLowerCase() === "active"
                     ? <button type="button" className="btn btn-sm btn-outline-primary" disabled={developer.busy}
-                         onClick={() => void developer.switchTenant(row.original.tenantId)}>Open facility</button>
+                         title={row.original.isControlTenant ? "Open the protected platform home in a temporary developer session." : "Open this facility in a temporary developer session."}
+                         onClick={() => void developer.switchTenant(row.original.tenantId)}>
+                         {row.original.isControlTenant ? "Open platform home" : "Open facility"}
+                    </button>
                     : <span className="text-muted">—</span>,
           },
           {
