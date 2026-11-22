@@ -302,7 +302,6 @@ export default function ClientVisit() {
                               <div className="card-body py-2">
                                    <div className="d-flex flex-wrap align-items-center gap-2 justify-content-between">
                                         <div className="d-flex flex-wrap align-items-center gap-2">
-                                             <a className="btn btn-outline-primary btn-sm" href={`/crm/registration/${patientid}/consent`} target="_blank" rel="noreferrer">E-consent</a>
                                              <button
                                                   className="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
                                                   disabled={!patientid || testAscensions.length === 0}

@@ -30,7 +30,7 @@ export default function CollectionConsent({
           let current = true;
           onReady({ blocked: true, loading: true });
 
-          customFetch(`patient-consents/collection?billingid=${billingid}`)
+          customFetch(`physical-samples/consent-mode?billingid=${billingid}`)
                .then(response => {
                     if (!response?.success) throw new Error(response?.message || 'Unable to check collection consent settings.');
                     const nextMode = response.data?.mode;

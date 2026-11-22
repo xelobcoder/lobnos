@@ -655,7 +655,6 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                               >
                                    <RiUser3Line size={18} /> Customers
                               </Button>
-                              {patientId && <Button variant="outline-primary" size="sm" disabled={isSubmitting} onClick={()=>router.push(`/crm/registration/${patientId}/consent`)}>Record e-consent</Button>}
                               {patientId && (
                                    <Button
                                         variant="outline-success"

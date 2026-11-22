@@ -10,7 +10,7 @@ export default function RegistrationSectionLayout({
      const params=useParams();
      return (
           <div className="w-100 p-2">
-               <nav className="d-flex gap-2 mb-2"><Link className="btn btn-sm btn-outline-primary" href={`/crm/registration/${params?.patientid}/personal-information`}>Patient registration</Link><Link className="btn btn-sm btn-outline-primary" href={`/crm/registration/${params?.patientid}/consent`}>E-consent & history</Link></nav>
+               <nav className="d-flex gap-2 mb-2"><Link className="btn btn-sm btn-outline-primary" href={`/crm/registration/${params?.patientid}/personal-information`}>Patient registration</Link></nav>
                {children}
           </div>
      );

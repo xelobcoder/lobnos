@@ -5,7 +5,8 @@ import { Modal, Spinner } from 'react-bootstrap';
 import { RiInboxArchiveLine } from '@remixicon/react';
 import { toast } from 'react-toastify';
 import { customFetch, customFetchMutation } from '../../Auth/customFetch';
-import CollectionConsent, { CollectionConsentState } from '../CollectionConsent';
+import CollectionConsent from '../CollectionConsent';
+import type { CollectionConsentState } from '../CollectionConsent';
 
 type Props = { show: boolean; hide: () => void; collection: { billingid?: number; patientid?: number; fullname?: string } };
 
@@ -39,6 +40,7 @@ export default function ReceiveLabSampleModal({ show, hide, collection }: Props)
 
      const load = useCallback(async () => {
           if (!billingid) return;
+          setLoading(true);
           try {
                const response = await customFetch(`physical-samples/candidates?billingid=${billingid}`);
                if (!response?.success) throw new Error(response?.message || 'Unable to load physical samples.');
@@ -96,13 +98,12 @@ export default function ReceiveLabSampleModal({ show, hide, collection }: Props)
 
      const handleHide = () => {
           setCollectionConsent({ blocked: true, loading: true });
-          setLoading(true);
           hide();
      };
 
      return <Modal show={show} size="lg" backdrop="static" animation={false} onHide={handleHide} dialogClassName="mt-3">
           <Modal.Header closeButton><div><Modal.Title className="h5">Receive Physical Samples</Modal.Title><div className="text-muted">{collection?.fullname} · Billing {collection?.billingid}</div></div></Modal.Header>
-          <Modal.Body>{show && externalGroups.length > 0 && <CollectionConsent key={collection?.billingid} billingid={Number(collection?.billingid)} onReady={onCollectionConsentReady} />}{loading ? <div className="text-center py-5"><Spinner animation="border" /></div> : samples.length || externalGroups.length ? <div className="d-flex flex-column gap-4">
+          <Modal.Body>{show && externalGroups.length > 0 && billingid && <CollectionConsent key={billingid} billingid={Number(billingid)} onReady={onCollectionConsentReady} />}{loading ? <div className="text-center py-5"><Spinner animation="border" /></div> : samples.length || externalGroups.length ? <div className="d-flex flex-column gap-4">
                {samples.length > 0 && <section><h2 className="h6">Collected here, awaiting reception</h2><div className="d-flex flex-column gap-2">{samples.map((sample) => <label key={sample.id} className="border p-3 d-flex gap-3 align-items-start" style={{ borderRadius: 6 }}><input className="form-check-input mt-1" type="checkbox" checked={selected.includes(sample.id)} onChange={(event) => setSelected((current) => event.target.checked ? [...current, sample.id] : current.filter((id) => id !== sample.id))} /><div><strong>{sample.sample_uid}</strong><div className="text-muted">{sample.sample_type_name || 'Specimen'} · {sample.container_type_name || 'Container'}</div><div className="mt-1">Tests: {sample.tests.map((test) => test.testName).join(', ')}</div></div></label>)}</div></section>}
                {externalGroups.length > 0 && <section><h2 className="h6">Sample brought to the laboratory</h2><p className="text-muted small">Use this when the sample was collected elsewhere and arrived after billing.</p><label className="form-label" htmlFor="external-facility">Source facility (optional)</label><input id="external-facility" className="form-control mb-3" value={externalFacility} onChange={(event) => setExternalFacility(event.target.value)} placeholder="Facility or collection point" /> <div className="d-flex flex-column gap-2">{externalGroups.map((group) => <label key={group.requirementKey} className="border p-3 d-flex gap-3 align-items-start" style={{ borderRadius: 6 }}><input className="form-check-input mt-1" type="checkbox" checked={selectedExternal.includes(group.requirementKey)} onChange={(event) => setSelectedExternal((current) => event.target.checked ? [...current, group.requirementKey] : current.filter((key) => key !== group.requirementKey))} /><div><strong>{group.sampleType}</strong><div className="text-muted">{group.containerType}</div><div className="mt-1">Tests: {group.ascensions.map((test) => test.testName).join(', ')}</div></div></label>)}</div></section>}
           </div> : <div className="alert alert-info mb-0">There are no samples waiting for reception.</div>}</Modal.Body>

@@ -696,7 +696,6 @@ const LaboratoryOperationsLinks: Link[] = [
      { title: "Sign & Release", link: "/operations/laboratory/sign-release", icon: <RiShieldCheckLine /> },
      { title: "Released Results", link: "/operations/laboratory/released", icon: <RiFileListLine /> },
      { title: "Report Versions & Amendments", link: "/operations/laboratory/validated/report-history", icon: <RiFileListLine /> },
-            {title:"Electronic consent",link:"/crm/consents",icon:<RiFileListLine/>},
      { title: 'Audit Log', link: '/operations/laboratory/auditlogs', icon: <RiFileListLine /> },
      { title: 'Patient Archives', link: '/operations/laboratory/patientarchives', icon: <RiFileListLine /> },
      { title: "Critical Values Alert", link: `/operations/laboratory/criticalvaluesAlert`, icon: <RiAlarmWarningLine /> },

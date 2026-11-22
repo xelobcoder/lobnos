@@ -299,13 +299,13 @@ const ResultSettingsForm = () => {
                         <hr className="my-4" />
                         <section aria-labelledby="release-settings-title">
                             <h2 id="release-settings-title" className="h5">Result authorization and release</h2>
-                            <p className="text-muted">Choose the workflow that suits this facility. Validation, manager approval, Sign &amp; Release and collection consent are independent controls. Existing signature and consent history is retained when a workflow is disabled.</p>
+                            <p className="text-muted">Choose the workflow that suits this facility. Validation, manager approval, Sign &amp; Release and collection consent are independent controls. Existing collection event history is retained.</p>
                             <Form.Check type="switch" id="require-explicit-release" label="Require Sign & Release before printing" checked={formData.requireExplicitResultRelease!==false} onChange={event=>setFormData(previous=>({...previous,requireExplicitResultRelease:event.target.checked}))}/>
                             <p className="small text-muted mt-2">When off, validated results can be printed without a separate signing step. Payment restrictions, critical-result holds and any configured manager approval still apply.</p>
                             <Form.Label htmlFor="electronic-consent-mode">Consent at sample collection</Form.Label>
                             <Form.Select id="electronic-consent-mode" className="mb-2" value={formData.electronicConsentMode||'off'} onChange={event=>setFormData(previous=>({...previous,electronicConsentMode:event.target.value as 'off'|'optional'|'required'}))}>
                                 <option value="off">Off — no collection consent prompt</option><option value="optional">Optional — one inline confirmation; collection may continue unchecked</option><option value="required">Required — confirm in the collection screen before proceeding</option>
-                            </Form.Select><p className="small text-muted mb-4">Patient names are filled automatically. Only a guardian’s name is needed when signing for a child. Published wording and staff confirmation are saved with collection.</p>
+                            </Form.Select><p className="small text-muted mb-4">Staff record a simple confirmation during sample collection; no separate consent form or signature page is needed.</p>
                             <div className="d-flex flex-column gap-3 mb-4">
                                 <Form.Check
                                     type="switch"
