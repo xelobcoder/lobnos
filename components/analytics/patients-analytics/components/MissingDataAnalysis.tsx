@@ -3,14 +3,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { RiErrorWarningLine, RiPrinterLine, RiRefreshLine, RiUserUnfollowLine } from '@remixicon/react';
-import { customFetch } from '../../../Auth/customFetch';
+import { fetchPatientAnalytics } from './patientAnalyticsApi';
+import { isPatientAnalyticsAccessDeniedError, patientAnalyticsFailureMessage } from './patientAnalyticsAccess';
+import { missingDataRowsFromResponse } from './missingDataResponse';
 import styles from './PatientAnalyticsReport.module.css';
-
-interface MissingDataResponse {
-	missing_emails?: number | string | null;
-	missing_mobile_numbers?: number | string | null;
-	missing_middlenames?: number | string | null;
-}
 
 interface MissingField {
 	field: string;
@@ -28,29 +24,17 @@ const MissingDataAnalysis: React.FC = () => {
 		setLoading(true);
 		setError(null);
 		try {
-			const result = await customFetch('patient-analytics/missing-data-analysis');
-			const row = Array.isArray(result) ? result[0] : result;
-			if (Array.isArray(result) && result.length === 0) {
-				setData([]);
-				return;
-			}
-			if (!row || typeof row !== 'object') throw new Error('Unexpected data format received.');
-			const response = row as MissingDataResponse;
-			const asCount = (value: MissingDataResponse[keyof MissingDataResponse]) => {
-				const count = Number(value);
-				if (value === undefined || value === null || !Number.isFinite(count) || count < 0) {
-					throw new Error('Invalid missing-data count in response.');
-				}
-				return count;
-			};
-			setData([
-				{ field: 'Email', missing: asCount(response.missing_emails) },
-				{ field: 'Mobile number', missing: asCount(response.missing_mobile_numbers) },
-				{ field: 'Middle name', missing: asCount(response.missing_middlenames) },
-			]);
+			const result = await fetchPatientAnalytics('patient-analytics/missing-data-analysis');
+			setData(missingDataRowsFromResponse(result));
 		} catch (requestError) {
-			console.error('Unable to load missing patient data analysis', requestError);
-			setError('We couldn’t load the missing-data report. Check your connection and try again.');
+			setData([]);
+			if (!isPatientAnalyticsAccessDeniedError(requestError)) {
+				console.error('Unable to load missing patient data analysis', requestError);
+			}
+			setError(patientAnalyticsFailureMessage(
+				requestError,
+				'We couldn’t load the missing-data report. Check your connection and try again.',
+			));
 		} finally {
 			setLoading(false);
 		}

@@ -12,7 +12,9 @@ import {
 	YAxis,
 } from 'recharts';
 import { RiErrorWarningLine, RiPrinterLine, RiRefreshLine, RiUserLine } from '@remixicon/react';
-import { customFetch } from '../../../Auth/customFetch';
+import { fetchPatientAnalytics } from './patientAnalyticsApi';
+import { isPatientAnalyticsAccessDeniedError, patientAnalyticsFailureMessage } from './patientAnalyticsAccess';
+import { patientDistributionRowsFromResponse } from './patientDistributionResponse';
 import styles from './PatientAnalyticsReport.module.css';
 
 export interface PatientDistributionRow {
@@ -49,13 +51,13 @@ export default function PatientDistributionReport({
 		setLoading(true);
 		setError(null);
 		try {
-			const result = await customFetch(endpoint);
-			if (!Array.isArray(result)) throw new Error('Unexpected data format received.');
+			const response = await fetchPatientAnalytics(endpoint);
+			const result = patientDistributionRowsFromResponse(response);
 			const rows = result.map((row: Record<string, unknown>) => ({
 				label: normalize(typeof row[categoryName] === 'string' ? row[categoryName] as string : null),
 				count: Number(row.patient_count),
 			})).map((row: PatientDistributionRow) => {
-				if (!Number.isFinite(row.count) || row.count < 0) throw new Error('Invalid patient count in response.');
+				if (!Number.isSafeInteger(row.count) || row.count < 0) throw new Error('Invalid patient count in response.');
 				return row;
 			}).sort((a: PatientDistributionRow, b: PatientDistributionRow) => b.count - a.count);
 			if (topN && rows.length > topN) {
@@ -64,8 +66,14 @@ export default function PatientDistributionReport({
 			}
 			setData(rows);
 		} catch (requestError) {
-			console.error(`Unable to load ${title.toLowerCase()}`, requestError);
-			setError(`We couldn’t load this report. Check your connection and try again.`);
+			setData([]);
+			if (!isPatientAnalyticsAccessDeniedError(requestError)) {
+				console.error(`Unable to load ${title.toLowerCase()}`, requestError);
+			}
+			setError(patientAnalyticsFailureMessage(
+				requestError,
+				'We couldn’t load this report. Check your connection and try again.',
+			));
 		} finally {
 			setLoading(false);
 		}

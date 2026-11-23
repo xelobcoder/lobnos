@@ -20,7 +20,8 @@ import {
 	RiRefreshLine,
 	RiUserLine,
 } from '@remixicon/react';
-import { customFetch } from '../../../Auth/customFetch';
+import { fetchPatientAnalytics } from './patientAnalyticsApi';
+import { isPatientAnalyticsAccessDeniedError, patientAnalyticsFailureMessage } from './patientAnalyticsAccess';
 import styles from './AgeDistribution.module.css';
 
 interface AgeDistributionData {
@@ -65,12 +66,16 @@ const AgeDistribution: React.FC = () => {
 	const [pendingInterval, setPendingInterval] = useState('10');
 
 	const requestAgeDistribution = useCallback(async (nextInterval: number) => {
-		const result = await customFetch(`patient-analytics/age-distribution?interval=${nextInterval}`);
+		const result = await fetchPatientAnalytics(`patient-analytics/age-distribution?interval=${nextInterval}`);
 		if (!Array.isArray(result)) throw new Error('Unexpected age distribution response');
-		return result.map((item: AgeDistributionData) => ({
-			age_range: String(item.age_range ?? 'Unspecified'),
-			patient_count: Number(item.patient_count) || 0,
-		}));
+		return result.map((item: AgeDistributionData) => {
+			const patientCount = Number(item.patient_count);
+			if (typeof item.age_range !== 'string' || !item.age_range.trim()
+				|| !Number.isSafeInteger(patientCount) || patientCount < 0) {
+				throw new Error('Invalid age distribution row in response.');
+			}
+			return { age_range: item.age_range, patient_count: patientCount };
+		});
 	}, []);
 
 	useEffect(() => {
@@ -85,8 +90,14 @@ const AgeDistribution: React.FC = () => {
 			})
 			.catch((requestError: unknown) => {
 				if (!active) return;
-				console.error('Unable to load patient age distribution', requestError);
-				setError('We couldn’t load the age distribution. Check your connection and try again.');
+				setData([]);
+				if (!isPatientAnalyticsAccessDeniedError(requestError)) {
+					console.error('Unable to load patient age distribution', requestError);
+				}
+				setError(patientAnalyticsFailureMessage(
+					requestError,
+					'We couldn’t load the age distribution. Check your connection and try again.',
+				));
 			})
 			.finally(() => {
 				if (active) setLoading(false);
@@ -103,8 +114,14 @@ const AgeDistribution: React.FC = () => {
 			setInterval(nextInterval);
 			setPendingInterval(String(nextInterval));
 		} catch (requestError) {
-			console.error('Unable to load patient age distribution', requestError);
-			setError('We couldn’t load the age distribution. Check your connection and try again.');
+			setData([]);
+			if (!isPatientAnalyticsAccessDeniedError(requestError)) {
+				console.error('Unable to load patient age distribution', requestError);
+			}
+			setError(patientAnalyticsFailureMessage(
+				requestError,
+				'We couldn’t load the age distribution. Check your connection and try again.',
+			));
 		} finally {
 			setLoading(false);
 		}

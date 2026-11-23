@@ -1,14 +1,15 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { customFetch } from '../../../Auth/customFetch';
+import { fetchPatientAnalytics } from './patientAnalyticsApi';
+import { patientAnalyticsFailureMessage } from './patientAnalyticsAccess';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 
 interface CombinedAttributesData {
 	gender: string | null;
 	marital_status: string | null;
 	occupation: string | null;
-	patient_count: number;
+	patient_count: number | string;
 }
 
 const CombinedAttributes: React.FC = () => {
@@ -20,27 +21,29 @@ const CombinedAttributes: React.FC = () => {
 	useEffect(() => {
 		const fetchCombinedAttributes = async () => {
 			try {
-				const result = await customFetch('patient-analytics/combined-attributes');
-				if (Array.isArray(result)) {
-					const transformedData = result.map((item: CombinedAttributesData) => {
-						const gender = item.gender ? item.gender.trim() : "Unknown";
-						const marital = item.marital_status ? item.marital_status.trim() : "Unknown";
-						const occupation = item.occupation ? item.occupation.trim() : "Unknown";
-						const combined = `${gender} | ${marital} | ${occupation}`;
-						return { combined, patient_count: item.patient_count };
-					});
-					const sortedData = transformedData.sort((a, b) => b.patient_count - a.patient_count);
-					const topData = sortedData.slice(0, TOP_N);
-					if (sortedData.length > TOP_N) {
-						const otherCount = sortedData.slice(TOP_N).reduce((acc, curr) => acc + curr.patient_count, 0);
-						topData.push({ combined: "Other", patient_count: otherCount });
+				const result = await fetchPatientAnalytics('patient-analytics/combined-attributes');
+				if (!Array.isArray(result)) throw new Error('Unexpected combined attributes response.');
+				const transformedData = result.map((item: CombinedAttributesData) => {
+					const patientCount = Number(item.patient_count);
+					if (!Number.isSafeInteger(patientCount) || patientCount < 0) {
+						throw new Error('Invalid combined patient count in response.');
 					}
-					setChartData(topData);
-				} else {
-					setError('Unexpected data format received.');
+					const gender = item.gender ? item.gender.trim() : "Unknown";
+					const marital = item.marital_status ? item.marital_status.trim() : "Unknown";
+					const occupation = item.occupation ? item.occupation.trim() : "Unknown";
+					const combined = `${gender} | ${marital} | ${occupation}`;
+					return { combined, patient_count: patientCount };
+				});
+				const sortedData = transformedData.sort((a, b) => b.patient_count - a.patient_count);
+				const topData = sortedData.slice(0, TOP_N);
+				if (sortedData.length > TOP_N) {
+					const otherCount = sortedData.slice(TOP_N).reduce((acc, curr) => acc + curr.patient_count, 0);
+					topData.push({ combined: "Other", patient_count: otherCount });
 				}
+				setChartData(topData);
 			} catch (err) {
-				setError('Error fetching combined attributes data');
+				setChartData([]);
+				setError(patientAnalyticsFailureMessage(err, 'Error fetching combined attributes data'));
 			} finally {
 				setLoading(false);
 			}

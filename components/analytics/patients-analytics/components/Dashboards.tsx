@@ -2,21 +2,22 @@
 
 import React, { useEffect, useState } from 'react';
 import { RiErrorWarningLine, RiRefreshLine, RiUserAddLine, RiUserHeartLine, RiUserLine } from '@remixicon/react';
-import { customFetch } from '../../../Auth/customFetch';
+import { fetchPatientAnalytics } from './patientAnalyticsApi';
+import { isPatientAnalyticsAccessDeniedError, patientAnalyticsFailureMessage } from './patientAnalyticsAccess';
+import { dashboardRowFromResponse } from './dashboardResponse';
 import styles from './Dashboards.module.css';
 
 type CountValue = number | string | null | undefined;
 
 interface PatientDashboardData {
-	total_patients?: CountValue;
-	active_patients?: CountValue;
-	male_patients?: CountValue;
-	female_patients?: CountValue;
+	total_patients: CountValue;
+	active_patients: CountValue;
+	male_patients: CountValue;
+	female_patients: CountValue;
 }
 
 function asCount(value: CountValue): number {
-	const parsed = Number(value);
-	return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+	return Number(value);
 }
 
 function percentOfTotal(value: number, total: number): number {
@@ -36,14 +37,19 @@ const Dashboards: React.FC = () => {
 			setLoading(true);
 			setError(null);
 			try {
-				const result = await customFetch('patient-analytics/dashboards');
-				if (!Array.isArray(result)) throw new Error('Unexpected dashboard response');
-				if (!cancelled) setData((result[0] as PatientDashboardData | undefined) ?? null);
+				const result = await fetchPatientAnalytics('patient-analytics/dashboards');
+				const row = dashboardRowFromResponse(result);
+				if (!cancelled) setData(row);
 			} catch (requestError) {
-				console.error('Unable to load patient analytics dashboard', requestError);
 				if (!cancelled) {
 					setData(null);
-					setError('We couldn’t load the patient summary. Check your connection and try again.');
+					if (!isPatientAnalyticsAccessDeniedError(requestError)) {
+						console.error('Unable to load patient analytics dashboard', requestError);
+					}
+					setError(patientAnalyticsFailureMessage(
+						requestError,
+						'We couldn’t load the patient summary. Check your connection and try again.',
+					));
 				}
 			} finally {
 				if (!cancelled) setLoading(false);

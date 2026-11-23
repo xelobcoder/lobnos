@@ -2,7 +2,8 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import dayjs from 'dayjs';
-import { customFetch } from '../../../Auth/customFetch';
+import { fetchPatientAnalytics } from './patientAnalyticsApi';
+import { isPatientAnalyticsAccessDeniedError, patientAnalyticsFailureMessage } from './patientAnalyticsAccess';
 import DateFilterReusable from '../../../operations/Laboratory/ResuableFilter/DateFilterReusable';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { RiCalendarLine, RiErrorWarningLine, RiInbox2Line, RiPrinterLine, RiRefreshLine, RiUserLine } from '@remixicon/react';
@@ -36,17 +37,29 @@ const PatientRegistrationOverTime: React.FC = () => {
 		setLoading(true);
 		setError(null);
 		try {
-			const result = await customFetch(`patient-analytics/patient-registration-over-time?startdate=${encodeURIComponent(from)}&enddate=${encodeURIComponent(to)}`);
+			const result = await fetchPatientAnalytics(`patient-analytics/patient-registration-over-time?startdate=${encodeURIComponent(from)}&enddate=${encodeURIComponent(to)}`);
 			if (!Array.isArray(result)) throw new Error('Unexpected data format received.');
 			if (id !== requestId.current) return;
-			setData(result.map((item: RegistrationData) => ({
-				registration_date: dayjs(item.registration_date).format('DD-MM-YYYY'),
-				patient_count: Number(item.patient_count) || 0,
-			})));
+			setData(result.map((item: RegistrationData) => {
+				const patientCount = Number(item.patient_count);
+				if (!item.registration_date || !Number.isSafeInteger(patientCount) || patientCount < 0) {
+					throw new Error('Invalid patient registration count in response.');
+				}
+				return {
+					registration_date: dayjs(item.registration_date).format('DD-MM-YYYY'),
+					patient_count: patientCount,
+				};
+			}));
 		} catch (requestError) {
 			if (id !== requestId.current) return;
-			console.error('Unable to load patient registration trend', requestError);
-			setError('We couldn’t load registration activity. Check your connection and try again.');
+			setData([]);
+			if (!isPatientAnalyticsAccessDeniedError(requestError)) {
+				console.error('Unable to load patient registration trend', requestError);
+			}
+			setError(patientAnalyticsFailureMessage(
+				requestError,
+				'We couldn’t load registration activity. Check your connection and try again.',
+			));
 		} finally {
 			if (id === requestId.current) setLoading(false);
 		}

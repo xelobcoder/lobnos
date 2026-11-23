@@ -560,7 +560,7 @@ export default function TotalSalesByOrganization() {
                             </thead>
                             <tbody>
                                 {data.map((entry, index) => (
-                                    <tr key={entry.organizationId + index}>
+                                    <tr key={entry.organizationId}>
                                         <td className="py-2">
                                             {entry.name}
                                             <button

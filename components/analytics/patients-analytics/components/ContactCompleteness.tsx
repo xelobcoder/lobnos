@@ -2,7 +2,8 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { RiErrorWarningLine, RiPhoneLine, RiPrinterLine, RiRefreshLine, RiUserLine } from '@remixicon/react';
-import { customFetch } from '../../../Auth/customFetch';
+import { fetchPatientAnalytics } from './patientAnalyticsApi';
+import { isPatientAnalyticsAccessDeniedError, patientAnalyticsFailureMessage } from './patientAnalyticsAccess';
 import styles from './PatientAnalyticsReport.module.css';
 
 interface ContactCompletenessData {
@@ -26,7 +27,7 @@ const ContactCompleteness: React.FC = () => {
 		setLoading(true);
 		setError(null);
 		try {
-			const result = await customFetch('patient-analytics/contact-completeness');
+			const result = await fetchPatientAnalytics('patient-analytics/contact-completeness');
 			const row = Array.isArray(result) ? result[0] : result;
 			if (!row || typeof row !== 'object') {
 				setMetrics(null);
@@ -38,7 +39,7 @@ const ContactCompleteness: React.FC = () => {
 			}
 			const total = Number(response.total);
 			const complete = Number(response.complete_contact);
-			if (!Number.isFinite(total) || !Number.isFinite(complete) || total < 0 || complete < 0) {
+			if (!Number.isSafeInteger(total) || !Number.isSafeInteger(complete) || total < 0 || complete < 0) {
 				throw new Error('Unexpected data format received.');
 			}
 			setMetrics({
@@ -48,8 +49,14 @@ const ContactCompleteness: React.FC = () => {
 				rate: total > 0 ? Math.min(100, Math.round((complete / total) * 1000) / 10) : 0,
 			});
 		} catch (requestError) {
-			console.error('Unable to load patient contact completeness', requestError);
-			setError('We couldn’t load contact completeness. Check your connection and try again.');
+			setMetrics(null);
+			if (!isPatientAnalyticsAccessDeniedError(requestError)) {
+				console.error('Unable to load patient contact completeness', requestError);
+			}
+			setError(patientAnalyticsFailureMessage(
+				requestError,
+				'We couldn’t load contact completeness. Check your connection and try again.',
+			));
 		} finally {
 			setLoading(false);
 		}

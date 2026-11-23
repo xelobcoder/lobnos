@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { customFetch } from '../../../Auth/customFetch';
+import { fetchPatientAnalytics } from './patientAnalyticsApi';
+import { patientAnalyticsFailureMessage } from './patientAnalyticsAccess';
 import {
      BarChart,
      Bar,
@@ -46,11 +47,11 @@ const RegistrationByDayOfWeek: React.FC = () => {
           setLoading(true);
           setError(null);
           try {
-               const result = await customFetch('patient-analytics/registration-by-day-of-week');
+               const result = await fetchPatientAnalytics('patient-analytics/registration-by-day-of-week');
                if (Array.isArray(result)) {
                     setData(result.map((item: RegistrationByDayData) => {
                          const registrations = Number(item.registrations);
-                         if (!item.day || !Number.isFinite(registrations) || registrations < 0) {
+                         if (!item.day || !Number.isSafeInteger(registrations) || registrations < 0) {
                               throw new Error('Unexpected data format received.');
                          }
                          return { day: String(item.day), registrations };
@@ -59,7 +60,8 @@ const RegistrationByDayOfWeek: React.FC = () => {
                     setError('Unexpected data format received.');
                }
           } catch (err: any) {
-               setError(err?.message || 'Error fetching registration by day data');
+               setData([]);
+               setError(patientAnalyticsFailureMessage(err, 'Error fetching registration by day data'));
           } finally {
                setLoading(false);
           }
