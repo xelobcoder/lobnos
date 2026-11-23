@@ -32,6 +32,7 @@ export default async function FacilityCatalogPage({ params }: Props) {
   </>;
 
   const { facility, source, tests } = result.data;
+  const requestAvailable = source === "pls-live" || facility.bookingSupported;
   const availableTests = tests.filter((item) => item.available);
   const openingHours = Object.entries(facility.openingHours).filter(([, hours]) => hours).map(([day, hours]) => ({ day, hours }));
   return <>
@@ -43,7 +44,7 @@ export default async function FacilityCatalogPage({ params }: Props) {
       <div className="facility-profile-summary" aria-label="Facility catalog summary">
         <div><span className="facility-summary-icon" aria-hidden="true">▤</span><span><b>{availableTests.length}</b><small>published services</small></span></div>
         <div><span className="facility-summary-icon" aria-hidden="true">◎</span><span><b>{facility.facilityType === "pls-integrated" ? "PLS-connected" : "Independent"}</b><small>catalog type</small></span></div>
-        <div><span className="facility-summary-icon" aria-hidden="true">{facility.bookingSupported ? "↗" : "☎"}</span><span><b>{facility.bookingSupported ? "Request online" : "Contact to arrange"}</b><small>{facility.bookingSupported ? "facility review required" : "online booking unavailable"}</small></span></div>
+        <div><span className="facility-summary-icon" aria-hidden="true">{requestAvailable ? "↗" : "☎"}</span><span><b>{requestAvailable ? "Request online" : "Contact to arrange"}</b><small>{requestAvailable ? "subject to facility availability" : "online booking unavailable"}</small></span></div>
         <a className="facility-summary-link" href="#facility-catalog">Browse services <span aria-hidden="true">↓</span></a>
       </div>
       </div>
@@ -62,7 +63,7 @@ export default async function FacilityCatalogPage({ params }: Props) {
       </div>}
       {facility.facilityLoginUrl && <a className="text-link facility-client-login" href={facility.facilityLoginUrl} rel="noopener noreferrer">Client login <span aria-hidden="true">↗</span></a>}
       {openingHours.length > 0 && <div className="facility-hours"><b>Opening hours</b><dl>{openingHours.map(({ day, hours }) => <div key={day}><dt>{day}</dt><dd>{hours}</dd></div>)}</dl></div>}
-      <div className="facility-profile-notice"><b>{facility.bookingSupported ? "Request, not appointment" : "Confirm arrangements directly"}</b><p>{facility.bookingSupported ? "Submitting a booking request does not confirm a time or service. The facility must review and respond." : "Contact the facility to confirm the service, current price, availability and any appointment details."}</p></div>
+      <div className="facility-profile-notice"><b>{requestAvailable ? "Request, not confirmation" : "Confirm arrangements directly"}</b><p>{requestAvailable ? "Submitting a request does not confirm a time or service. Online requests depend on facility settings and staff review." : "Contact the facility to confirm the service, current price, availability and any appointment details."}</p></div>
       {facility.paymentInstructions && <div className="facility-profile-notice"><b>Payment instructions</b><p>{facility.paymentInstructions}</p><p>A reference remains a claim until facility staff verify it.</p></div>}
       <Link className="text-link" href="/facilities">← All participating laboratories</Link>
       </aside>

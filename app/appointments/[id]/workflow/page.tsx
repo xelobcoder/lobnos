@@ -76,12 +76,12 @@ export default function AppointmentWorkflowPage() {
                     <p className="mb-1"><strong>Type:</strong> {appointment.appointment_type}</p>
                     <p className="mb-1"><strong>When:</strong> {String(appointment.appointment_date ?? '').slice(0, 10)} {appointment.appointment_time}</p>
                     <p className="mb-1"><strong>Status:</strong> {appointment.status ?? 'scheduled'}</p>
-                    <p className="mb-0"><strong>Stage:</strong> {STAGE_LABEL[workflow.stage]}</p>
+                    <p className="mb-0"><strong>Stage:</strong> {String(appointment.status).toLowerCase() === 'pending' && !bill ? 'Pending request — not confirmed or billed' : STAGE_LABEL[workflow.stage]}</p>
                 </div>
             </div>
 
             <table className="table table-sm">
-                <caption>Booked services (current General prices; the bill is priced again when saved)</caption>
+                <caption>Requested services (current General prices; the bill is priced again when saved)</caption>
                 <thead><tr><th scope="col">Service</th><th scope="col">Department</th><th scope="col" className="text-end">Price</th></tr></thead>
                 <tbody>
                     {services.length === 0 && <tr><td colSpan={3}>No services selected on this appointment.</td></tr>}

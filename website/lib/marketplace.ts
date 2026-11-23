@@ -73,6 +73,7 @@ export const marketplaceCatalogItemSchema = z.object({
 });
 
 const facilitiesResponseSchema = z.object({ facilities: z.array(marketplaceFacilitySchema).max(200) });
+const statisticsResponseSchema = z.object({ activeFacilities: z.number().int().nonnegative() });
 const catalogResponseSchema = z.object({
   facility: marketplaceFacilitySchema,
   currency: z.string().regex(/^[A-Z]{3}$/),
@@ -92,6 +93,10 @@ const maxResponseBytes = 2_000_000;
 
 export function marketplaceCoreOrigin(): string | null {
   return corePlatformOrigin();
+}
+
+export async function getMarketplaceStatistics(): Promise<MarketplaceResult<{ activeFacilities: number }>> {
+  return getPublicMarketplaceData("statistics", statisticsResponseSchema);
 }
 
 async function readLimitedJson(response: Response): Promise<unknown> {

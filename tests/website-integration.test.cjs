@@ -40,6 +40,32 @@ test('Zod catalogue parsing validates the response and preserves transformed opt
  const invalid=load('website/lib/marketplace.ts',env,{fetch:async()=>Response.json({status:'success',result:{facilities:[{...facility,currency:'bad'}]}})});
  assert.equal((await invalid.getMarketplaceFacilities()).status,'unavailable');
 });
+test('facility statistics use a fresh, validated aggregate without substituting a zero on failure',async()=>{
+ const env={NODE_ENV:'development',DEVELOPMENT_BASEURL:'http://localhost:2300/api/v1/'};
+ const calls=[];
+ const api=load('website/lib/marketplace.ts',env,{fetch:async(url,options)=>{calls.push({url:String(url),options});return Response.json({status:'success',result:{activeFacilities:3}});}});
+ const result=await api.getMarketplaceStatistics();
+ assert.equal(result.status,'ok');assert.equal(result.data.activeFacilities,3);
+ assert.equal(calls[0].url,'http://localhost:2300/api/v1/marketplace/statistics');assert.equal(calls[0].options.cache,'no-store');
+ const invalid=load('website/lib/marketplace.ts',env,{fetch:async()=>Response.json({status:'success',result:{activeFacilities:-1}})});
+ assert.equal((await invalid.getMarketplaceStatistics()).status,'unavailable');
+});
+test('facility catalog shows the actual zero tariff instead of replacing it with a pricing placeholder',()=>{
+ const React=require('react');
+ const {renderToStaticMarkup}=require('react-dom/server');
+ const exports={};
+ const file=path.join(root,'website/components/marketplace/MarketplaceCatalog.tsx');
+ const code=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText;
+ vm.runInNewContext(code,{exports,Intl,require(name){
+  if(name==='./BookingRequestForm')return {BookingRequestForm:()=>null};
+  return require(name);
+ }});
+ const markup=renderToStaticMarkup(React.createElement(exports.MarketplaceCatalog,{
+  slug:'training-lab',currency:'GHS',source:'pls-live',paymentInstructions:null,bookingSupported:false,
+  items:[{id:1,type:'test',name:'Free test',description:null,price:0,sampleRequirements:[],collectionMethods:['in_facility'],available:true,turnaroundHours:null}],
+ }));
+ assert.match(markup,/0\.00/);assert.doesNotMatch(markup,/prices marked “Confirm price”/);
+});
 test('public page CSP uses fresh nonces and prevents caching nonce-bearing HTML',()=>{
  const api=load('website/publicSiteProxy.ts',{NODE_ENV:'production'});
  const first=api.publicSiteProxy({headers:new Headers()}), second=api.publicSiteProxy({headers:new Headers()});

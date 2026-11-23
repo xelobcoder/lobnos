@@ -111,7 +111,7 @@ export default function PatientAppointmentsPage() {
                                                        <td>{formatTime(item.appointment_time)}</td>
                                                        <td>{item.title || item.purpose || 'Appointment'}{item.practitioner ? <div className="small text-muted">{item.practitioner}</div> : null}</td>
                                                        <td className="text-capitalize">{String(item.appointment_type || '-').replace(/_/g, ' ')}</td>
-                                                       <td><Badge bg={item.upcoming ? 'success' : 'secondary'} className="text-capitalize">{item.status}</Badge></td>
+                                                       <td><Badge bg={String(item.status).toLowerCase() === 'pending' ? 'warning' : item.upcoming ? 'success' : 'secondary'} className="text-capitalize">{String(item.status).toLowerCase() === 'pending' ? 'Pending review' : item.status}</Badge></td>
                                                        <td className="text-end text-nowrap">
                                                             {item.upcoming && data.requestsEnabled && item.status !== 'cancelled' && (
                                                                  <>

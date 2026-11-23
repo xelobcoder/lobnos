@@ -24,7 +24,7 @@ export function FacilityListings({ facilities }: { facilities: MarketplaceFacili
           <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search laboratory or location" />
           <span aria-hidden="true">⌕</span>
         </label>
-        <span className="marketplace-directory-count" aria-live="polite">{visible.length} {visible.length === 1 ? "laboratory" : "laboratories"}</span>
+        <span className="marketplace-directory-count" aria-live="polite">{visible.length} {visible.length === 1 ? "laboratory" : "laboratories"} shown{facilities.length === 200 ? " (directory limited to 200)" : ""}</span>
       </div>
       {visible.length ? <div className="facility-listings-scroll" role="region" aria-label="Public facility listings" tabIndex={0}>
         <table className="facility-listings-table">
