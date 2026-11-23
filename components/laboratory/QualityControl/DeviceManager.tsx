@@ -132,12 +132,12 @@ export function DeviceManager() {
         {
             Header: 'Status',
             accessor: 'status',
-            Cell: ({ row }: {row: {original: { status: "active" | "maintenance" | "inactive"; manufacturer: string; deviceName: string; model: string; serialNumber: string; installationDate: string; lastCalibrationDate: string; calibrationFrequency: number; location: string; id?: string | undefined; notes?: string | undefined; updatedby?: string | undefined; createdby?: string | undefined; }; index: number}}) => (
+            Cell: ({ row }: {row: {original: { maintenance_blocked?: number | boolean; status: "active" | "maintenance" | "inactive"; manufacturer: string; deviceName: string; model: string; serialNumber: string; installationDate: string; lastCalibrationDate: string; calibrationFrequency: number; location: string; id?: string | undefined; notes?: string | undefined; updatedby?: string | undefined; createdby?: string | undefined; }; index: number}}) => (
                 <Badge bg={
-                    row.original.status === 'active' ? 'success' :
+                    row.original.maintenance_blocked ? 'danger' : row.original.status === 'active' ? 'success' :
                         row.original.status === 'maintenance' ? 'warning' : 'danger'
                 }>
-                    {row.original.status}
+                    {row.original.maintenance_blocked ? 'Out of service - maintenance hold' : row.original.status}
                 </Badge>
             ),
         },

@@ -14,7 +14,8 @@ import {
     RiQuestionMark,
     RiSearchLine,
     RiRegisteredFill,
-    RiMapPinLine
+    RiMapPinLine,
+    RiSettings3Line
 } from '@remixicon/react';
 
 export const LaboratoryOperationsLinks: Link[] = [
@@ -74,6 +75,7 @@ export const LaboratoryOperationsLinks: Link[] = [
             { title: "Critical Values Alert", link: "/operations/laboratory/criticalvaluesAlert", icon: <RiAlarmWarningLine /> },
             { title: "Turn around Time", link: "/operations/laboratory/turnaroundtime", icon: <RiTimeLine /> },
             { title: "Quality Control", link: "/operations/laboratory/quality-control", icon: <RiQuestionMark /> },
+            { title: "Instrument Maintenance", link: "/operations/laboratory/instrument-maintenance", icon: <RiSettings3Line /> },
             { title: "Stock Management", link: "/operations/laboratory/stockmanagement", icon: <RiStore2Line /> },
             { title: "Incident Reporting", link: "/compliance/incident-reporting", icon: <RiShieldCheckLine /> },
         ]

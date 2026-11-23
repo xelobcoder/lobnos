@@ -1,12 +1,13 @@
 'use client'
 import React from 'react'
 import Link from 'next/link'
-import { RiTestTubeLine, RiLoader4Line, RiCheckboxCircleLine, RiShieldCheckLine, RiFileListLine, RiAlarmWarningLine, RiTimeLine, RiArchiveLine } from '@remixicon/react'
+import { RiTestTubeLine, RiLoader4Line, RiCheckboxCircleLine, RiShieldCheckLine, RiFileListLine, RiAlarmWarningLine, RiTimeLine, RiArchiveLine, RiSettings3Line } from '@remixicon/react'
 import { useApplication } from '../../../components/Auth/useApplicationContext'
 
 const LaboratoryOperationsLinks = [
     { title: "Laboratory Workbench", link: "/operations/laboratory/workbench", icon: <RiFileListLine /> },
     { title: "Quality Control", link: "/operations/laboratory/quality-control", icon: <RiShieldCheckLine /> },
+    { title: "Instrument Maintenance", link: "/operations/laboratory/instrument-maintenance", icon: <RiSettings3Line /> },
     { title: "Pending Result Delivery", link: "/operations/laboratory/undelivered", icon: <RiFileListLine /> },
     { title: "Walk-in Queue & Client Tracking", link: "/operations/queue", icon: <RiTimeLine /> },
 	{title: "Sample Collection",link: "/operations/phelobotomy/pending-samples-collection", icon: <RiTestTubeLine /> },
@@ -42,6 +43,7 @@ export default function Page() {
 	const getDescription = (title: string) => {
 		if (title.includes('Workbench')) return 'Assign and hand over work, monitor configured deadlines and QC, and record actual material usage.';
         if (title.includes('Quality Control')) return 'Record and review QC for the current branch and analyzer.';
+        if (title.includes('Instrument Maintenance')) return 'Schedule instrument checks and review maintenance holds and history.';
         if (title.includes('Pending Result Delivery')) return 'Track finalized results awaiting delivery and investigate failed delivery attempts.';
 		if (title.includes('Walk-in Queue')) {
 			return 'Call waiting clients, link registration and billing, and track test progress. Open the public check-in link or facility display.'
