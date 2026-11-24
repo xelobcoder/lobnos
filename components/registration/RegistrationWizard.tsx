@@ -25,25 +25,32 @@ import {
 import styles from './RegistrationWizard.module.css';
 import { customFetch, customPost } from '../Auth/customFetch';
 import { useApplication } from '../Auth/useApplicationContext';
-import { designation, PatientPersonalInformationFields, ghanaDistricts } from './fields/Util';
+import { designation, PatientPersonalInformationFields } from './fields/Util';
 import { handleAgeCalculations } from '../Auth/registerclient';
 import { plsEncryption } from '../../lib/encryption';
 import { uploadPatientImage, validatePatientImage } from '../../lib/patientImages';
 import usePatientImage from '../petientsComponent/usePatientImage';
 import { linkSavedRecordToQueue, parseQueueHandoff, withQueueHandoff } from '../../lib/queueHandoff';
+import { fetchGeographyCountries, fetchGeographyRegions, findCountry, type GeographyCountry, type GeographyRegion } from '../../lib/geography';
 
 const COUNTRY_CODES_GROUPED = {
      'West Africa': [
           { code: '+233', abbreviation: 'GH', name: 'Ghana' },
           { code: '+234', abbreviation: 'NG', name: 'Nigeria' },
           { code: '+221', abbreviation: 'SN', name: 'Senegal' },
-          { code: '+225', abbreviation: 'CI', name: 'Ivory Coast' },
+          { code: '+225', abbreviation: 'CI', name: "Côte d'Ivoire" },
           { code: '+223', abbreviation: 'ML', name: 'Mali' },
           { code: '+231', abbreviation: 'LR', name: 'Liberia' },
           { code: '+232', abbreviation: 'SL', name: 'Sierra Leone' },
           { code: '+228', abbreviation: 'TG', name: 'Togo' },
           { code: '+229', abbreviation: 'BJ', name: 'Benin' },
           { code: '+226', abbreviation: 'BF', name: 'Burkina Faso' },
+          { code: '+227', abbreviation: 'NE', name: 'Niger' },
+          { code: '+245', abbreviation: 'GW', name: 'Guinea-Bissau' },
+          { code: '+224', abbreviation: 'GN', name: 'Guinea' },
+          { code: '+220', abbreviation: 'GM', name: 'The Gambia' },
+          { code: '+222', abbreviation: 'MR', name: 'Mauritania' },
+          { code: '+238', abbreviation: 'CV', name: 'Cabo Verde' },
      ],
      'International': [
           { code: '+44', abbreviation: 'GB', name: 'UK' },
@@ -66,7 +73,8 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
      const queueHandoff = parseQueueHandoff(searchParams);
      const [queueWarning, setQueueWarning] = useState('');
      const [registrationMatches, setRegistrationMatches] = useState<RegistrationMatch[]>([]);
-     const employeeid = useApplication()?.user?.employeeid || null;
+     const application = useApplication();
+     const employeeid = application?.user?.employeeid || null;
 
      const [currentStep, setCurrentStep] = useState(initialStep);
      const [patientId, setPatientId] = useState<number | null>(
@@ -93,6 +101,14 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
      const [primaryPhoneOwnerId, setPrimaryPhoneOwnerId] = useState<number | null>(null);
      const [mobileCountryCode, setMobileCountryCode] = useState('+233');
      const [whatsappCountryCode, setWhatsappCountryCode] = useState('+233');
+     const [applicationCountryCode, setApplicationCountryCode] = useState(
+          String(application?.settings?.country_code || 'GH').toUpperCase()
+     );
+     const [patientCountryCode, setPatientCountryCode] = useState('');
+     const [countries, setCountries] = useState<GeographyCountry[]>([]);
+     const [locationRegions, setLocationRegions] = useState<GeographyRegion[]>([]);
+     const [geographyLoading, setGeographyLoading] = useState(false);
+     const [geographyError, setGeographyError] = useState('');
      const [isMobileExist, setIsMobileExist] = useState(false);
      const [contactConflict, setContactConflict] = useState('');
 
@@ -104,12 +120,72 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
 
      // --- Step 2: Address Data ---
      const [addressData, setAddressData] = useState({
+          country: '',
           region: '',
           district: '',
           area: '',
           gpsLocation: '',
           address: ''
      });
+
+     useEffect(() => {
+          let active = true;
+          fetchGeographyCountries()
+               .then(result => { if (active) setCountries(result); })
+               .catch(error => {
+                    if (active) setGeographyError(error instanceof Error ? error.message : 'Unable to load countries.');
+               });
+          customFetch('applicationsettings')
+               .then(response => {
+                    if (!active || response?.status !== 'success') return;
+                    const country = String(response.result?.country_code || 'GH').toUpperCase();
+                    setApplicationCountryCode(country);
+               })
+               .catch(error => {
+                    if (active) setGeographyError(error instanceof Error ? error.message : 'Unable to load facility country.');
+               });
+          return () => { active = false; };
+     }, []);
+
+     useEffect(() => {
+          if (patientId) return;
+          const callingCode = findCountry(countries, applicationCountryCode)?.phone.callingCode;
+          if (callingCode) {
+               setMobileCountryCode(callingCode);
+               setWhatsappCountryCode(callingCode);
+          }
+     }, [countries, applicationCountryCode, patientId]);
+
+     useEffect(() => {
+          if (!countries.length) return;
+          const savedCountry = findCountry(countries, addressData.country);
+          const defaultCountry = findCountry(countries, applicationCountryCode);
+          const nextCountry = savedCountry?.iso2 || (!addressData.country ? defaultCountry?.iso2 : undefined);
+          if (nextCountry && nextCountry !== patientCountryCode) setPatientCountryCode(nextCountry);
+          if (nextCountry && !addressData.country && defaultCountry) {
+               setAddressData(current => ({ ...current, country: defaultCountry.name }));
+          }
+     }, [countries, addressData.country, applicationCountryCode, patientCountryCode]);
+
+     useEffect(() => {
+          if (!patientCountryCode) {
+               setLocationRegions([]);
+               return;
+          }
+          let active = true;
+          setGeographyLoading(true);
+          setGeographyError('');
+          fetchGeographyRegions(patientCountryCode)
+               .then(result => { if (active) setLocationRegions(result); })
+               .catch(error => {
+                    if (active) {
+                         setLocationRegions([]);
+                         setGeographyError(error instanceof Error ? error.message : 'Unable to load regions and districts.');
+                    }
+               })
+               .finally(() => { if (active) setGeographyLoading(false); });
+          return () => { active = false; };
+     }, [patientCountryCode]);
 
      // --- Step 3: Emergency Contact Data ---
      const [emergencyData, setEmergencyData] = useState({
@@ -434,7 +510,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
           const additional = additionalPhones.filter(contact => contact.phone.trim()).map(contact => ({
                ...contact, phone: normalizeAdditionalPhone(contact.phone), contact_name: contact.contact_name.trim(),
           }));
-          if ((primary && !/^\d{10}$/.test(primary)) || (backup && !/^\d{10,15}$/.test(backup))) {
+          if ((primary && !/^\d{7,15}$/.test(primary)) || (backup && !/^\d{10,15}$/.test(backup))) {
                toast.error('Check the primary or secondary number you entered.');
                return false;
           }
@@ -486,11 +562,23 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                toast.error("Please complete Step 1 first.");
                return false;
           }
+          const country = findCountry(countries, patientCountryCode);
+          const region = locationRegions.find(item =>
+               item.name === addressData.region || item.regioncode === addressData.region || String(item.id) === addressData.region
+          );
+          const district = region?.districts.find(item =>
+               item.name === addressData.district || item.code === addressData.district || String(item.id) === addressData.district
+          );
+          if (!country || !region || !district) {
+               toast.error('Select a country, region, and district before saving the patient address.');
+               return false;
+          }
           try {
                setIsSubmitting(true);
                const payload = {
-                    region: addressData.region,
-                    district: addressData.district,
+                    country: country.name,
+                    region: region.name,
+                    district: district.name,
                     area: addressData.area,
                     gpsLocation: addressData.gpsLocation,
                     address: addressData.address,
@@ -508,8 +596,8 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                     toast.error(response?.message || "Failed to save addressing information.");
                     return false;
                }
-          } catch {
-               toast.error("Error saving address details.");
+          } catch (error) {
+               toast.error(error instanceof Error ? error.message : "Error saving address details.");
                return false;
           } finally {
                setIsSubmitting(false);
@@ -592,13 +680,14 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
           }
      };
 
-     // District options for Step 2
-     const districtOptions = addressData.region && (ghanaDistricts as any)[addressData.region]
-          ? Object.entries((ghanaDistricts as any)[addressData.region]).map(([code, val]: any) => ({
-               code,
-               name: val.name
-          }))
-          : [];
+     const selectedCountry = findCountry(countries, patientCountryCode);
+     const selectedRegion = locationRegions.find(item =>
+          item.name === addressData.region || item.regioncode === addressData.region || String(item.id) === addressData.region
+     );
+     const districtOptions = selectedRegion?.districts || [];
+     const selectedDistrict = districtOptions.find(item =>
+          item.name === addressData.district || item.code === addressData.district || String(item.id) === addressData.district
+     );
 
      // Step labels
      const stepsConfig = [
@@ -1061,7 +1150,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                                   type="tel"
                                                   className={`form-control form-control-lg ${styles.phoneNumberInput}`}
                                                   placeholder="10-digit mobile number"
-                                                  maxLength={10}
+                                                  maxLength={mobileCountryCode === '+233' ? 10 : 16}
                                                   value={personalData.mobile_number || ''}
                                                   onChange={(e) => { setContactConflict(''); setPrimaryPhoneOwnerId(null); setPersonalData((prev) => ({ ...prev, mobile_number: e.target.value })); }}
                                                   onBlur={(e) => handleCheckMobileNumber(e.target.value)}
@@ -1092,7 +1181,7 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                                   type="tel"
                                                   className={`form-control form-control-lg ${styles.phoneNumberInput}`}
                                                   placeholder="WhatsApp contact"
-                                                  maxLength={10}
+                                                  maxLength={whatsappCountryCode === '+233' ? 10 : 16}
                                                   value={personalData.whatAppcontact || ''}
                                                   onChange={(e) => setPersonalData((prev) => ({ ...prev, whatAppcontact: e.target.value }))}
                                              />
@@ -1196,21 +1285,48 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                    <h6 className={styles.sectionTitle}>
                                         <RiMapPinLine size={20} className="text-primary" /> Address & Geographical Location
                                    </h6>
-                                   <p className={styles.sectionSubtitle}>Patient residential region, district, and digital address</p>
+                                   <p className={styles.sectionSubtitle}>Patient country and residential locality</p>
                               </div>
                          </div>
 
+                         {geographyError && <div className="alert alert-danger" role="alert">{geographyError}</div>}
                          <div className="row g-3">
                               <div className="col-md-6 col-12">
-                                   <label className={styles.fieldLabel}>Region</label>
+                                   <label className={styles.fieldLabel}>Country</label>
                                    <select
                                         className={`form-select form-select-lg ${styles.largeSelect}`}
-                                        value={addressData.region || ''}
-                                        onChange={(e) => setAddressData((prev) => ({ ...prev, region: e.target.value, district: '' }))}
+                                        value={patientCountryCode}
+                                        onChange={(e) => {
+                                             const country = findCountry(countries, e.target.value);
+                                             setPatientCountryCode(e.target.value);
+                                             setAddressData((prev) => ({
+                                                  ...prev,
+                                                  country: country?.name || '',
+                                                  region: '',
+                                                  district: ''
+                                             }));
+                                        }}
+                                        disabled={geographyLoading || countries.length === 0}
                                    >
-                                        <option value="">-- Select Region --</option>
-                                        {Object.keys(ghanaDistricts).map((regionName) => (
-                                             <option key={regionName} value={regionName}>{regionName}</option>
+                                        <option value="">-- Select Country --</option>
+                                        {countries.map(country => (
+                                             <option key={country.iso2} value={country.iso2}>{country.name}</option>
+                                        ))}
+                                   </select>
+                              </div>
+                              <div className="col-md-6 col-12">
+                                   <label className={styles.fieldLabel}>
+                                        {selectedCountry?.divisionLabel || 'Region'}
+                                   </label>
+                                   <select
+                                        className={`form-select form-select-lg ${styles.largeSelect}`}
+                                        value={selectedRegion?.name || ''}
+                                        onChange={(e) => setAddressData((prev) => ({ ...prev, region: e.target.value, district: '' }))}
+                                        disabled={!patientCountryCode || geographyLoading}
+                                   >
+                                        <option value="">-- Select {selectedCountry?.divisionLabel || 'Region'} --</option>
+                                        {locationRegions.map(region => (
+                                             <option key={region.id} value={region.name}>{region.name}</option>
                                         ))}
                                    </select>
                               </div>
@@ -1219,13 +1335,13 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                                    <label className={styles.fieldLabel}>District / Municipality</label>
                                    <select
                                         className={`form-select form-select-lg ${styles.largeSelect}`}
-                                        value={addressData.district || ''}
+                                        value={selectedDistrict?.name || ''}
                                         onChange={(e) => setAddressData((prev) => ({ ...prev, district: e.target.value }))}
-                                        disabled={!addressData.region}
+                                        disabled={!selectedRegion || geographyLoading}
                                    >
                                         <option value="">-- Select District --</option>
-                                        {districtOptions.map((d: any) => (
-                                             <option key={d.code} value={d.code}>{d.name}</option>
+                                        {districtOptions.map(district => (
+                                             <option key={district.id} value={district.name}>{district.name}</option>
                                         ))}
                                    </select>
                               </div>
@@ -1242,7 +1358,9 @@ export default function RegistrationWizard({ initialPatientId, initialStep = 0 }
                               </div>
 
                               <div className="col-md-6 col-12">
-                                   <label className={styles.fieldLabel}>GhanaPost Digital Address / GPS</label>
+                                   <label className={styles.fieldLabel}>
+                                        {patientCountryCode === 'GH' ? 'GhanaPost Digital Address / GPS' : 'GPS Location / Postal Code'}
+                                   </label>
                                    <input
                                         type="text"
                                         className={`form-control form-control-lg ${styles.largeInput}`}

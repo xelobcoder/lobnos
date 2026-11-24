@@ -10,7 +10,7 @@ const COUNTRY_CODES_GROUPED = {
         { code: '+233', abbreviation: 'GH', name: 'Ghana' },
         { code: '+234', abbreviation: 'NG', name: 'Nigeria' },
         { code: '+221', abbreviation: 'SN', name: 'Senegal' },
-        { code: '+225', abbreviation: 'CI', name: 'Ivory Coast' },
+        { code: '+225', abbreviation: 'CI', name: "Côte d'Ivoire" },
         { code: '+223', abbreviation: 'ML', name: 'Mali' },
         { code: '+231', abbreviation: 'LR', name: 'Liberia' },
         { code: '+232', abbreviation: 'SL', name: 'Sierra Leone' },
@@ -20,6 +20,9 @@ const COUNTRY_CODES_GROUPED = {
         { code: '+227', abbreviation: 'NE', name: 'Niger' },
         { code: '+245', abbreviation: 'GW', name: 'Guinea-Bissau' },
         { code: '+224', abbreviation: 'GN', name: 'Guinea' },
+        { code: '+220', abbreviation: 'GM', name: 'The Gambia' },
+        { code: '+222', abbreviation: 'MR', name: 'Mauritania' },
+        { code: '+238', abbreviation: 'CV', name: 'Cabo Verde' },
     ],
     'North Africa': [
         { code: '+212', abbreviation: 'MA', name: 'Morocco' },
@@ -84,7 +87,7 @@ const PhoneInputGroup = React.memo(({ label, value, countryCode, setCountryCode,
                     value={value || ''}
                     onChange={onChange}
                     onBlur={onBlur}
-                    maxLength={maxLength}
+                    maxLength={countryCode === '+233' ? maxLength : 16}
                     minLength={minLength}
                     aria-invalid={ariaInvalid ? 'true' : 'false'}
                     aria-describedby={describedBy}

@@ -10,6 +10,7 @@ import {
 import { customFetch, customPost, customFile } from '../../../components/Auth/customFetch';
 import Image from 'next/image';
 import { toast } from 'react-toastify';
+import { fetchGeographyCountries, fetchGeographyDivisions, type GeographyCountry, type GeographyDivision } from '../../../lib/geography';
 
 interface AlternativeNumber {
 	number: string;
@@ -27,6 +28,8 @@ interface CompanyData {
 	alternativenumber: AlternativeNumber[];
 	labTimings: string;
 	additionalInfo: string;
+	country_code: string;
+	state: string | null;
 }
 
 interface Timing {
@@ -46,10 +49,16 @@ export default function CompanyProfile() {
 		street: '',
 		alternativenumber: [{ number: '', label: '' }],
 		labTimings: '{"timings": []}',
-		additionalInfo: ''
+		additionalInfo: '',
+		country_code: 'GH',
+		state: ''
 	};
 
-	const [companyData, setCompanyData] = useState(defaultData);
+	const [companyData, setCompanyData] = useState<CompanyData>(defaultData);
+	const [countries, setCountries] = useState<GeographyCountry[]>([]);
+	const [divisions, setDivisions] = useState<GeographyDivision[]>([]);
+	const [geographyLoading, setGeographyLoading] = useState(false);
+	const [geographyError, setGeographyError] = useState('');
 	const [selectedImage, setSelectedImage] = useState<string | null>(null);
 	const [selectedImageTenant, setSelectedImageTenant] = useState('');
 	const companyLogoUrl = useCompanyImageUrl();
@@ -82,11 +91,19 @@ export default function CompanyProfile() {
 	const handleData = async (ev: React.FormEvent) => {
 		ev.preventDefault();
 		try {
-			const requiredFields = ['name', 'email', 'phonenumber', 'address'];
+			const requiredFields = ['name', 'email', 'phonenumber', 'address', 'country_code', 'state'];
 			const emptyFields = requiredFields.filter(key => !companyData[key as keyof CompanyData]);
-			const isValidMobile = companyData.phonenumber.length === 10 && companyData.phonenumber[0] === '0';
+			const isValidMobile = /^[+0-9\s()-]{7,20}$/.test(companyData.phonenumber);
 
 			if (emptyFields.length === 0 && isValidMobile) {
+				const phoneValidation = await customPost('geography/phone/validate', 'POST', {
+					country: companyData.country_code,
+					phone: companyData.phonenumber
+				});
+				if (!phoneValidation?.result?.valid) {
+					toast.error(phoneValidation?.message || 'Enter a valid phone number for the selected country.');
+					return;
+				}
 				// Prepare data for submission - group by label and merge numbers
 				const groupedNumbers: { [key: string]: string[] } = {};
 
@@ -115,7 +132,7 @@ export default function CompanyProfile() {
 			} else {
 				let alertMessage = '';
 				if (!isValidMobile) {
-					alertMessage = 'Incorrect Phone Number format (must be 10 digits starting with 0).';
+					alertMessage = 'Enter a valid phone number for the selected country.';
 				} else if (emptyFields.length > 0) {
 					alertMessage = `${emptyFields.map(f => f.charAt(0).toUpperCase() + f.slice(1)).join(', ')} field(s) are required.`;
 				}
@@ -146,6 +163,29 @@ export default function CompanyProfile() {
 			}
 		}
 	};
+
+	useEffect(() => {
+		let active = true;
+		fetchGeographyCountries()
+			.then(result => { if (active) setCountries(result); })
+			.catch(error => { if (active) setGeographyError(error instanceof Error ? error.message : 'Unable to load countries.'); });
+		return () => { active = false; };
+	}, []);
+
+	useEffect(() => {
+		if (!companyData.country_code) {
+			setDivisions([]);
+			return;
+		}
+		let active = true;
+		setGeographyLoading(true);
+		setGeographyError('');
+		fetchGeographyDivisions(companyData.country_code)
+			.then(result => { if (active) setDivisions(result); })
+			.catch(error => { if (active) setGeographyError(error instanceof Error ? error.message : 'Unable to load administrative divisions.'); })
+			.finally(() => { if (active) setGeographyLoading(false); });
+		return () => { active = false; };
+	}, [companyData.country_code]);
 
 	useEffect(() => {
 		const fetchData = async () => {
@@ -329,14 +369,13 @@ export default function CompanyProfile() {
 									<InputGroup.Text><RiPhoneLine size={20} /></InputGroup.Text>
 									<Form.Control
 										type="tel"
-										placeholder="0xxxxxxxxx"
+										placeholder="Enter the company phone number"
 										value={companyData.phonenumber}
 										onChange={(e) => setCompanyData({ ...companyData, phonenumber: e.target.value })}
-										maxLength={10}
-										pattern="0[0-9]{9}"
+										maxLength={20}
 										required
 									/>
-									<Form.Control.Feedback type="invalid">Please provide a 10-digit phone number starting with 0.</Form.Control.Feedback>
+									<Form.Control.Feedback type="invalid">Please enter a valid phone number for the selected country.</Form.Control.Feedback>
 								</InputGroup>
 							</Form.Group>							<Form.Group className='mb-3' controlId="formGridMotto">
 								<Form.Label>Motto / Slogan</Form.Label>
@@ -351,6 +390,45 @@ export default function CompanyProfile() {
 									/>
 								</InputGroup>
 							</Form.Group>
+
+							<div className="row g-3 mb-3">
+								<div className="col-md-6">
+									<Form.Label htmlFor="company-country">Country</Form.Label>
+									<Form.Select
+										id="company-country"
+										value={companyData.country_code}
+										onChange={event => setCompanyData(current => ({
+											...current,
+											country_code: event.target.value,
+											state: ''
+										}))}
+										required
+									>
+										<option value="">Select country</option>
+										{countries.map(country => (
+											<option key={country.iso2} value={country.iso2}>{country.name}</option>
+										))}
+									</Form.Select>
+								</div>
+								<div className="col-md-6">
+									<Form.Label htmlFor="company-state">
+										{countries.find(country => country.iso2 === companyData.country_code)?.divisionLabel || 'State / Region'}
+									</Form.Label>
+									<Form.Select
+										id="company-state"
+										value={companyData.state || ''}
+										onChange={event => setCompanyData(current => ({ ...current, state: event.target.value || null }))}
+										disabled={!companyData.country_code || geographyLoading}
+										required
+									>
+										<option value="">{geographyLoading ? 'Loading...' : 'Select state / region'}</option>
+										{divisions.map(division => (
+											<option key={division.name} value={division.name}>{division.name}</option>
+										))}
+									</Form.Select>
+								</div>
+								{geographyError && <div className="col-12"><div className="text-danger small" role="alert">{geographyError}</div></div>}
+							</div>
 
 							<Form.Group className='mb-3' controlId="formGridAddress">
 								<Form.Label>Full Address</Form.Label>

@@ -11,6 +11,7 @@ import { availableFonts } from '../../../lib/themes';
 import { canAccessFacilityModule } from '../../../lib/facilityModuleAccess';
 import Link from 'next/link';
 import { roleAllowed } from '../../../components/Auth/roles';
+import { fetchGeographyRegions } from '../../../lib/geography';
 
 
 
@@ -46,6 +47,7 @@ interface ApplicationSettingsData {
 	billingsettings: string;
 	regioncode: string;
 	districtcode: string;
+	country_code: string;
 	withnessRefund: number;
 	AllowCrmToGiveDisocunt: number;
 	patientIdGenerationMethod: string;
@@ -200,15 +202,21 @@ export default function ApplicationSettings() {
 
 	useEffect(() => {
 		fetchSettings();
-		// Fetch regions/districts for lookup
-		async function fetchRegions() {
-			const res = await customFetch('locations/regions-districts');
-			if (res?.status === 'success' && res?.statusCode === 200 && Array.isArray(res.data)) {
-				setRegions(res.data);
-			}
-		}
-		fetchRegions();
 	}, []);
+
+	useEffect(() => {
+		if (!settings?.country_code) {
+			setRegions([]);
+			return;
+		}
+		let active = true;
+		fetchGeographyRegions(settings.country_code)
+			.then(result => { if (active) setRegions(result); })
+			.catch(err => {
+				if (active) setError(err instanceof Error ? err.message : 'Unable to load regions and districts');
+			});
+		return () => { active = false; };
+	}, [settings?.country_code]);
 
 	// Ensure region and district select fields are updated after both settings and regions are loaded
 	useEffect(() => {
@@ -291,6 +299,7 @@ export default function ApplicationSettings() {
 						secondaryColor: response.result.secondaryColor || defaultUiSettings.secondaryColor,
 						regioncode: response.result.regioncode ? response.result.regioncode.toString() : '',
 						districtcode: response.result.districtcode ? response.result.districtcode.toString() : '',
+						country_code: response.result.country_code || 'GH',
 						ageVariationLimits,
 						commissionRecipientPolicy: response.result.commissionRecipientPolicy === 'organization' ? 'organization' : 'clinician',
 					});
@@ -314,6 +323,7 @@ export default function ApplicationSettings() {
 						billingsettings: '{"hasNightAdjustment":true,"nightAdjustmentValue":"100","nightAdjustmentMode":"percentage","startTime":"01:00","endTime":"23:00"}',
 						regioncode: '1',
 						districtcode: '2',
+						country_code: 'GH',
 						withnessRefund: 0,
 						AllowCrmToGiveDisocunt: 0,
 						patientIdGenerationMethod: 'region',
@@ -373,6 +383,15 @@ export default function ApplicationSettings() {
 				return {
 					...prevSettings,
 					regioncode: updatedValue,
+					districtcode: ''
+				};
+			}
+			if (key === 'country_code' && value !== prevSettings.country_code) {
+				setRegions([]);
+				return {
+					...prevSettings,
+					country_code: updatedValue,
+					regioncode: '',
 					districtcode: ''
 				};
 			}
@@ -567,6 +586,10 @@ export default function ApplicationSettings() {
 			settings.regioncode?.toString() ?? '',
 			settings.districtcode?.toString() ?? ''
 		);
+		if (!settings.country_code || !region || !district) {
+			setError('Select a country, region, and district before saving application settings.');
+			return;
+		}
 
 		try {
 			setSaving(true);

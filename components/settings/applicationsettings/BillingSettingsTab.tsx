@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Form, Card } from 'react-bootstrap';
 import { RiCheckboxCircleLine, RiShieldCheckLine, RiMoneyDollarCircleLine, RiFileListLine, RiFlowChart, RiRefundLine, RiGroupLine, RiSettings4Line, RiUserSharedLine } from '@remixicon/react';
-import { customFetch } from '../../Auth/customFetch';
+import { fetchGeographyCountries, fetchGeographyRegions, type GeographyCountry } from '../../../lib/geography';
 
 interface ApplicationSettingsData {
      billingLayout?: 'multi-compact' | 'multi-primary-two';
@@ -18,6 +18,7 @@ interface ApplicationSettingsData {
      patientIdGenerationMethod?: string;
      regioncode?: string;
      districtcode?: string;
+     country_code?: string | null;
      byPassCollection?: number;
      byPassSampleValidation?: number;
      byPassValidation?: number;
@@ -36,6 +37,8 @@ interface BillingSettingsTabProps {
 export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings, handleChange }) => {
      const [regions, setRegions] = useState<any[]>([]);
      const [districts, setDistricts] = useState<any[]>([]);
+     const [countries, setCountries] = useState<GeographyCountry[]>([]);
+     const [geographyError, setGeographyError] = useState('');
 
      const settingsGroups = [
           {
@@ -276,14 +279,30 @@ export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings
      }
 
      useEffect(() => {
-          async function fetchRegions() {
-               const res = await customFetch('locations/regions-districts');
-               if (res?.status === 'success' && res?.statusCode === 200 && Array.isArray(res.data)) {
-                    setRegions(res.data);
-               }
-          }
-          fetchRegions();
+          let active = true;
+          fetchGeographyCountries()
+               .then(result => { if (active) setCountries(result); })
+               .catch(error => { if (active) setGeographyError(error instanceof Error ? error.message : 'Unable to load countries.'); });
+          return () => { active = false; };
      }, []);
+
+     useEffect(() => {
+          if (!settings.country_code) {
+               setRegions([]);
+               return;
+          }
+          let active = true;
+          setGeographyError('');
+          fetchGeographyRegions(settings.country_code)
+               .then(result => { if (active) setRegions(result); })
+               .catch(error => {
+                    if (active) {
+                         setRegions([]);
+                         setGeographyError(error instanceof Error ? error.message : 'Unable to load regions and districts.');
+                    }
+               });
+          return () => { active = false; };
+     }, [settings.country_code]);
 
      useEffect(() => {
           // When region changes, update districts
@@ -373,13 +392,26 @@ export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings
                                    onChange={handleChange}
                               />
                               <div className="mt-2 ms-3">
+                                   <Form.Label className="small text-muted">Country</Form.Label>
+                                   <Form.Select
+                                        name="country_code"
+                                        value={settings.country_code || ''}
+                                        onChange={handleChange}
+                                   >
+                                        <option value="">Select country</option>
+                                        {countries.map(country => (
+                                             <option key={country.iso2} value={country.iso2}>{country.name}</option>
+                                        ))}
+                                   </Form.Select>
+                                   {geographyError && <div className="small text-danger mt-1" role="alert">{geographyError}</div>}
                                    <Form.Label className="small text-muted">Region</Form.Label>
                                    <Form.Select
                                         name="regioncode"
                                         value={settings.regioncode || ''}
                                         onChange={handleChange}
+                                        disabled={!settings.country_code || regions.length === 0}
                                    >
-                                        <option value="">Select region</option>
+                                        <option value="">Select {countries.find(country => country.iso2 === settings.country_code)?.divisionLabel.toLowerCase() || 'region'}</option>
                                         {regions.map(region => (
                                              <option key={region.regioncode} value={region.regioncode}>{region.name}</option>
                                         ))}
@@ -397,7 +429,7 @@ export const BillingSettingsTab: React.FC<BillingSettingsTabProps> = ({ settings
                                         name="districtcode"
                                         value={settings.districtcode || ''}
                                         onChange={handleChange}
-                                        disabled={!settings.regioncode}
+                                        disabled={!settings.regioncode || districts.length === 0}
                                    >
                                         <option value="">Select district</option>
                                         {districts.map(d => (
