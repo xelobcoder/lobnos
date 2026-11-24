@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { leadSchema } from "../../../../website/lib/lead";
+import { corePlatformOrigin } from "../../../../website/lib/core-origin";
 
 export const runtime = "nodejs";
 
@@ -84,38 +85,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "This submission could not be verified." }, { status: 400 });
   }
 
-  const webhookUrl = process.env.LEAD_WEBHOOK_URL;
-  const webhookToken = process.env.LEAD_WEBHOOK_TOKEN;
-  if (!webhookUrl || !webhookToken) {
-    return NextResponse.json({ message: "Enquiry delivery is not configured yet. Your message was not sent; please contact PLS through your established channel." }, { status: 503 });
-  }
-
-  let destination: URL;
-  try {
-    destination = new URL(webhookUrl);
-    const hostname = destination.hostname.toLowerCase();
-    const loopback = ["localhost", "127.0.0.1", "::1"].includes(hostname);
-    const allowedLoopbackHttp = loopback &&
-      destination.protocol === "http:" &&
-      process.env.LEAD_WEBHOOK_ALLOW_LOOPBACK_HTTP === "true";
-    if (
-      (destination.protocol !== "https:" && !allowedLoopbackHttp) ||
-      !hostname ||
-      destination.username ||
-      destination.password ||
-      (loopback && !allowedLoopbackHttp) ||
-      hostname.endsWith(".local") ||
-      hostname.endsWith(".internal")
-    ) {
-      throw new Error("invalid destination");
-    }
-  } catch {
-    return NextResponse.json({ message: "The enquiry delivery service is unavailable. Your message was not sent." }, { status: 503 });
+  const backendOrigin = corePlatformOrigin();
+  const token = process.env.WEBSITE_LEAD_WEBHOOK_TOKEN;
+  if (!backendOrigin || !token) {
+    return NextResponse.json({ message: "The PLS enquiry database connection is not configured. Your message was not sent." }, { status: 503 });
   }
 
   // Count only validated requests with a configured, valid destination. Setup and
   // validation errors must not consume the visitor's delivery allowance.
-  const clientIp = request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const clientIp = request.headers.get("x-real-ip") || "unknown";
   if (!withinRateLimit(clientIp)) {
     return NextResponse.json({ message: "Too many enquiries from this connection. Please try again later." }, {
       status: 429,
@@ -126,18 +104,18 @@ export async function POST(request: NextRequest) {
   const { _website: _honeypot, ...lead } = parsed.data;
   void _honeypot;
   try {
-    const delivery = await fetch(destination, {
+    const delivery = await fetch(new URL("/api/v1/marketplace/platform-enquiries", backendOrigin), {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${webhookToken}` },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ ...lead, submittedAt: new Date().toISOString(), source: "pls-corporate-website" }),
       signal: AbortSignal.timeout(8_000),
       cache: "no-store",
     });
     if (!delivery.ok) {
-      return NextResponse.json({ message: "We couldn't confirm delivery of your enquiry. Your message was not sent; please try again later." }, { status: 502 });
+      return NextResponse.json({ message: "PLS could not confirm that your enquiry was saved. Please try again later." }, { status: 502 });
     }
-    return NextResponse.json({ message: "Your enquiry was successfully delivered. The PLS team can now follow up." }, { status: 200 });
+    return NextResponse.json({ message: "Your enquiry was saved in the PLS database. The team can now follow up." }, { status: 200 });
   } catch {
-    return NextResponse.json({ message: "We couldn't reach the enquiry service. Your message was not sent; please try again later." }, { status: 502 });
+    return NextResponse.json({ message: "PLS could not confirm that your enquiry was saved. Please try again later." }, { status: 502 });
   }
 }

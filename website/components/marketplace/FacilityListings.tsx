@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { MarketplaceFacility } from "../../lib/marketplace";
 
-export function FacilityListings({ facilities }: { facilities: MarketplaceFacility[] }) {
+export function FacilityListings({ facilities, activeFacilityCount }: { facilities: MarketplaceFacility[]; activeFacilityCount?: number }) {
   const [query, setQuery] = useState("");
   const visible = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase();
@@ -58,8 +58,13 @@ export function FacilityListings({ facilities }: { facilities: MarketplaceFacili
         </table>
       </div> : <div className="directory-empty">
         <span aria-hidden="true">⌕</span>
-        <h3>{query.trim() ? "No laboratories match that search." : "No approved facilities are listed yet."}</h3>
-        <p>{query.trim() ? "Try another name, town or region." : "New facilities appear after identity review and public-listing approval. Check back as the network grows."}</p>
+        <h3>{query.trim() ? "No laboratories match that search." : activeFacilityCount ? "No PLS facilities have published public profiles yet." : "No approved facilities are listed yet."}</h3>
+        <p>{query.trim()
+          ? "Try another name, town or region."
+          : activeFacilityCount
+            ? `${activeFacilityCount} active PLS-registered ${activeFacilityCount === 1 ? "facility is" : "facilities are"} not automatically listed. A facility administrator must save and approve its public profile before its name, catalog or prices appear here.`
+            : "Facilities appear here only after their public profiles have been saved and approved."}</p>
+        {!query.trim() && activeFacilityCount ? <p><Link className="text-link" href="/settings/facilities">Facility administrators: open facility publication settings <span aria-hidden="true">→</span></Link></p> : null}
         {query.trim() && <button type="button" className="text-button" onClick={() => setQuery("")}>Clear search</button>}
       </div>}
     </div>

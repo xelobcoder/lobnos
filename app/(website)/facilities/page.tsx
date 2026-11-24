@@ -18,7 +18,7 @@ export default async function FacilitiesPage() {
     <section className="section directory-section"><div className="wrap">
       <div className="directory-intro"><div><span className="eyebrow">PUBLIC FACILITY LISTINGS</span><h2>Find a laboratory to explore.</h2></div><p>Published prices are indicative facility catalog prices. Confirm availability, preparation, final charges and appointment details with the laboratory.</p></div>
       {statistics.status === "ok" && <p>{statistics.data.activeFacilities} active PLS-registered {statistics.data.activeFacilities === 1 ? "facility" : "facilities"}. Only approved facilities appear in the public directory below.</p>}
-      {result.status === "ok" ? <FacilityListings facilities={result.data} /> :
+      {result.status === "ok" ? <FacilityListings facilities={result.data} activeFacilityCount={statistics.status === "ok" ? statistics.data.activeFacilities : undefined} /> :
         <div className="directory-error" role="status"><span>!</span><div><b>The public marketplace is temporarily unavailable.</b><p>No sample facilities or prices are shown. Please try again later.</p></div></div>}
       <div className="directory-privacy"><span>↗</span><p>Booking requests are reviewed by the selected laboratory. A submitted request is not a confirmed appointment, payment or lab order.</p></div>
     </div></section>
