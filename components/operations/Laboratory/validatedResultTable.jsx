@@ -1,35 +1,42 @@
 import TableDropdownMenu, { TableDropdown } from '../../accessories/Datatables/TableDropdownMenu';
 import React, { useState, useEffect } from 'react';
 import { PrepareResultEntryHeader } from '../../Auth/customFetch';
+import { isPrintableResult, isReleasedResult, printBlockedReason, releaseStatusLabel } from './resultReleasePresentation';
 
 function isPaidResult(item) {
      const paymentStatus = item?.paymentstatus ?? item?.clientstatus;
      return String(paymentStatus || '').trim().toLowerCase() === 'paid';
 }
 
-function isReleasedResult(item) {
-     return item?.releaseStatus === 'released' || item?.released === true;
-}
-
-const releaseStatusLabel = item => item.released ? `Released by ${item.releasedByName || 'staff #' + item.releasedBy}`
-     : item.releaseStatus === 'awaiting_manager_approval' ? 'Awaiting manager approval'
-     : item.releaseStatus === 'awaiting_different_validator' ? 'Different validator required' : 'Awaiting sign-off and release';
-
 function canPrintResult(item, allowPrintingUnpaid) {
-     const printableItems = Array.isArray(item?.tests) ? item.tests : [item];
-     if (!printableItems.some(isReleasedResult)) {
+     const blockedReason = printBlockedReason(item, allowPrintingUnpaid);
+     if (blockedReason === 'release') {
           alert("The result must be signed and released before it can be printed.");
           return false;
      }
-     if (Number(allowPrintingUnpaid) === 1 || printableItems.some(isPaidResult)) return true;
-     alert("Printing of results is not allowed for unpaid tests.");
-     return false;
+     if (blockedReason === 'manager') {
+          alert("Manager approval is required before this result can be printed.");
+          return false;
+     }
+     if (blockedReason === 'validation') {
+          alert("Complete result validation before printing this result.");
+          return false;
+     }
+     if (blockedReason === 'not_available') {
+          alert("This validated result is not currently available for printing.");
+          return false;
+     }
+     if (blockedReason === 'unpaid') {
+          alert("Printing of results is not allowed for unpaid tests.");
+          return false;
+     }
+     return true;
 }
 
 function handlePrintMultipleResults(row, allowPrintingUnpaid) {
      const item = Array.isArray(row.original?.tests)
-          ? row.original.tests.find((test) => isReleasedResult(test) && isPaidResult(test)) ||
-               row.original.tests.find(isReleasedResult)
+          ? row.original.tests.find((test) => isPrintableResult(test) && isPaidResult(test)) ||
+               row.original.tests.find(isPrintableResult)
           : row.original;
      if (!canPrintResult(row.original, allowPrintingUnpaid)) return;
      const { testid, name, patientid, ascensionid, billingid } = item
@@ -238,7 +245,8 @@ export default function ValidatedResultTable({ employeeid, mode = 'full', stage 
      const viewResultHandler = (item, multiple = false) => {
           if (!canPrintResult(item, allowPrintingUnpaid)) return;
           if (Array.isArray(item?.tests)) {
-               item = item.tests.find((test) => isPaidResult(test)) || item.tests[0];
+               item = item.tests.find((test) => isPrintableResult(test) && isPaidResult(test)) ||
+                    item.tests.find(isPrintableResult);
           }
           const { testid, name, patientid, ascensionid, billingid } = item;
           const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
@@ -617,7 +625,7 @@ export default function ValidatedResultTable({ employeeid, mode = 'full', stage 
                               className="btn btn-sm btn-primary"
                               onClick={() => {
                                    if (row.original.tests && row.original.tests.length > 0) {
-                                        handlePrintMultipleResults({ original: row.original.tests[0] }, allowPrintingUnpaid);
+                                        handlePrintMultipleResults({ original: row.original }, allowPrintingUnpaid);
                                    }
                               }}
                          >
