@@ -65,7 +65,7 @@ export default function FacilityGatewayTransactions() {
      };
 
      return (
-          <section className="mt-3" aria-busy={busy}>
+          <section className="mt-3 border rounded p-3 bg-white shadow-none" aria-busy={busy}>
                <div className="d-flex flex-wrap gap-2 align-items-end mb-3">
                     <div><label htmlFor="gwStatus" className="form-label">Status</label>
                          <select id="gwStatus" className="form-select" value={status} onChange={(event) => setStatus(event.target.value)}>
@@ -79,7 +79,7 @@ export default function FacilityGatewayTransactions() {
                </div>
                {error && <div className="alert alert-danger" role="alert">{error}</div>}
                {notice && <div className="alert alert-success" role="status">{notice}</div>}
-               {items.length === 0 ? <p className="text-muted">No gateway transactions.</p> : <div className="table-responsive"><table className="table table-sm align-middle">
+               {items.length === 0 ? <p className="text-muted mb-0">No gateway transactions.</p> : <div className="table-responsive"><table className="table table-sm align-middle">
                     <thead><tr><th>Reference</th><th>Provider</th><th>Tenant</th><th>Period</th><th>Amount</th><th>Status</th><th>Applied</th><th>Actions</th></tr></thead>
                     <tbody>{items.map((item) => <tr key={item.reference}>
                          <td className="font-monospace">{item.reference}</td><td className="text-capitalize">{item.provider}</td><td>{item.tenantId}</td>
@@ -90,7 +90,7 @@ export default function FacilityGatewayTransactions() {
                               <button className="btn btn-sm btn-outline-secondary me-1" onClick={() => void open(item.reference)}>History</button>
                               <button className="btn btn-sm btn-outline-primary" disabled={busy} onClick={() => void act(`platform/payments/transactions/${encodeURIComponent(item.reference)}/verify`, `Verified ${item.reference} with the provider.`)}>Verify now</button>
                          </td></tr>)}</tbody></table></div>}
-               {selected && <div className="border-top pt-3">
+               {selected && <div className="border rounded p-3 mt-3 bg-white shadow-none">
                     <h3 className="h6 fw-semibold">History for <span className="font-monospace">{selected.reference}</span></h3>
                     <ul className="list-unstyled small">{selected.events.map((event) => <li key={event.id}>{String(event.created_at).replace("T", " ").slice(0, 19)} · {event.source} · {event.event_type}{event.to_status ? ` (${event.from_status ?? "-"} → ${event.to_status})` : ""}{event.detail ? ` — ${event.detail}` : ""}</li>)}</ul>
                     <button className="btn btn-sm btn-outline-secondary" onClick={() => setSelected(null)}>Close</button>

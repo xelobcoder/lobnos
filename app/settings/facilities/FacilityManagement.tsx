@@ -307,7 +307,7 @@ export default function FacilityManagement({ facility, onStatusChange, mode = "f
           },
      ];
      return (
-          <section className="mt-3" aria-busy={disabled}>
+          <section className="mt-3 border rounded p-3 bg-white shadow-none" aria-busy={disabled}>
                <div className="border-bottom py-3 mb-3">
                     <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
                          <div>

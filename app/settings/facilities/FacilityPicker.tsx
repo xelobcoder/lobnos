@@ -73,7 +73,7 @@ export default function FacilityPicker({ title, description, children, panelled 
                </section>
                {facility
                     ? <div key={facility.tenantId}>{children(facility, (tenantId, status) => setFacilities((current) => current.map((item) => item.tenantId === tenantId ? { ...item, status } : item)))}</div>
-                    : !loading && <p className="text-muted">Select a facility to continue.</p>}
+                    : !loading && <p className={panelled ? "border rounded p-3 bg-white shadow-none text-muted" : "text-muted"}>Select a facility to continue.</p>}
           </main>
      );
 }

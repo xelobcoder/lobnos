@@ -38,9 +38,10 @@ function PanelPicker({ tenant, side, value, onChange }: {
         return () => { active = false; window.clearTimeout(timer); };
     }, [tenant, query]);
 
-    return <div className="mb-3">
+    return <div>
         <label className="form-label" htmlFor={`copy-search-${side}`}>Search {side.toLowerCase()} panels</label>
         <input className="form-control mb-2" id={`copy-search-${side}`} value={query} disabled={!tenant}
+            placeholder="Search panels by name"
             onChange={event => { onChange(""); setQuery(event.target.value); }} />
         <label className="form-label" htmlFor={`copy-panel-${side}`}>{side} panel</label>
         <select className="form-select" id={`copy-panel-${side}`} value={value} required disabled={!tenant || loading}
@@ -134,12 +135,16 @@ export default function CopyTestSetup() {
 
     const additions = preview?.data.parameters.filter(row => row.status === "add").length ?? 0;
 
-    return <section className="p-3">
-        <h1 className="h4">Copy test setup</h1>
-        <p className="text-muted">Copy a panel or add missing parameters. Copy only reviewed additions. Historical results and existing prices stay in place. New copies require explicit public panel selection before appearing on the website.</p>
+    return <main className="p-3">
+        <header className="border rounded p-3 mb-3 bg-white shadow-none">
+            <p className="small text-primary text-uppercase fw-semibold mb-1">Platform administration / laboratory</p>
+            <h1 className="h4 mb-1">Copy test setup</h1>
+            <p className="text-muted mb-0">Copy a panel or add missing parameters. Only reviewed additions are copied; historical results and existing prices stay in place. New panels need explicit public selection before appearing on the website.</p>
+        </header>
         {error && <p className="alert alert-danger" role="alert">{error}</p>}
         {notice && <p className="alert alert-success" role="status">{notice}</p>}
-        <form method="post" onSubmit={showPreview} onChange={() => { setPreview(null); setNotice(""); }}>
+        <form method="post" onSubmit={showPreview} onChange={() => { setPreview(null); setNotice(""); }}
+            className="border rounded p-3 bg-white shadow-none">
             <fieldset disabled={busy}>
                 <legend className="h6">Copy mode</legend>
                 <select className="form-select mb-3" aria-label="Copy mode" value={mode} onChange={event => {
@@ -148,46 +153,52 @@ export default function CopyTestSetup() {
                     <option value="panel">Copy full panel</option>
                     <option value="parameters">Copy selected parameters</option>
                 </select>
-                <div className="row">
-                    <div className="col-md-6">
-                        <label className="form-label" htmlFor="copy-source">Source facility</label>
-                        <select className="form-select mb-3" id="copy-source" required value={source} onChange={event => {
-                            setSource(event.target.value); setSourceTest(""); setParameters([]); setSelected([]);
-                        }}>
-                            <option value="">Select source facility</option>
-                            {facilities.filter(f => String(f.tenantId) !== target).map(f => <option key={f.tenantId} value={f.tenantId}>{f.name} ({f.platformId})</option>)}
-                        </select>
-                        <PanelPicker key={source} tenant={source} side="Source" value={sourceTest} onChange={value => {
-                            setSourceTest(value); setParameters([]); setSelected([]);
-                        }} />
+                <div className="row g-3 mb-3">
+                    <div className="col-12 col-lg-6">
+                        <section className="border rounded p-3 bg-white shadow-none h-100" aria-labelledby="copy-source-heading">
+                            <h2 id="copy-source-heading" className="h6 mb-3">Source</h2>
+                            <label className="form-label" htmlFor="copy-source">Source facility</label>
+                            <select className="form-select mb-3" id="copy-source" required value={source} onChange={event => {
+                                setSource(event.target.value); setSourceTest(""); setParameters([]); setSelected([]);
+                            }}>
+                                <option value="">Select source facility</option>
+                                {facilities.filter(f => String(f.tenantId) !== target).map(f => <option key={f.tenantId} value={f.tenantId}>{f.name} ({f.platformId})</option>)}
+                            </select>
+                            <PanelPicker key={source} tenant={source} side="Source" value={sourceTest} onChange={value => {
+                                setSourceTest(value); setParameters([]); setSelected([]);
+                            }} />
+                        </section>
                     </div>
-                    <div className="col-md-6">
-                        <label className="form-label" htmlFor="copy-target">Destination facility</label>
-                        <select className="form-select mb-3" id="copy-target" required value={target} onChange={event => {
-                            setTarget(event.target.value); setTargetTest("");
-                        }}>
-                            <option value="">Select destination facility</option>
-                            {facilities.filter(f => String(f.tenantId) !== source).map(f => <option key={f.tenantId} value={f.tenantId}>{f.name} ({f.platformId})</option>)}
-                        </select>
-                        {mode === "parameters" ? <PanelPicker key={target} tenant={target} side="Destination" value={targetTest} onChange={setTargetTest} />
-                            : <><label className="form-label" htmlFor="copy-price">Destination price</label>
-                                <input className="form-control mb-3" id="copy-price" type="number" min={0} max={2147483647}
-                                    step={1} required value={price} onChange={event => setPrice(event.target.value)} />
-                                <label className="form-check mb-3">
-                                    <input type="checkbox" className="form-check-input" checked={standardSetup}
-                                        onChange={event => setStandardSetup(event.currentTarget.checked)} />
-                                    <span className="form-check-label fw-semibold">Copy as standard setup</span>
-                                    <span className="d-block small text-muted">Copy the parameters and supported rules. Create missing departments, sample types and containers when needed. Custom templates and device mappings require destination setup.</span>
-                                </label></>}
+                    <div className="col-12 col-lg-6">
+                        <section className="border rounded p-3 bg-white shadow-none h-100" aria-labelledby="copy-destination-heading">
+                            <h2 id="copy-destination-heading" className="h6 mb-3">Destination</h2>
+                            <label className="form-label" htmlFor="copy-target">Destination facility</label>
+                            <select className="form-select mb-3" id="copy-target" required value={target} onChange={event => {
+                                setTarget(event.target.value); setTargetTest("");
+                            }}>
+                                <option value="">Select destination facility</option>
+                                {facilities.filter(f => String(f.tenantId) !== source).map(f => <option key={f.tenantId} value={f.tenantId}>{f.name} ({f.platformId})</option>)}
+                            </select>
+                            {mode === "parameters" ? <PanelPicker key={target} tenant={target} side="Destination" value={targetTest} onChange={setTargetTest} />
+                                : <><label className="form-label" htmlFor="copy-price">Destination price</label>
+                                    <input className="form-control mb-3" id="copy-price" type="number" min={0} max={2147483647}
+                                        step={1} required value={price} onChange={event => setPrice(event.target.value)} />
+                                    <label className="form-check mb-3">
+                                        <input type="checkbox" className="form-check-input" checked={standardSetup}
+                                            onChange={event => setStandardSetup(event.currentTarget.checked)} />
+                                        <span className="form-check-label fw-semibold">Copy as standard setup</span>
+                                        <span className="d-block small text-muted">Copy the parameters and supported rules. Create missing departments, sample types and containers when needed. Custom templates and device mappings require destination setup.</span>
+                                    </label></>}
+                        </section>
                     </div>
                 </div>
                 {mode === "parameters" && parameters.length > 0 && <fieldset className="border rounded p-3 mb-3">
                     <legend className="h6">Select source parameters</legend>
                     <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
-                        <button type="button" className="btn btn-sm btn-outline-primary"
+                        <button type="button" className="btn btn-sm btn-primary"
                             disabled={selected.length === parameters.length}
                             onClick={() => updateSelection(parameters.map(parameter => parameter.id))}>Add All</button>
-                        <button type="button" className="btn btn-sm btn-outline-secondary"
+                        <button type="button" className="btn btn-sm btn-secondary"
                             disabled={!selected.length} onClick={() => updateSelection([])}>Clear selection</button>
                         <span className="small text-muted" aria-live="polite">{selected.length} selected for preview</span>
                     </div>
@@ -198,10 +209,10 @@ export default function CopyTestSetup() {
                         <label className="form-check-label" htmlFor={`copy-parameter-${parameter.id}`}>{parameter.name}{parameter.units ? ` (${parameter.units})` : ""}</label>
                     </div>)}
                 </fieldset>}
-                <button type="submit" className="btn btn-outline-primary" disabled={mode === "parameters" && !selected.length}>Preview copy</button>
+                <button type="submit" className="btn btn-primary" disabled={mode === "parameters" && !selected.length}>Preview copy</button>
             </fieldset>
         </form>
-        {preview && <section className="border rounded p-3 mt-4" aria-label="Copy preview">
+        {preview && <section className="border rounded p-3 mt-3 bg-white shadow-none" aria-label="Copy preview">
             <h2 className="h5">Preview: {preview.data.sourceName}{preview.data.destinationName ? ` → ${preview.data.destinationName}` : ""}</h2>
             {!!preview.data.blockers.length && <ul className="alert alert-warning">{preview.data.blockers.map(blocker => <li className="ms-3" key={blocker}>{blocker}</li>)}</ul>}
             {!!preview.data.warnings?.length && <ul className="alert alert-info">{preview.data.warnings.map(warning => <li className="ms-3" key={warning}>{warning}</li>)}</ul>}
@@ -221,5 +232,5 @@ export default function CopyTestSetup() {
                 {mode === "panel" ? "Copy full panel" : `Add ${additions} missing parameter${additions === 1 ? "" : "s"}`}
             </button>
         </section>}
-    </section>;
+    </main>;
 }

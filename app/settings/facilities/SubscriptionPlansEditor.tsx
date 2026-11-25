@@ -48,6 +48,7 @@ export default function SubscriptionPlansEditor() {
      const [busy, setBusy] = useState(false);
      const [error, setError] = useState("");
      const [notice, setNotice] = useState("");
+     const [planSearch, setPlanSearch] = useState("");
 
      const load = useCallback(async () => {
           const [planResponse, requestResponse] = await Promise.all([
@@ -144,81 +145,152 @@ export default function SubscriptionPlansEditor() {
 
      if (!isSuperAdmin) return <main className="p-2"><div className="alert alert-danger" role="alert">Only an authorized platform super administrator can manage subscription plans.</div></main>;
 
+     const search = planSearch.trim().toLowerCase();
+     const visiblePlans = plans.filter(plan =>
+          `${plan.name} ${plan.code} ${plan.description} ${plan.modules.map(module => MODULE_LABELS[module] || module).join(" ")}`
+               .toLowerCase().includes(search));
+     const activePlans = plans.filter(plan => plan.active).length;
+
      return (
-          <main className="p-2" aria-busy={loading || busy}>
-               <h1 className="h4 mb-2">Subscription plans</h1>
-               <p className="text-muted">Bundle modules into tiers such as Basic, Professional and Enterprise with one monthly price. Higher rank means a higher tier; facilities can only request upgrades to a higher tier.</p>
+          <main className="p-3" aria-busy={loading || busy}>
+               <header className="border rounded p-3 mb-3 bg-white shadow-none">
+                    <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                         <div>
+                              <p className="small text-primary text-uppercase fw-semibold mb-1">Platform administration / billing</p>
+                              <h1 className="h4 mb-1">Subscription plans</h1>
+                              <p className="text-muted mb-0">Build and maintain facility tiers with clear monthly pricing, module access, and branch limits.</p>
+                         </div>
+                         <a className="btn btn-primary flex-shrink-0" href="#plan-editor">Create plan</a>
+                    </div>
+               </header>
                {error && <div className="alert alert-danger" role="alert">{error}</div>}
                {notice && <div className="alert alert-success" role="status">{notice}</div>}
-               {loading ? <p role="status">Loading plans...</p> : <>
-                    <section className="card border-0 shadow-sm mb-3" aria-label="Plans">
+               {loading ? <section className="border rounded p-3 bg-white shadow-none" role="status">Loading subscription plans...</section> : <>
+                    <div className="row g-3 mb-3" aria-label="Subscription plan summary">
+                         {[
+                              { label: "Total plans", value: plans.length, detail: "Configured tiers" },
+                              { label: "Active plans", value: activePlans, detail: "Available to facilities" },
+                              { label: "Pending upgrades", value: requests.length, detail: "Awaiting a decision" },
+                         ].map(metric => <div className="col-12 col-md-4" key={metric.label}>
+                              <article className="border rounded p-3 bg-white shadow-none h-100">
+                                   <p className="small text-muted mb-1">{metric.label}</p>
+                                   <p className="h3 fw-semibold mb-1">{metric.value.toLocaleString()}</p>
+                                   <p className="small text-muted mb-0">{metric.detail}</p>
+                              </article>
+                         </div>)}
+                    </div>
+
+                    <section className="border rounded p-3 mb-3 bg-white shadow-none" aria-labelledby="plans-heading">
+                         <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-3">
+                              <div>
+                                   <h2 id="plans-heading" className="h5 mb-1">Plan catalog</h2>
+                                   <p className="small text-muted mb-0">{visiblePlans.length} of {plans.length} plans shown</p>
+                              </div>
+                              <div className="col-12 col-md-5 col-lg-4">
+                                   <label htmlFor="plan-search" className="form-label">Search plans</label>
+                                   <input id="plan-search" type="search" className="form-control" value={planSearch}
+                                        onChange={event => setPlanSearch(event.target.value)} placeholder="Name, code, module" />
+                              </div>
+                         </div>
                          <div className="table-responsive">
-                              <table className="table mb-0 align-middle">
-                                   <thead><tr><th>Rank</th><th>Plan</th><th>Price / month</th><th>Modules</th><th>Branches</th><th>Status</th><th /></tr></thead>
+                              <table className="table table-hover mb-0 align-middle">
+                                   <thead><tr><th scope="col">Plan</th><th scope="col">Monthly price</th><th scope="col">Included modules</th><th scope="col">Branches</th><th scope="col">Actions</th></tr></thead>
                                    <tbody>
-                                        {plans.map(plan => <tr key={plan.code}>
-                                             <td>{plan.rank}</td>
-                                             <td><strong>{plan.name}</strong><div className="small text-muted">{plan.code}</div></td>
-                                             <td>{plan.currency} {plan.monthlyPrice}</td>
-                                             <td>{plan.modules.map(item => MODULE_LABELS[item] || item).join(", ")}</td>
-                                             <td className="text-capitalize">{plan.branchMode}</td>
-                                             <td><span className={`badge ${plan.active ? "bg-success" : "bg-secondary"}`}>{plan.active ? "Active" : "Inactive"}</span></td>
-                                             <td><button type="button" className="btn btn-sm btn-outline-primary" onClick={() => edit(plan)}>Edit</button></td>
+                                        {visiblePlans.map(plan => <tr key={plan.code}>
+                                             <td><strong>{plan.name}</strong><div className="small text-muted">{plan.code}</div>
+                                                  <div className="d-flex flex-wrap gap-1 mt-1">
+                                                       <span className={`badge ${plan.active ? "bg-success" : "bg-secondary"}`}>{plan.active ? "Active" : "Inactive"}</span>
+                                                       <span className="badge bg-light text-dark border">Tier {plan.rank}</span>
+                                                  </div>
+                                                  {plan.description && <div className="small text-muted mt-1">{plan.description}</div>}</td>
+                                             <td className="text-nowrap fw-semibold">{plan.currency} {plan.monthlyPrice}<span className="small text-muted fw-normal"> / month</span></td>
+                                             <td><div className="d-flex flex-wrap gap-1">{plan.modules.map(item =>
+                                                  <span key={item} className="badge bg-light text-dark border">{MODULE_LABELS[item] || item}</span>)}</div></td>
+                                             <td className="text-nowrap"><span className="badge bg-light text-dark border">{plan.branchMode === "multiple" ? "Multiple branches" : "Single branch"}</span></td>
+                                             <td><button type="button" className="btn btn-sm btn-primary" disabled={busy} onClick={() => edit(plan)}>Edit</button></td>
                                         </tr>)}
-                                        {!plans.length && <tr><td colSpan={7} className="text-muted">No plans yet.</td></tr>}
+                                        {!visiblePlans.length && <tr><td colSpan={5} className="text-center text-muted py-4">
+                                             {plans.length ? "No plans match your search." : "No plans yet. Create a plan to define your first facility tier."}
+                                        </td></tr>}
                                    </tbody>
                               </table>
                          </div>
                     </section>
 
-                    <section className="card border-0 shadow-sm mb-3" aria-label="Plan editor">
-                         <form className="card-body" onSubmit={save}>
-                              <h2 className="h6">{isNew ? "Create plan" : `Edit ${draft.name || draft.code}`}</h2>
+                    <section id="plan-editor" className="border rounded mb-3 bg-white shadow-none" aria-labelledby="plan-editor-heading">
+                         <div className="border-bottom p-3">
+                              <h2 id="plan-editor-heading" className="h5 mb-1">{isNew ? "Create a plan" : `Edit ${draft.name || draft.code}`}</h2>
+                              <p className="small text-muted mb-0">Set pricing, included features, and facility capacity for this tier.</p>
+                         </div>
+                         <form className="p-3" onSubmit={save}>
                               <div className="row g-3">
-                                   <div className="col-md-3"><label htmlFor="plan-code" className="form-label">Code</label>
-                                        <input id="plan-code" className="form-control" value={draft.code} disabled={!isNew} onChange={event => setDraft({ ...draft, code: event.target.value })} /></div>
-                                   <div className="col-md-5"><label htmlFor="plan-name" className="form-label">Name</label>
-                                        <input id="plan-name" className="form-control" value={draft.name} maxLength={60} onChange={event => setDraft({ ...draft, name: event.target.value })} /></div>
-                                   <div className="col-md-2"><label htmlFor="plan-currency" className="form-label">Currency</label>
-                                        <input id="plan-currency" className="form-control text-uppercase" value={draft.currency} maxLength={3} onChange={event => setDraft({ ...draft, currency: event.target.value.toUpperCase() })} /></div>
-                                   <div className="col-md-2"><label htmlFor="plan-price" className="form-label">Monthly price</label>
-                                        <input id="plan-price" className="form-control" inputMode="decimal" value={draft.monthlyPrice} onChange={event => setDraft({ ...draft, monthlyPrice: event.target.value })} /></div>
+                                   <div className="col-12 col-md-3"><label htmlFor="plan-code" className="form-label">Plan code</label>
+                                        <input id="plan-code" className="form-control" value={draft.code} disabled={!isNew} maxLength={32} required
+                                             pattern="[a-z][a-z0-9_-]{1,31}" title="Use 2-32 lowercase letters, numbers, hyphens, or underscores; start with a letter."
+                                             onChange={event => setDraft({ ...draft, code: event.target.value.toLowerCase() })} /></div>
+                                   <div className="col-12 col-md-5"><label htmlFor="plan-name" className="form-label">Plan name</label>
+                                        <input id="plan-name" className="form-control" value={draft.name} maxLength={60} required
+                                             onChange={event => setDraft({ ...draft, name: event.target.value })} /></div>
+                                   <div className="col-6 col-md-2"><label htmlFor="plan-currency" className="form-label">Currency</label>
+                                        <input id="plan-currency" className="form-control text-uppercase" value={draft.currency} maxLength={3} minLength={3} required pattern="[A-Za-z]{3}"
+                                             onChange={event => setDraft({ ...draft, currency: event.target.value.toUpperCase() })} /></div>
+                                   <div className="col-6 col-md-2"><label htmlFor="plan-price" className="form-label">Monthly price</label>
+                                        <input id="plan-price" className="form-control" inputMode="decimal" value={draft.monthlyPrice} required
+                                             pattern="(?:0|[1-9]\d{0,9})(?:\.\d{1,2})?" title="Enter a nonnegative amount with up to two decimal places."
+                                             onChange={event => setDraft({ ...draft, monthlyPrice: event.target.value })} /></div>
                                    <div className="col-12"><label htmlFor="plan-description" className="form-label">Description</label>
-                                        <input id="plan-description" className="form-control" value={draft.description} maxLength={300} onChange={event => setDraft({ ...draft, description: event.target.value })} /></div>
-                                   <div className="col-md-3"><label htmlFor="plan-rank" className="form-label">Tier rank</label>
-                                        <input id="plan-rank" type="number" min={0} className="form-control" value={draft.rank} onChange={event => setDraft({ ...draft, rank: Number(event.target.value) })} /></div>
-                                   <div className="col-md-3"><label htmlFor="plan-branch" className="form-label">Branch mode</label>
+                                        <textarea id="plan-description" className="form-control" rows={2} value={draft.description} maxLength={300}
+                                             onChange={event => setDraft({ ...draft, description: event.target.value })} /></div>
+                                   <div className="col-6 col-md-3"><label htmlFor="plan-rank" className="form-label">Tier rank</label>
+                                        <input id="plan-rank" type="number" min={0} step={1} className="form-control" value={draft.rank}
+                                             onChange={event => setDraft({ ...draft, rank: Number(event.target.value) })} /></div>
+                                   <div className="col-6 col-md-3"><label htmlFor="plan-branch" className="form-label">Branch access</label>
                                         <select id="plan-branch" className="form-select" value={draft.branchMode} onChange={event => setDraft({ ...draft, branchMode: event.target.value as "single" | "multiple" })}>
                                              <option value="single">Single branch</option><option value="multiple">Multiple branches</option></select></div>
-                                   <div className="col-md-3 d-flex align-items-end"><div className="form-check">
+                                   <div className="col-12 col-md-6 d-flex align-items-end"><div className="form-check form-switch mb-2">
                                         <input id="plan-active" type="checkbox" className="form-check-input" checked={draft.active} onChange={event => setDraft({ ...draft, active: event.target.checked })} />
-                                        <label htmlFor="plan-active" className="form-check-label">Active (offered to facilities)</label></div></div>
-                                   <div className="col-12"><div className="form-label">Included modules</div>
-                                        <div className="d-flex flex-wrap gap-3">{MODULE_NAMES.map(moduleName => <div className="form-check" key={moduleName}>
-                                             <input id={`plan-module-${moduleName}`} type="checkbox" className="form-check-input" checked={draft.modules.includes(moduleName)} onChange={() => toggleModule(moduleName)} />
-                                             <label htmlFor={`plan-module-${moduleName}`} className="form-check-label">{MODULE_LABELS[moduleName]}</label></div>)}</div></div>
+                                        <label htmlFor="plan-active" className="form-check-label">Offer this plan to facilities</label></div></div>
+                                   <div className="col-12">
+                                        <fieldset className="border rounded p-3">
+                                             <legend className="float-none w-auto px-2 fs-6 mb-0">Included modules</legend>
+                                             <div className="row g-2">{MODULE_NAMES.map(moduleName => <div className="col-12 col-sm-6 col-lg-4" key={moduleName}>
+                                                  <label htmlFor={`plan-module-${moduleName}`} className="d-flex align-items-center gap-2 border rounded p-2 h-100">
+                                                       <input id={`plan-module-${moduleName}`} type="checkbox" className="form-check-input mt-0 flex-shrink-0"
+                                                            checked={draft.modules.includes(moduleName)} onChange={() => toggleModule(moduleName)} />
+                                                       <span>{MODULE_LABELS[moduleName]}</span>
+                                                  </label>
+                                             </div>)}</div>
+                                        </fieldset>
+                                   </div>
                               </div>
-                              <div className="mt-3 d-flex gap-2">
-                                   <button type="submit" className="btn btn-primary" disabled={busy}>{busy ? "Saving..." : "Save plan"}</button>
-                                   {!isNew && <button type="button" className="btn btn-outline-secondary" onClick={() => { setDraft(blankPlan()); setIsNew(true); }}>New plan</button>}
+                              <div className="mt-3 d-flex flex-wrap gap-2">
+                                   <button type="submit" className="btn btn-primary" disabled={busy}>{busy ? "Saving..." : isNew ? "Create plan" : "Save changes"}</button>
+                                   {!isNew && <button type="button" className="btn btn-secondary" disabled={busy} onClick={() => { setDraft(blankPlan()); setIsNew(true); }}>Cancel editing</button>}
                               </div>
                          </form>
                     </section>
 
-                    <section className="card border-0 shadow-sm" aria-label="Pending upgrade requests">
-                         <div className="card-body">
-                              <h2 className="h6">Pending upgrade requests</h2>
-                              {!requests.length ? <p className="text-muted mb-0">No pending requests.</p> : <ul className="list-group list-group-flush">
-                                   {requests.map(request => <li key={request.id} className="list-group-item d-flex justify-content-between align-items-center gap-2">
-                                        <span>{request.organizationName || `Facility ${request.tenantId}`}: {request.fromPlanCode || "custom"} &rarr; <strong>{request.toPlanCode}</strong>
-                                             <span className="small text-muted ms-2">{request.requestedByEmail || ""} {new Date(request.requestedAt).toLocaleString()}</span></span>
-                                        <span className="d-flex gap-2">
-                                             <button type="button" className="btn btn-sm btn-success" disabled={busy} onClick={() => void decide(request, true)}>Approve</button>
-                                             <button type="button" className="btn btn-sm btn-outline-danger" disabled={busy} onClick={() => void decide(request, false)}>Reject</button>
-                                        </span>
-                                   </li>)}
-                              </ul>}
+                    <section className="border rounded p-3 bg-white shadow-none" aria-labelledby="upgrade-requests-heading">
+                         <div className="d-flex justify-content-between align-items-center gap-2 mb-3">
+                              <div>
+                                   <h2 id="upgrade-requests-heading" className="h5 mb-1">Pending upgrade requests</h2>
+                                   <p className="small text-muted mb-0">Review facility requests to move to a higher tier.</p>
+                              </div>
+                              <span className="badge bg-warning text-dark">{requests.length} pending</span>
                          </div>
+                         {!requests.length ? <p className="text-muted mb-0">There are no upgrade requests waiting for review.</p> : <ul className="list-unstyled d-grid gap-2 mb-0">
+                              {requests.map(request => <li key={request.id} className="border rounded p-3 d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                                   <div>
+                                        <strong>{request.organizationName || `Facility ${request.tenantId}`}</strong>
+                                        <div className="small mt-1">{request.fromPlanCode || "Custom"} <span className="text-muted" aria-hidden="true">→</span> <strong>{request.toPlanCode}</strong></div>
+                                        <div className="small text-muted mt-1">{request.requestedByEmail || "Requester unavailable"} · {new Date(request.requestedAt).toLocaleString()}</div>
+                                   </div>
+                                   <div className="d-flex gap-2 flex-shrink-0">
+                                        <button type="button" className="btn btn-sm btn-success" disabled={busy} onClick={() => void decide(request, true)}>Approve</button>
+                                        <button type="button" className="btn btn-sm btn-danger" disabled={busy} onClick={() => void decide(request, false)}>Reject</button>
+                                   </div>
+                              </li>)}
+                         </ul>}
                     </section>
                </>}
           </main>

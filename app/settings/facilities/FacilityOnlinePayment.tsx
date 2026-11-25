@@ -64,7 +64,7 @@ export default function FacilityOnlinePayment({ facility }: { facility: ManagedF
 
      if (!["active", "suspended"].includes(facility.status) || facility.isControlTenant) return null;
      return (
-          <section className="border-top pt-3 mt-4" aria-busy={busy}>
+          <section className="border rounded p-3 mt-4 bg-white shadow-none" aria-busy={busy}>
                <h3 className="h6 fw-semibold">Pay online</h3>
                {error && <div className="alert alert-danger" role="alert">{error}</div>}
                {notice && <div className="alert alert-success" role="status">{notice}</div>}
