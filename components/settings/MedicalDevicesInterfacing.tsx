@@ -6,6 +6,7 @@ import { Alert, Button, Form, Modal, Table } from "react-bootstrap";
 import { RiAddLine, RiCheckLine, RiCloseCircleLine, RiDeleteBin6Line, RiEditLine, RiPulseLine } from "@remixicon/react";
 import { toast } from "react-toastify";
 import { customFetch, customPost, customFetchMutation } from "../Auth/customFetch";
+import metricStyles from "../analytics/patients-analytics/components/Dashboards.module.css";
 
 interface MedicalDevice {
      id?: number;
@@ -246,10 +247,17 @@ export default function MedicalDevicesInterfacing({ endpoint = "devices/interfac
 
           return { total, active, inactive };
      }, [devices]);
+     const metrics = [
+          { title: "Total devices", value: summary.total, subtitle: "Registered configurations", tone: "blue", variant: "primary", share: summary.total > 0 ? 100 : 0, Icon: RiPulseLine },
+          { title: "Active", value: summary.active, subtitle: "Marked active in configuration", tone: "green", variant: "success", share: summary.total ? Math.round(summary.active / summary.total * 100) : 0, Icon: RiCheckLine },
+          { title: "Inactive", value: summary.inactive, subtitle: "Marked inactive in configuration", tone: "orange", variant: "secondary", share: summary.total ? Math.round(summary.inactive / summary.total * 100) : 0, Icon: RiCloseCircleLine },
+     ] as const;
 
      return (
           <div className="container-fluid py-3">
-               <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+               <div className={platform
+                    ? "d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3 border rounded p-3 bg-white shadow-none"
+                    : "d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3"}>
                     <div>
                          <h4 className="mb-1 fw-bold">Medical Device Interfacing</h4>
                          <small className="text-muted">Manage external devices, ports, connection mode, and connectivity status.</small>
@@ -260,12 +268,21 @@ export default function MedicalDevicesInterfacing({ endpoint = "devices/interfac
                     </Button>
                </div>
 
-               <div className="row g-3 mb-3" aria-label="Device summary" aria-busy={loading}>
-                    {[
-                         { title: "Total devices", value: summary.total, subtitle: "Registered configurations", variant: "primary", Icon: RiPulseLine },
-                         { title: "Active", value: summary.active, subtitle: "Marked active in configuration", variant: "success", Icon: RiCheckLine },
-                         { title: "Inactive", value: summary.inactive, subtitle: "Marked inactive in configuration", variant: "secondary", Icon: RiCloseCircleLine },
-                    ].map(({ title, value, subtitle, variant, Icon }) => (
+               <div className={platform ? metricStyles.summaryGrid : "row g-3 mb-3"} aria-label="Device summary" aria-busy={loading}>
+                    {platform ? metrics.map(({ title, value, subtitle, tone, share, Icon }) => (
+                         <article className={`${metricStyles.metricCard} ${metricStyles.flatMetricCard}`} data-tone={tone} key={title}>
+                              <div className={metricStyles.metricTop}>
+                                   <span className={metricStyles.metricIcon}><Icon size={21} aria-hidden="true" /></span>
+                                   <span className={metricStyles.metricLabel}>{title}</span>
+                              </div>
+                              <div className={metricStyles.metricValue}>{loading ? "Loading…" : error ? "Unavailable" : value.toLocaleString()}</div>
+                              <div className={metricStyles.metricDetail}>{subtitle}</div>
+                              <div className={metricStyles.progressTrack} role="progressbar" aria-label={`${title} share of devices`}
+                                   aria-valuemin={0} aria-valuemax={100} aria-valuenow={share}>
+                                   <span style={{ width: `${share}%` }} />
+                              </div>
+                         </article>
+                    )) : metrics.map(({ title, value, subtitle, variant, Icon }) => (
                          <div className="col-12 col-sm-6 col-xl-4" key={title}>
                               <div className={`card border-0 shadow-sm bg-${variant} bg-gradient text-white rounded-3 h-100`}>
                                    <div className="card-body p-3">
@@ -283,7 +300,7 @@ export default function MedicalDevicesInterfacing({ endpoint = "devices/interfac
 
                {error && <Alert variant="danger" role="alert">{error}</Alert>}
 
-               <section className="mb-4" aria-labelledby="device-configuration-heading">
+               <section className={platform ? "border rounded p-3 mt-3 mb-4 bg-white shadow-none" : "mb-4"} aria-labelledby="device-configuration-heading">
                     <h5 id="device-configuration-heading" className="h6 border-bottom pb-2 mb-3 fw-semibold">
                          <RiPulseLine className="me-2" size={18} aria-hidden="true" />
                          {isEditing ? "Edit Device Configuration" : "Create Device Configuration"}
@@ -406,7 +423,7 @@ export default function MedicalDevicesInterfacing({ endpoint = "devices/interfac
                     </div>
                </section>
 
-               <section aria-labelledby="registered-devices-heading">
+               <section className={platform ? "border rounded mt-3 p-3 bg-white shadow-none" : undefined} aria-labelledby="registered-devices-heading">
                     <h5 id="registered-devices-heading" className="h6 border-bottom pb-2 mb-3 fw-semibold">Registered Devices</h5>
                     <div>
                          {loading ? (
@@ -505,7 +522,7 @@ export default function MedicalDevicesInterfacing({ endpoint = "devices/interfac
                     </div>
                </section>
 
-               <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
+               <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered contentClassName={platform ? "bg-white border shadow-none" : undefined}>
                     <Modal.Header closeButton>
                          <Modal.Title>Delete Device</Modal.Title>
                     </Modal.Header>

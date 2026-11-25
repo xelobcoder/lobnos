@@ -102,7 +102,7 @@ export default function FacilitySmsProvider({ facility }: { facility: ManagedFac
           }
      };
 
-     return <section className="border rounded bg-white p-3 mt-3" aria-label="SMS configuration">
+     return <section className="border rounded bg-white p-3 mt-3 shadow-none" aria-label="SMS configuration">
           <div className="d-flex justify-content-between gap-2">
                <h2 className="h5">Arkesel SMS account</h2>
                <button type="button" className="btn btn-sm btn-outline-secondary" disabled={loading || busy} onClick={() => setRefresh(value => value + 1)}>Reload configuration</button>

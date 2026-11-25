@@ -5,7 +5,7 @@ import styles from '../../../../components/operations/ClinicalWorkspace.module.c
 export default function LaboratoryTestPanelLayout({ children }: { children: React.ReactNode }) {
     return (
         <section className={ui.workspace}>
-            <header className={ui.header}>
+            <header className={`${ui.header} bg-white border rounded p-3 shadow-none`}>
                 <div className={ui.heading}>
                     <span className={ui.icon}><RiTestTubeLine size={24} /></span>
                     <div>

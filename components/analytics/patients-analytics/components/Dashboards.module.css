@@ -61,6 +61,12 @@
 	gap: 16px;
 }
 
+.summaryGrid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 16px;
+}
+
 .metricCard {
 	position: relative;
 	display: flex;
@@ -90,6 +96,16 @@
 	transform: translateY(-2px);
 	border-color: color-mix(in srgb, var(--metric-color, #3679bc) 30%, #e2e8f0);
 	box-shadow: 0 12px 28px rgba(28, 54, 82, 0.09);
+}
+
+.metricCard.flatMetricCard,
+.metricCard.flatMetricCard:hover {
+	box-shadow: none;
+	transform: none;
+}
+
+.metricCard.flatMetricCard {
+	transition: none;
 }
 
 .metricCard[data-tone="blue"] {
@@ -293,6 +309,10 @@
 	.grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
+
+	.summaryGrid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
 }
 
 @media (max-width: 575px) {
@@ -307,6 +327,10 @@
 	}
 
 	.grid {
+		gap: 12px;
+	}
+
+	.summaryGrid {
 		gap: 12px;
 	}
 
@@ -334,6 +358,10 @@
 
 @media (max-width: 380px) {
 	.grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.summaryGrid {
 		grid-template-columns: minmax(0, 1fr);
 	}
 

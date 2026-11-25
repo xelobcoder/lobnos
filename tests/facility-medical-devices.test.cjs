@@ -69,6 +69,7 @@ function harness(api, props) {
           }) };
           if (name === "@remixicon/react") return new Proxy({}, { get: (_, key) => key });
           if (name === "react-toastify") return { toast: { success: message => notices.push(message), error: message => notices.push(message) } };
+          if (name.endsWith("Dashboards.module.css")) return new Proxy({}, { get: (_, key) => String(key) });
           if (name.includes("customFetch")) return api;
           throw new Error(name);
      }).default;

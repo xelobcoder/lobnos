@@ -8,10 +8,11 @@ import type { ManagedFacility } from "./FacilityManagement";
 const normalizeRole = (role: unknown) => String(role || "").toLowerCase().replace(/[\s_-]/g, "");
 
 // Super-admin gate, facility list and selection shared by the payments and audit subpages.
-export default function FacilityPicker({ title, description, children }: {
+export default function FacilityPicker({ title, description, children, panelled = false }: {
      title: string;
      description: string;
      children: (facility: ManagedFacility, onStatusChange: (tenantId: number, status: string) => void) => ReactNode;
+     panelled?: boolean;
 }) {
      const application = useApplication();
      const isSuperAdmin = normalizeRole(application?.user?.role) === "superadmin";
@@ -53,19 +54,23 @@ export default function FacilityPicker({ title, description, children }: {
      const facility = facilities.find((item) => item.tenantId === selected);
      return (
           <main className="p-2">
-               <h1 className="h4 fw-semibold mb-1">Client platform</h1>
-               <p className="text-muted small">{description}</p>
-               <h2 className="h5 fw-semibold">{title}</h2>
+               <header className={panelled ? "border rounded p-3 mb-3 bg-white shadow-none" : undefined}>
+                    <h1 className="h4 fw-semibold mb-1">Client platform</h1>
+                    <p className="text-muted small mb-2">{description}</p>
+                    <h2 className="h5 fw-semibold mb-0">{title}</h2>
+               </header>
                {error && <div className="alert alert-danger d-flex justify-content-between gap-2" role="alert"><span>{error}</span><button type="button" className="btn btn-sm btn-outline-danger" onClick={() => void load()}>Retry</button></div>}
                {loading && <p role="status">Loading facilities...</p>}
-               <div className="row g-2 mb-3">
-                    <div className="col-md-5"><label htmlFor="facility-picker-search" className="form-label">Search facilities</label><input id="facility-picker-search" type="search" className="form-control" placeholder="Name, organization identifier or tenant ID" value={query} onChange={(event) => setQuery(event.target.value)} /></div>
-                    <div className="col-md-7"><label htmlFor="facility-picker" className="form-label">Facility</label>
-                         <select id="facility-picker" className="form-select" value={selected ?? ""} disabled={loading} onChange={(event) => setSelected(event.target.value ? Number(event.target.value) : null)}>
-                              <option value="">{visible.length ? "Select a facility" : "No matching facilities"}</option>
-                              {visible.map((item) => <option key={item.tenantId} value={item.tenantId}>{item.name} ({item.platformId}) - {item.status}</option>)}
-                         </select></div>
-               </div>
+               <section className={panelled ? "border rounded p-3 mb-3 bg-white shadow-none" : undefined} aria-label="Facility selection">
+                    <div className="row g-2">
+                         <div className="col-md-5"><label htmlFor="facility-picker-search" className="form-label">Search facilities</label><input id="facility-picker-search" type="search" className="form-control" placeholder="Name, organization identifier or tenant ID" value={query} onChange={(event) => setQuery(event.target.value)} /></div>
+                         <div className="col-md-7"><label htmlFor="facility-picker" className="form-label">Facility</label>
+                              <select id="facility-picker" className="form-select" value={selected ?? ""} disabled={loading} onChange={(event) => setSelected(event.target.value ? Number(event.target.value) : null)}>
+                                   <option value="">{visible.length ? "Select a facility" : "No matching facilities"}</option>
+                                   {visible.map((item) => <option key={item.tenantId} value={item.tenantId}>{item.name} ({item.platformId}) - {item.status}</option>)}
+                              </select></div>
+                    </div>
+               </section>
                {facility
                     ? <div key={facility.tenantId}>{children(facility, (tenantId, status) => setFacilities((current) => current.map((item) => item.tenantId === tenantId ? { ...item, status } : item)))}</div>
                     : !loading && <p className="text-muted">Select a facility to continue.</p>}

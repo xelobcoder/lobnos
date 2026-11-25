@@ -4,9 +4,9 @@ import FacilityPicker from "../FacilityPicker";
 import MedicalDevicesInterfacing from "../../../../components/settings/MedicalDevicesInterfacing";
 
 export default function FacilityMedicalDevicesPage() {
-     return <FacilityPicker title="Medical Device Interfacing" description="Select a facility to manage its medical analyzer devices and connection settings.">
+     return <FacilityPicker panelled title="Medical Device Interfacing" description="Select a facility to manage its medical analyzer devices and connection settings.">
           {(facility) => <section aria-labelledby="facility-devices-heading" aria-describedby="facility-devices-description" className="text-start">
-               <header className="border-bottom pb-3 mb-3">
+               <header className="border rounded p-3 mb-3 bg-white shadow-none">
                     <div className="row g-3 align-items-center">
                          <div className="col-12 col-lg-6">
                               <p className="small text-muted mb-1">Selected facility</p>
