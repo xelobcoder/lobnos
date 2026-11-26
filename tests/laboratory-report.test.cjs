@@ -86,6 +86,20 @@ test('laboratory report rendering never mounts ultrasound report content for the
     const multiple = fs.readFileSync(path.join(root, 'app/result/lab-report-multiple/page.tsx'), 'utf8');
     assert.doesNotMatch(multiple, /ResultViewHtmlGeneratorUltrasound/);
 });
+test('daily-request test printing opens the single-result report with facility-resolved header settings', () => {
+    const dailyRequest = fs.readFileSync(path.join(root, 'app/operations/laboratory/main/dailyRequest/page.tsx'), 'utf8');
+    const start = dailyRequest.indexOf('const handlePrintSingleResult');
+    const end = dailyRequest.indexOf('const handlePrintReadyResults', start);
+    assert.ok(start >= 0 && end > start);
+    const singlePrintHandler = dailyRequest.slice(start, end);
+    assert.match(singlePrintHandler, /\/result\/labreport\/4/);
+    assert.match(singlePrintHandler, /isMultiple:\s*'false'/);
+    assert.doesNotMatch(singlePrintHandler, /lab-report-multiple/);
+
+    const reportPage = fs.readFileSync(path.join(root, 'app/result/labreport/4/page.tsx'), 'utf8');
+    assert.match(reportPage, /resolveReportSettings\(resultSettings\)/);
+    assert.match(reportPage, /resultsettings=\{resolvedResultSettings\}/);
+});
 test('canonical report retains facility, patient, panel/category, values, units, ranges, flags and actual validators', () => {
     const html = render(fixture);
     for (const text of ['Example', 'Laboratory', 'Facility address', 'P021', 'Ama', 'Haematology report',

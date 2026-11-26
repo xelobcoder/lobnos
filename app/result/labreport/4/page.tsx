@@ -20,7 +20,7 @@ import { defaultResultSettings, ResultSettings } from '../../../../components/Re
 import ResultViewHtmlGeneratorUltrasound from '../../../../components/Auth/ResultViewHtmlGeneratorUltrasound';
 import DrugsList from '../../../../components/Drugs/DrugsList';
 import Watermark from '../../../../components/ResultView/Watermark';
-import LaboratoryReport from '../../../../components/ResultView/LaboratoryReport';
+import LaboratoryReport, { resolveReportSettings } from '../../../../components/ResultView/LaboratoryReport';
 import { createLaboratoryReportPdf, laboratoryReportFilename } from '../../../../lib/laboratoryReportPdf';
 
 const MDSLancetTemplate: React.FC = () => {
@@ -35,6 +35,7 @@ const MDSLancetTemplate: React.FC = () => {
     const [loader, setLoader] = useState(false);
     const [resultdata, setResultData] = useState<any>(null);
     const [resultSettings, setResultSettings] = useState<ResultSettings>(defaultResultSettings);
+    const resolvedResultSettings = resolveReportSettings(resultSettings);
     const [pdfUrl, setPdfUrl] = useState<{ url: string; filename: string } | null>(null);
     const [showPdf, setShowPdf] = useState(false);
     const [showPdfControls, setShowPdfControls] = useState(false);
@@ -422,23 +423,23 @@ const MDSLancetTemplate: React.FC = () => {
             {!showPdfControls && (
                 <div style={{ position: 'relative', width: '100%', height: '100vh', backgroundColor: 'white' }}>
                     <div className={styles.page} style={{
-                        ['--font-family' as any]: resultSettings.fontfamily,
+                        ['--font-family' as any]: resolvedResultSettings.fontfamily,
                         minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'white',
 
                     }}>
                         {!isScan ? <LaboratoryReport data={{ ...resultdata, ascensionid: Number(ascensionid) }}
-                            settings={resultSettings} billingPrefix={prefixText} showWatermark={showWatermark} framed={false} />
+                            settings={resolvedResultSettings} billingPrefix={prefixText} showWatermark={showWatermark} framed={false} />
                         : <div className='result' style={{ position: 'relative' }}>
                             <MdsCompanyInformation
                                 styles={styles}
                                 logourl={resultdata.logourl}
-                                resultsettings={resultSettings}
+                                resultsettings={resolvedResultSettings}
                                 companyInfo={resultdata.companyInfo}
                             />
                             <div className={`${styles.reportTitleBar}`}
                                 style={{
-                                    ['--bg-color' as any]: resultSettings.mainReportHeaderBgColor,
-                                    color: resultSettings.mainReportHeaderColor
+                                    ['--bg-color' as any]: resolvedResultSettings.mainReportHeaderBgColor,
+                                    color: resolvedResultSettings.mainReportHeaderColor
                                 }}>
                                 {isScan ? 'ULTRASOUND REPORT ' : 'MEDICAL LABORATORY REPORT'}
                             </div>
@@ -449,7 +450,7 @@ const MDSLancetTemplate: React.FC = () => {
                                 labRef={`${prefixText}${resultdata.samplingInformation?.billingid || billingid}(${resultdata.samplingInformation?.id})`}
                                 collectionDate={!isScan ? resultdata.samplingInformation?.collectionEndDate : ''}
                                 finalReportDate={resultdata.samplingInformation?.resultEntryEnd}
-                                resultsettings={resultSettings}
+                                resultsettings={resolvedResultSettings}
                             />
                             <div style={{ width: '100%', margin: '0', position: 'relative' }}>
                                 {showWatermark && resultdata?.companyInfo?.name && (
@@ -467,7 +468,7 @@ const MDSLancetTemplate: React.FC = () => {
                                         testInfo={resultdata?.testInfo}
                                         testdetailcategory={resultdata.testdetailcategory}
                                     />}
-                                    {isScan && <ResultViewHtmlGeneratorUltrasound resultsettings={resultdata.resultsettings}
+                                    {isScan && <ResultViewHtmlGeneratorUltrasound resultsettings={resolvedResultSettings}
                                         test={isReplaceUltrasoundTestname ? ultrasoundTestname : (resultdata?.testInfo?.reportitle || test)}
                                         testInfo={resultdata?.testInfo}
                                         resultentry={resultdata?.resultentry}
@@ -478,11 +479,11 @@ const MDSLancetTemplate: React.FC = () => {
                                     {resultdata.hasDrugs && Array.isArray(resultdata.drugList) && resultdata.drugList.length > 0 && <DrugsList hadDrugs={resultdata.hasDrugs} drugList={resultdata.drugList} />}
                                     {!isScan && (<>
                                         <UseClinicalLiteratureReview literature={resultdata?.literatureReview} />
-                            <UseResultCommentSinglePreview comments={resultdata?.comments} resultsettings={resultSettings} />
+                            <UseResultCommentSinglePreview comments={resultdata?.comments} resultsettings={resolvedResultSettings} />
                                     </>)}
                                 </section>
                                 <section>
-                                    {!isScan && resultSettings.useIndividualValidations && !resultSettings.useGeneraralValidation &&
+                                    {!isScan && resolvedResultSettings.useIndividualValidations && !resolvedResultSettings.useGeneraralValidation &&
                                         <div style={{ pageBreakInside: 'avoid' }}>
                                             <UseResultEntryScientist
                                                 lastupdatedon={resultdata?.lastupdatedon}
@@ -491,37 +492,37 @@ const MDSLancetTemplate: React.FC = () => {
                                                 enteredOn={resultdata?.enteredOn}
                                                 ascensionid={ascensionid}
                                                 billingid={resultdata?.billingid}
-                                                resultsettings={resultSettings}
+                                                resultsettings={resolvedResultSettings}
                                                 patientid={resultdata?.patientInformation?.patientid}
-                                                useIndividualValidation={resultSettings.useIndividualValidations}
+                                                useIndividualValidation={resolvedResultSettings.useIndividualValidations}
                                             />
                                         </div>}
-                                    {!isScan && resultSettings.showMethod && resultdata.testInfo && resultdata.testInfo.method && (
+                                    {!isScan && resolvedResultSettings.showMethod && resultdata.testInfo && resultdata.testInfo.method && (
                                         <div className='d-flex '>
                                             <div className='fw-bold'>Method: </div>
                                             <p className='mx-1'>{resultdata.testInfo.method}</p>
                                         </div>
                                     )}
-                                    {!isScan && resultSettings.showMethod && resultdata.testInfo && resultdata.testInfo.instrumentation && (
+                                    {!isScan && resolvedResultSettings.showMethod && resultdata.testInfo && resultdata.testInfo.instrumentation && (
                                         <div className='d-flex '>
                                             <div className='fw-bold'>Instrumentation: </div>
                                             <p className='mx-1'>{resultdata.testInfo.instrumentation}</p>
                                         </div>
                                     )}
-                                    {resultSettings?.useGeneraralValidation && resultdata.generalValidation && (
+                                    {resolvedResultSettings?.useGeneraralValidation && resultdata.generalValidation && (
                                         <div className="d-flex" style={{ justifyContent: 'center', marginTop: 8 }}>
                                             <div className="text-uppercase">Verified By:</div>
                                             <div className="mx-2">{resultdata.generalValidation.username}</div>
                                         </div>
                                     )}
-                                    {(resultSettings?.useGeneraralValidation == false && resultdata.generalValidation) && (
+                                    {(resolvedResultSettings?.useGeneraralValidation == false && resultdata.generalValidation) && (
                                         <div className="d-flex" style={{ justifyContent: 'center', marginTop: 8 }}>
                                             <div className="text-uppercase">Printed By:</div>
                                             <div className="mx-2">{resultdata.generalValidation.username}</div>
                                         </div>
                                     )}
                                     <span className="text-muted d-flex justify-content-center text-sm">******End of Report ******</span>
-                                    {!isScan && resultSettings.includeLimitations && <UseDisclaimer disclaimer={resultSettings.limitations} />}
+                                    {!isScan && resolvedResultSettings.includeLimitations && <UseDisclaimer disclaimer={resolvedResultSettings.limitations} />}
                                     <div className="mt-5 pdf-hide-footer">
                                         <VersionFooter />
                                     </div>

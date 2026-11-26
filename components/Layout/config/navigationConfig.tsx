@@ -189,6 +189,11 @@ export const navigationConfig: NavigationCategory[] = [
                         link: "/analytics/resultanalysis/alltest"
                     },
                     {
+                        title: "Lab Scientist Performance",
+                        icon: <RiTestTubeLine size={18} />,
+                        link: "/analytics/resultanalysis/scientists"
+                    },
+                    {
                         title: "Test Value Distribution",
                         icon: <RiBarChartBoxLine size={18} />,
                         link: "/analytics/resultanalysis/fieldvalues/selector"

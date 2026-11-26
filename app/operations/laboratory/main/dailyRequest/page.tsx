@@ -15,6 +15,23 @@ interface ClientFolderItem {
      payment_status?: string;
 }
 
+interface TestStageItem {
+     name: string;
+     stage: string;
+     ascensionId: number | null;
+     testid: number | null;
+}
+
+const parseTestStageItem = (value: string): TestStageItem => {
+     const match = value.match(/^(.*)\s+\(([^)]+)\)(?:\s+\[(\d+):(\d+)\])?$/);
+     return {
+          name: match?.[1] || value,
+          stage: match?.[2] || 'unknown',
+          ascensionId: match?.[3] ? Number(match[3]) : null,
+          testid: match?.[4] ? Number(match[4]) : null,
+     };
+};
+
 export default function LaboratoryClientList() {
      const router = useRouter();
      const todayDate = new Date().toISOString().slice(0, 10);
@@ -28,6 +45,8 @@ export default function LaboratoryClientList() {
      const [error, setError] = React.useState<string>('');
      const [query, setQuery] = React.useState('');
      const [selectedClientKeys, setSelectedClientKeys] = React.useState<Set<string>>(new Set());
+     const [printingBillingIds, setPrintingBillingIds] = React.useState<Set<number>>(new Set());
+     const [printError, setPrintError] = React.useState('');
 
      const loadClients = async () => {
           if (!dateFrom && !dateTo && !filterCategory.value) {
@@ -134,7 +153,7 @@ export default function LaboratoryClientList() {
      const getStageTextClass = (stage: string) => {
           const normalized = (stage || '').trim().toLowerCase();
           if (normalized.includes('pending')) return 'text-warning';
-          if (normalized.includes('paid') || normalized.includes('completed') || normalized.includes('done') || normalized.includes('released')) return 'text-success';
+          if (normalized.includes('paid') || normalized.includes('completed') || normalized.includes('done') || normalized.includes('released') || normalized.includes('validated') || normalized.includes('ready for printing')) return 'text-success';
           if (normalized.includes('partial')) return 'text-info';
           if (normalized.includes('cancel') || normalized.includes('rejected') || normalized.includes('failed')) return 'text-danger';
           return 'text-muted';
@@ -162,7 +181,7 @@ export default function LaboratoryClientList() {
      };
 
      const parseBreakdown = (testsWithStage: string) => {
-          const counts = { processing: 0, completed: 0, collected: 0, validated: 0, released: 0, other: 0 };
+          const counts = { processing: 0, completed: 0, collected: 0, validated: 0, released: 0, printReady: 0, other: 0 };
           if (!testsWithStage) return counts;
 
           testsWithStage
@@ -170,12 +189,12 @@ export default function LaboratoryClientList() {
                .map((item) => item.trim())
                .filter(Boolean)
                .forEach((item) => {
-                    const match = item.match(/\(([^)]+)\)$/);
-                    const stage = (match?.[1] || '').trim().toLowerCase();
+                    const stage = parseTestStageItem(item).stage.trim().toLowerCase();
                     if (stage.includes('processing') || stage.includes('processed')) counts.processing += 1;
                     else if (stage.includes('collected')) counts.collected += 1;
-                    else if (stage.includes('validated') || stage.includes('approved')) counts.validated += 1;
-                    else if (stage.includes('released')) { counts.released += 1; counts.completed += 1; }
+                    else if (stage.includes('ready for printing')) { counts.validated += 1; counts.completed += 1; counts.printReady += 1; }
+                    else if (stage.includes('released')) { counts.released += 1; counts.validated += 1; counts.completed += 1; counts.printReady += 1; }
+                    else if (stage.includes('validated') || stage.includes('approved')) { counts.validated += 1; counts.completed += 1; }
                     else if (stage.includes('completed') || stage.includes('done')) counts.completed += 1;
                     else counts.other += 1;
                });
@@ -193,6 +212,98 @@ export default function LaboratoryClientList() {
           if (!patientid || !billingid) return;
           window.open(`/operations/laboratory/main/dailyRequest/visit?patientid=${patientid}&billingid=${billingid}&&isOpenSideBarShow=false`, '_blank');
      }
+
+     const buildPrintMultipleTokens = (billingid: number, patientid: number) => {
+          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+          let random = '';
+          for (let i = 0; i < 70; i += 1) {
+               random += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+          const csvid = `${random}${billingid}`;
+          const ptid = `${csvid.slice(25, 50)}${csvid.slice(0, 25)}${patientid}`;
+          return { csvid, ptid, target: '70,50' };
+     };
+
+     const handlePrintSingleResult = (client: ClientFolderItem, test: TestStageItem) => {
+          if (!test.ascensionId || !test.testid) {
+               setPrintError('This test is missing the identifiers needed to prepare its report.');
+               return;
+          }
+
+          const { csvid, ptid, target } = buildPrintMultipleTokens(client.billingid, client.patientid);
+          const params = new URLSearchParams({
+               csvid,
+               testid: String(test.testid),
+               testname: test.name,
+               ptid,
+               target,
+               ascensionId: String(test.ascensionId),
+               isMultiple: 'false',
+               isUltrasound: 'false',
+               is_password_encrypted: 'false',
+               password: 'false',
+          });
+          const reportUrl = `/result/labreport/4?${params.toString()}`;
+          const printWindow = window.open(reportUrl, 'LabReportView');
+          if (!printWindow) {
+               setPrintError('Allow pop-ups to open the result printout.');
+               return;
+          }
+          printWindow.focus();
+          setPrintError('');
+     };
+
+     const handlePrintReadyResults = async (client: ClientFolderItem) => {
+          const printWindow = window.open('about:blank', '_blank');
+          if (!printWindow) {
+               setPrintError('Allow pop-ups to open the result printout.');
+               return;
+          }
+          printWindow.opener = null;
+          setPrintError('');
+          setPrintingBillingIds((current) => new Set(current).add(client.billingid));
+
+          try {
+               const response = await customFetch(`operations/overview/folder/open/transaction?billingid=${encodeURIComponent(client.billingid)}`);
+               if (response?.statusCode !== 200 || !Array.isArray(response.result)) {
+                    throw new Error(response?.message || 'Could not load tests for printing.');
+               }
+
+               const baseItem = response.result.find((item: { ascension_id?: number; testid?: number }) =>
+                    Number(item?.ascension_id) > 0 && Number(item?.testid) > 0
+               );
+               if (!baseItem) {
+                    throw new Error('No test transactions are available to prepare the printout.');
+               }
+
+               const { csvid, ptid, target } = buildPrintMultipleTokens(client.billingid, client.patientid);
+               const params = new URLSearchParams({
+                    csvid,
+                    testid: String(baseItem.testid),
+                    testname: baseItem.test_name || '',
+                    ptid,
+                    target,
+                    ascensionId: String(baseItem.ascension_id),
+                    isMultiple: 'false',
+                    isUltrasound: 'false',
+                    is_password_encrypted: 'false',
+                    password: 'false',
+                    multiple: 'true',
+               });
+               const reportUrl = new URL(`/result/lab-report-multiple?${params.toString()}`, window.location.origin);
+               printWindow.location.replace(reportUrl.toString());
+          } catch (err) {
+               printWindow.close();
+               setPrintError(err instanceof Error ? err.message : 'Could not prepare the result printout.');
+               console.error('handlePrintReadyResults error:', err);
+          } finally {
+               setPrintingBillingIds((current) => {
+                    const next = new Set(current);
+                    next.delete(client.billingid);
+                    return next;
+               });
+          }
+     };
 
      const getClientKey = (client: ClientFolderItem) => `${client.patientid}-${client.billingid}`;
 
@@ -372,6 +483,8 @@ export default function LaboratoryClientList() {
                     </div>
                </div>
 
+               {printError ? <div className="alert alert-danger mt-3" role="alert">{printError}</div> : null}
+
                <div className="mt-3">
                     {loading ? (
                          <div className="text-center py-5">
@@ -448,7 +561,7 @@ export default function LaboratoryClientList() {
                                                        <td>
                                                             <div className="fw-semibold mb-2">Total: {client.total_tests}</div>
                                                             <div className="text-muted mb-2" style={{ fontSize: '0.85rem' }}>
-                                                                 Collected: {breakdown.collected} | Validated: {breakdown.validated} | Processing: {breakdown.processing} | Completed: {breakdown.completed} | Released: {breakdown.released} | Other: {breakdown.other}
+                                                                 Collected: {breakdown.collected} | Validated: {breakdown.validated} | Processing: {breakdown.processing} | Completed: {breakdown.completed} | Released: {breakdown.released} | Ready to print: {breakdown.printReady} | Other: {breakdown.other}
                                                             </div>
                                                             <div className="mt-2">
                                                                  {(client.tests_with_stage || '')
@@ -456,25 +569,49 @@ export default function LaboratoryClientList() {
                                                                       .map((t) => t.trim())
                                                                       .filter(Boolean)
                                                                       .map((t, i) => {
-                                                                           const match = t.match(/^(.*)\s*\((.*)\)$/);
-                                                                           const name = match ? match[1] : t;
-                                                                           const stage = match ? match[2] : 'unknown';
+                                                                           const test = parseTestStageItem(t);
+                                                                           const isPrintable = ['ready for printing', 'released'].includes(test.stage.trim().toLowerCase());
                                                                            return (
                                                                                 <div key={i} className="d-flex justify-content-between align-items-center py-1 border-bottom">
-                                                                                     <div style={{ minWidth: 0 }} className="text-truncate">{name}</div>
-                                                                                     <div className={`text-capitalize ms-2 ${getStageTextClass(stage)}`} style={{ fontSize: '0.85rem' }}>{stage}</div>
+                                                                                     <div style={{ minWidth: 0 }} className="text-truncate">
+                                                                                          {isPrintable && test.ascensionId && test.testid ? (
+                                                                                               <button
+                                                                                                    type="button"
+                                                                                                    className="btn btn-link btn-sm p-0 text-truncate fw-semibold text-success align-baseline"
+                                                                                                    title={`Print ${test.name} as a single result under facility policy`}
+                                                                                                    aria-label={`Print ${test.name} result`}
+                                                                                                    onClick={() => handlePrintSingleResult(client, test)}
+                                                                                               >
+                                                                                                    {test.name}
+                                                                                               </button>
+                                                                                          ) : test.name}
+                                                                                     </div>
+                                                                                     <div className={`text-capitalize ms-2 ${getStageTextClass(test.stage)}`} style={{ fontSize: '0.85rem' }}>{test.stage}</div>
                                                                                 </div>
                                                                            );
                                                                       })}
                                                             </div>
                                                        </td>
                                                        <td>
-                                                            <button
-                                                                 onClick={() => openFolder(client.patientid, client.billingid)}
-                                                                 className={`btn btn-sm ${isPaymentPending ? 'btn-primary' : 'btn-outline-primary'} w-100`}
-                                                            >
-                                                                 Open
-                                                            </button>
+                                                            <div className="d-grid gap-2">
+                                                                 {breakdown.printReady > 0 ? (
+                                                                      <button
+                                                                           type="button"
+                                                                           onClick={() => handlePrintReadyResults(client)}
+                                                                           className="btn btn-sm btn-outline-success"
+                                                                           disabled={printingBillingIds.has(client.billingid)}
+                                                                           title="Print results available for this request under facility policy"
+                                                                      >
+                                                                           {printingBillingIds.has(client.billingid) ? 'Preparing...' : 'Print ready'}
+                                                                      </button>
+                                                                 ) : null}
+                                                                 <button
+                                                                      onClick={() => openFolder(client.patientid, client.billingid)}
+                                                                      className={`btn btn-sm ${isPaymentPending ? 'btn-primary' : 'btn-outline-primary'}`}
+                                                                 >
+                                                                      Open
+                                                                 </button>
+                                                            </div>
                                                        </td>
                                                   </tr>
                                              );

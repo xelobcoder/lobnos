@@ -455,6 +455,11 @@ export default function ClientVisit() {
                                                                            <div style={{ fontSize: '0.85rem' }} className={`${isSelected ? 'text-white-50' : 'text-muted'}`}>
                                                                                 Asc: {item.ascension_id} • Test: {item.testid}
                                                                            </div>
+                                                                           {isCompleted ? (
+                                                                                <div style={{ fontSize: '0.85rem' }} className={`fw-semibold ${isSelected ? 'text-white' : 'text-success'}`}>
+                                                                                     Entered by: {item.result_entered_by_name?.trim() || 'Not recorded'}
+                                                                                </div>
+                                                                           ) : null}
                                                                            {!isSelected && isLocked && (
                                                                                 <div style={{ fontSize: '0.8rem' }} className="text-muted">
                                                                                      Locked
@@ -482,6 +487,16 @@ export default function ClientVisit() {
                                                   )}
                                              </div>
                                              <div className="p-3">
+                                                  {selectedItem?.resultEntryEnd ? (
+                                                       <div className="alert alert-success py-2 mb-3" role="status">
+                                                            <div className="fw-semibold">
+                                                                 Result entered by: {selectedItem.result_entered_by_name?.trim() || 'Not recorded'}
+                                                            </div>
+                                                            <div className="small">
+                                                                 Entered on: {formatFullDate(selectedItem.resultEntryEnd)}
+                                                            </div>
+                                                       </div>
+                                                  ) : null}
                                                   {selectedAscensions.length === 0 ? (
                                                        <div className="alert alert-secondary mb-0" role="alert">
                                                             Click a test to load one form, or use the checkboxes to load several.

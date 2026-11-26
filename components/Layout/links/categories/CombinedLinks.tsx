@@ -285,7 +285,8 @@ const AnalyticsLinks: Link[] = [
           link: "/analytics/resultanalysis/alltest",
           icon: <RiTestTubeLine />,
           children: [
-               { title: 'All Test', link: '/analytics/resultanalysis/alltest', icon: <RiTestTubeLine /> }
+               { title: 'All Test', link: '/analytics/resultanalysis/alltest', icon: <RiTestTubeLine /> },
+               { title: 'Lab Scientist Performance', link: '/analytics/resultanalysis/scientists', icon: <RiTestTubeLine /> }
           ]
      },
      {

@@ -26,9 +26,10 @@ const MdsCompanyInformation = ({ companyInfo, styles, logourl, resultsettings, s
     const largeName = nameParts[0] || '';
     const subName = nameParts.slice(1).join(' ');
     const isBreakName = resultsettings?.companyInfo?.breakname || false;
+    const headerType = resultsettings?.companyInfo?.headerType || 'default';
 
 
-    if (isBreakName && nameParts.length > 1) {
+    if (headerType === 'default' && isBreakName && nameParts.length > 1) {
         return (
             <header className={styles?.header}>
                 <div className={styles?.logoSection}>
@@ -66,8 +67,6 @@ const MdsCompanyInformation = ({ companyInfo, styles, logourl, resultsettings, s
         subsequent
     };
 
-
-    const headerType = resultsettings?.companyInfo?.headerType || 'default';
 
     return (
         <>

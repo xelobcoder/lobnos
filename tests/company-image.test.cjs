@@ -81,3 +81,13 @@ test("split-name report header uses the scoped tenant logo, never a hardcoded te
     assert.ok(html.includes("Tenant address"));
     assert.ok(html.includes("Tenant street"));
 });
+test("selected company letterhead overrides split-name layout and keeps its configured styling", () => {
+    const Header = loadComponent("MdsCompanyInformation").default;
+    const html = renderToStaticMarkup(React.createElement(Header, {
+        companyInfo: company,
+        logourl: companyImageUrl(4),
+        resultsettings: { companyInfo: { breakname: true, headerType: "fullwidth", color: "#123456", namefontsize: 24 } },
+    }));
+    assert.ok(html.includes("color:#123456"));
+    assert.ok(html.includes("Tenant address"));
+});

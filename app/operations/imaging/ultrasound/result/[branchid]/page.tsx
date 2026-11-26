@@ -94,6 +94,7 @@ export default function EnterResultUltrasound() {
      const [pin, setPin] = useState('');
      const [isTemplateLoading, setIsTemplateLoading] = useState(false);
      const [hydrationError,setHydrationError]=useState(''),[hydrationRevision,setHydrationRevision]=useState(0),[loadedResultKey,setLoadedResultKey]=useState('');
+     const [clinicalHistoryAccessDenied, setClinicalHistoryAccessDenied] = useState(false);
      const resultKey=`${ascensionid}:${urlpatientid}:${urlbillingid}:${testid}`;
      const templateGeneration=useRef(0);
      const [templateUndo,setTemplateUndo]=useState<{fields:any[];impression:string;template:UltrasoundTemplateOption|null}|null>(null);
@@ -158,7 +159,7 @@ export default function EnterResultUltrasound() {
 
      useEffect(() => {
           let cancelled = false;
-          templateGeneration.current++;setIsTemplateLoading(false);setLoading(true);setHydrationError('');setLoadedResultKey('');setTemplateUndo(null);
+          templateGeneration.current++;setIsTemplateLoading(false);setLoading(true);setHydrationError('');setLoadedResultKey('');setTemplateUndo(null);setClinicalHistoryAccessDenied(false);
           const loadExistingResult = async () => {
                try {
                     const [commentsResponse, resultResponse, clinicalHistoryResponse, rulesResponse] = await Promise.all([
@@ -168,7 +169,33 @@ export default function EnterResultUltrasound() {
                          customFetch(`testpanel/list/customtestrule?testid=${testid}`),
                     ]);
                     if (cancelled) return;
-                    if([commentsResponse,resultResponse,clinicalHistoryResponse,rulesResponse].some(value=>!value||value.error||value.status===false||value.status==='error')||!Array.isArray(resultResponse?.result))throw new Error('Unable to load the existing report completely. Retry before editing.');
+                    const isMissingClinicalHistory = clinicalHistoryResponse?.statusCode === 404
+                         && clinicalHistoryResponse?.message === 'Clinical history not found';
+                    const cannotReadClinicalHistory = Number(clinicalHistoryResponse?.statusCode) === 403;
+                    const clinicalHistoryUnavailable = isMissingClinicalHistory || cannotReadClinicalHistory;
+                    const isFailedResponse = (value: any) => !value || value.error || value.status === false || value.status === 'error';
+                    const responses: Array<[string, any]> = [
+                         ['comments', commentsResponse],
+                         ['saved result', resultResponse],
+                         ['clinical history', clinicalHistoryResponse],
+                         ['test rules', rulesResponse],
+                    ];
+                    const failedResponses = responses.filter(([name, value]) => (
+                         !(name === 'clinical history' && clinicalHistoryUnavailable) && isFailedResponse(value)
+                    ));
+                    if (!isFailedResponse(resultResponse) && !Array.isArray(resultResponse?.result)) {
+                         failedResponses.push(['saved result data', resultResponse]);
+                    }
+                    if (failedResponses.length > 0) {
+                         if (failedResponses.some(([, value]) => Number(value?.statusCode) === 401)) {
+                              if (!cancelled) setHydrationError('Your session could not be verified. Sign in again and reopen this report.');
+                              return;
+                         }
+                         const failedNames = failedResponses.map(([name, value]) => (
+                              value?.statusCode ? `${name} (HTTP ${value.statusCode})` : name
+                         ));
+                         throw new Error(`Unable to load the existing report completely: ${failedNames.join(', ')}. Retry before editing.`);
+                    }
 
                     const rules = Array.isArray(rulesResponse) ? rulesResponse : rulesResponse?.data || [];
                     if (Array.isArray(resultResponse?.result)) {
@@ -178,7 +205,8 @@ export default function EnterResultUltrasound() {
                     }
                     if (resultResponse?.testname) setTestName(resultResponse.testname);
                     setImpression(commentsResponse?.comments || '');
-                    setClinicalHistory(clinicalHistoryResponse?.clinical_history||'');
+                    setClinicalHistory(cannotReadClinicalHistory ? '' : clinicalHistoryResponse?.clinical_history || '');
+                    setClinicalHistoryAccessDenied(cannotReadClinicalHistory);
                     setLoadedResultKey(resultKey);
                } catch (error) {
                     console.error('Failed to load existing ultrasound result:', error);
@@ -190,8 +218,12 @@ export default function EnterResultUltrasound() {
                }
           };
 
-          if (urlbillingid && urlpatientid && ascensionid) void loadExistingResult();
-          else {setHydrationError('The report identity is incomplete. Reopen it from the worklist.');setLoading(false);}
+          if (urlbillingid && urlpatientid && ascensionid && testid && Number.isSafeInteger(Number(testid)) && Number(testid) > 0) {
+               void loadExistingResult();
+          } else {
+               setHydrationError('The report identity is incomplete or invalid. Reopen it from the worklist.');
+               setLoading(false);
+          }
           return () => { cancelled = true; };
      }, [urlbillingid, urlpatientid, ascensionid, scan, testid, hydrationRevision]);
 
@@ -267,7 +299,7 @@ export default function EnterResultUltrasound() {
      };
 
      const handleSaveClinicalHistory = async () => {
-          if(loadedResultKey!==resultKey||hydrationError)return;
+          if(loadedResultKey!==resultKey||hydrationError||clinicalHistoryAccessDenied)return;
           if (!clinicalHistory.trim() || clinicalHistory.trim().length < 5) {
                toast.error('Please enter at least 5 characters for clinical history');
                return;
@@ -320,10 +352,11 @@ export default function EnterResultUltrasound() {
 
                          {activeSection === 'clinical' ? (
                               <div className="border rounded-1 p-3">
+                                   {clinicalHistoryAccessDenied && <div className="alert alert-warning" role="alert">You do not have permission to view or edit the existing clinical history. Result entry is available, but clinical history is read-only.</div>}
                                    <label className="form-label fw-semibold" htmlFor="ultrasound-clinical-history">Clinical History</label>
-                                   <textarea id="ultrasound-clinical-history" className="form-control" rows={8} value={clinicalHistory} onChange={(event) => setClinicalHistory(event.target.value)} placeholder="Enter clinical history here" />
+                                   <textarea id="ultrasound-clinical-history" className="form-control" rows={8} value={clinicalHistory} onChange={(event) => setClinicalHistory(event.target.value)} placeholder={clinicalHistoryAccessDenied ? 'Clinical history is unavailable for your role' : 'Enter clinical history here'} disabled={clinicalHistoryAccessDenied} />
                                    <div className="d-flex justify-content-end mt-3">
-                                        <button onClick={handleSaveClinicalHistory} className="btn btn-primary btn-sm" disabled={submitting}>{submitting ? 'Saving...' : 'Save Clinical History'}</button>
+                                        <button onClick={handleSaveClinicalHistory} className="btn btn-primary btn-sm" disabled={submitting || clinicalHistoryAccessDenied}>{submitting ? 'Saving...' : 'Save Clinical History'}</button>
                                    </div>
                               </div>
                          ) : activeSection === 'images' ? (
